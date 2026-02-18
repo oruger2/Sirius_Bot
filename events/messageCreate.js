@@ -45,8 +45,18 @@ module.exports = {
       processingTimeouts.add(key);
       activeTimeouts.set(key, now + TIMEOUT_MS);
 
+      let deletedCount = 0;
       for (const entry of recent) {
-        await entry.message.delete().catch(() => null);
+        const deleted = await entry.message.delete().then(() => true).catch(() => false);
+        if (deleted) deletedCount += 1;
+      }
+
+      if (deletedCount < MAX_MESSAGES) {
+        activeTimeouts.delete(key);
+        console.warn(
+          `[SPAM BLOCK] メッセージ削除に失敗したためタイムアウトをスキップ: ${key} (deleted ${deletedCount}/${MAX_MESSAGES})`
+        );
+        return;
       }
 
       await member.timeout(TIMEOUT_MS, "SpamBlock: 3秒以内に5回メッセージ送信");
