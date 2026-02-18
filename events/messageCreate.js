@@ -7,6 +7,7 @@ const TIMEOUT_MS = 10 * 60 * 1000;
 
 const messageHistory = new Map();
 const activeTimeouts = new Map();
+const processingTimeouts = new Set();
 
 function keyOf(guildId, userId) {
   return `${guildId}:${userId}`;
@@ -35,18 +36,20 @@ module.exports = {
     if (recent.length < MAX_MESSAGES) return;
 
     const timeoutUntil = activeTimeouts.get(key) || 0;
-    if (now < timeoutUntil) return;
+    if (now < timeoutUntil || processingTimeouts.has(key)) return;
 
     const member = message.member;
     if (!member || !member.moderatable) return;
 
     try {
+      processingTimeouts.add(key);
+      activeTimeouts.set(key, now + TIMEOUT_MS);
+
       for (const entry of recent) {
         await entry.message.delete().catch(() => null);
       }
 
       await member.timeout(TIMEOUT_MS, "SpamBlock: 3秒以内に5回メッセージ送信");
-      activeTimeouts.set(key, now + TIMEOUT_MS);
       messageHistory.set(key, []);
 
       if (!setting.reportChannelId) return;
@@ -68,7 +71,10 @@ module.exports = {
 
       await reportChannel.send({ embeds: [embed] });
     } catch (error) {
+      activeTimeouts.delete(key);
       console.error("[SPAM BLOCK] タイムアウト処理に失敗", error);
+    } finally {
+      processingTimeouts.delete(key);
     }
   },
 };
