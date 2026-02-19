@@ -1,0 +1,17 @@
+{
+  "1444644623262814251": {
+    "enabled": true,
+    "reportChannelId": "1445045912165421118",
+    "ignoredChannelIds": [],
+    "ignoredRoleIds": [
+      "1444671639970119802",
+      "1444671743317770370"
+    ]
+  },
+  "1386597024094228550": {
+    "enabled": false,
+    "reportChannelId": "",
+    "ignoredChannelIds": [],
+    "ignoredRoleIds": []
+  }
+}
