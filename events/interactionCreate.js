@@ -23,6 +23,10 @@ const {
   getGuildSpamSetting,
   setGuildSpamSetting,
 } = require("../utils/spamBlockSettings");
+const {
+  getGuildAutoReactionSetting,
+  setGuildAutoReactionSetting,
+} = require("../utils/autoReactionSettings");
 const settingpanel = require("../commands/settingpanel");
 
 const configPath = path.join(__dirname, "../config.json");
@@ -56,14 +60,129 @@ function parseIdList(text) {
   )];
 }
 
+
+
+function parseEmojiList(text) {
+  return [...new Set(
+    String(text || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean)
+  )];
+}
+
+function toReactionValue(emoji) {
+  const customEmojiMatch = emoji.match(/^<?a?:\w+:(\d+)>?$/);
+  if (customEmojiMatch) return customEmojiMatch[1];
+
+  if (/^\d+$/.test(emoji)) return emoji;
+  return emoji;
+}
+
+async function handleAutoReactionPanel(interaction) {
+  if (!interaction.inGuild()) return;
+
+  if (!isAdmin(interaction)) {
+    return interaction.reply({ content: "❌ 管理者のみ操作できます。", flags: MessageFlags.Ephemeral });
+  }
+
+  const guildId = interaction.guild.id;
+  const setting = getGuildAutoReactionSetting(guildId);
+
+  if (interaction.isButton() && interaction.customId === "autoreact_toggle") {
+    if (!setting.channelIds.length || !setting.emojis.length) {
+      return interaction.reply({
+        content: "⚠️ ONにする前に対象チャンネルと絵文字を設定してください。",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    setGuildAutoReactionSetting(guildId, { ...setting, enabled: !setting.enabled });
+    return interaction.update(renderSettingPanel(guildId));
+  }
+
+  if (interaction.isButton() && interaction.customId === "autoreact_open_modal") {
+    const modal = new ModalBuilder().setCustomId("autoreact_modal").setTitle("自動リアクション設定");
+
+    const channelsInput = new TextInputBuilder()
+      .setCustomId("channel_ids")
+      .setLabel("対象チャンネルID（カンマ区切り）")
+      .setPlaceholder("123...,456...")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true)
+      .setValue((setting.channelIds || []).join(","));
+
+    const emojisInput = new TextInputBuilder()
+      .setCustomId("emoji_list")
+      .setLabel("絵文字（カンマ区切り）")
+      .setPlaceholder("😀,🔥,<:custom:123456789012345678>")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true)
+      .setValue((setting.emojis || []).join(","));
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(channelsInput),
+      new ActionRowBuilder().addComponents(emojisInput)
+    );
+
+    return interaction.showModal(modal);
+  }
+
+  if (interaction.isModalSubmit() && interaction.customId === "autoreact_modal") {
+    const channelIds = parseIdList(interaction.fields.getTextInputValue("channel_ids"));
+    const emojis = parseEmojiList(interaction.fields.getTextInputValue("emoji_list"));
+    const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
+
+    for (const channelId of channelIds) {
+      const channel = interaction.guild.channels.cache.get(channelId);
+      if (!channel || !textLike.includes(channel.type)) {
+        return interaction.reply({
+          content: "❌ 対象チャンネルIDに無効な値があります。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      const botMember = interaction.guild.members.me;
+      const channelPerms = channel.permissionsFor(botMember);
+      if (!channelPerms?.has(PermissionsBitField.Flags.AddReactions)) {
+        return interaction.reply({
+          content: "❌ 指定チャンネルのいずれかでリアクション権限がありません。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    }
+
+    for (const emoji of emojis) {
+      const reactionValue = toReactionValue(emoji);
+      if (/^\d+$/.test(reactionValue) && !interaction.guild.emojis.cache.has(reactionValue)) {
+        return interaction.reply({
+          content: `❌ カスタム絵文字 ${emoji} はこのサーバーで使えません。`,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    }
+
+    setGuildAutoReactionSetting(guildId, {
+      ...setting,
+      channelIds,
+      emojis,
+    });
+
+    return interaction.reply({
+      ...renderSettingPanel(guildId),
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+}
 function renderSettingPanel(guildId) {
   const joinSetting = getGuildJoinSetting(guildId);
   const leaveSetting = getGuildLeaveSetting(guildId);
   const spamSetting = getGuildSpamSetting(guildId);
+  const autoReactionSetting = getGuildAutoReactionSetting(guildId);
 
   return {
-    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting),
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting),
   };
 }
 
@@ -360,6 +479,13 @@ module.exports = {
       (interaction.isModalSubmit() && interaction.customId === "spamblock_modal")
     ) {
       return handleSpamBlockPanel(interaction);
+    }
+
+    if (
+      (interaction.isButton() && ["autoreact_toggle", "autoreact_open_modal"].includes(interaction.customId)) ||
+      (interaction.isModalSubmit() && interaction.customId === "autoreact_modal")
+    ) {
+      return handleAutoReactionPanel(interaction);
     }
 
     if (!interaction.isChatInputCommand()) return;

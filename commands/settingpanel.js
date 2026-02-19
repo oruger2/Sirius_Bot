@@ -10,6 +10,7 @@ const {
 const { getGuildJoinSetting } = require("../utils/joinMessageSettings");
 const { getGuildLeaveSetting } = require("../utils/leaveMessageSettings");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
+const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
 
 function mentionList(ids, type) {
   if (!ids || ids.length === 0) return "なし";
@@ -17,7 +18,7 @@ function mentionList(ids, type) {
   return ids.map((id) => `<@&${id}>`).join(", ");
 }
 
-function buildPanel(joinSetting, leaveSetting, spamSetting) {
+function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting) {
   return new EmbedBuilder()
     .setColor("Blue")
     .setTitle("⚙️ サーバー設定パネル")
@@ -45,6 +46,13 @@ function buildPanel(joinSetting, leaveSetting, spamSetting) {
           `レポート先: ${spamSetting.reportChannelId ? `<#${spamSetting.reportChannelId}>` : "未設定（送信なし）"}\n` +
           `除外チャンネル: ${mentionList(spamSetting.ignoredChannelIds, "channel")}\n` +
           `除外ロール: ${mentionList(spamSetting.ignoredRoleIds, "role")}`,
+      },
+      {
+        name: "✨ 自動リアクション",
+        value:
+          `状態: **${autoReactionSetting.enabled ? "ON" : "OFF"}**\n` +
+          `対象チャンネル: ${mentionList(autoReactionSetting.channelIds, "channel")}\n` +
+          `絵文字: ${(autoReactionSetting.emojis || []).join(", ") || "なし"}`,
       }
     )
     .setFooter({
@@ -52,7 +60,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting) {
     });
 }
 
-function buildButtons(joinSetting, leaveSetting, spamSetting) {
+function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting) {
   const joinRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("joinmsg_toggle")
@@ -86,13 +94,24 @@ function buildButtons(joinSetting, leaveSetting, spamSetting) {
       .setStyle(ButtonStyle.Secondary)
   );
 
-  return [joinRow, leaveRow, spamRow];
+  const reactionRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("autoreact_toggle")
+      .setLabel(autoReactionSetting.enabled ? "AutoReact OFF" : "AutoReact ON")
+      .setStyle(autoReactionSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId("autoreact_open_modal")
+      .setLabel("AutoReact 設定")
+      .setStyle(ButtonStyle.Secondary)
+  );
+
+  return [joinRow, leaveRow, spamRow, reactionRow];
 }
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("settingpanel")
-    .setDescription("サーバー設定パネルを開きます（Join/Leave/SpamBlock）")
+    .setDescription("サーバー設定パネルを開きます（Join/Leave/SpamBlock/AutoReaction）")
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
@@ -107,10 +126,11 @@ module.exports = {
     const joinSetting = getGuildJoinSetting(guildId);
     const leaveSetting = getGuildLeaveSetting(guildId);
     const spamSetting = getGuildSpamSetting(guildId);
+    const autoReactionSetting = getGuildAutoReactionSetting(guildId);
 
     await interaction.reply({
-      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting)],
-      components: buildButtons(joinSetting, leaveSetting, spamSetting),
+      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting)],
+      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting),
       flags: MessageFlags.Ephemeral,
     });
   },
