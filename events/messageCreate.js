@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
+const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
 
 const DETECTION_WINDOW_MS = 5000;
 const DELETE_WINDOW_MS = 10000;
@@ -14,11 +15,35 @@ function keyOf(guildId, userId) {
   return `${guildId}:${userId}`;
 }
 
+
+function toReactionValue(emoji) {
+  const customEmojiMatch = String(emoji).match(/^<?a?:\w+:(\d+)>?$/);
+  if (customEmojiMatch) return customEmojiMatch[1];
+  if (/^\d+$/.test(String(emoji))) return String(emoji);
+  return emoji;
+}
+
+async function processAutoReaction(message) {
+  const setting = getGuildAutoReactionSetting(message.guild.id);
+  if (!setting.enabled) return;
+  if (!setting.channelIds.includes(message.channel.id)) return;
+  if (!Array.isArray(setting.emojis) || setting.emojis.length === 0) return;
+
+  for (const emoji of setting.emojis) {
+    try {
+      await message.react(toReactionValue(emoji));
+    } catch (error) {
+      console.warn(`[AUTO REACTION] リアクション失敗: guild=${message.guild.id} emoji=${emoji}`);
+    }
+  }
+}
 module.exports = {
   name: "messageCreate",
 
   async execute(message) {
     if (!message.guild || message.author.bot) return;
+
+    await processAutoReaction(message);
 
     const setting = getGuildSpamSetting(message.guild.id);
     if (!setting.enabled) return;
