@@ -1,24 +1,76 @@
 {
   "情報系": [
-    { "name": "help", "description": "コマンド一覧を表示" },
-    { "name": "ping", "description": "Botの応答速度を表示" },
-    { "name": "about", "description": "Botの情報を表示" },
-    { "name": "server", "description": "サーバー情報を表示" },
-    { "name": "user", "description": "ユーザー情報を表示" },
-    { "name": "status", "description": "Botの状態を表示" }
+    {
+      "name": "help",
+      "description": "コマンド一覧を表示"
+    },
+    {
+      "name": "ping",
+      "description": "Botの応答速度を表示"
+    },
+    {
+      "name": "about",
+      "description": "Botの情報を表示"
+    },
+    {
+      "name": "server",
+      "description": "サーバー情報を表示"
+    },
+    {
+      "name": "user",
+      "description": "ユーザー情報を表示"
+    },
+    {
+      "name": "status",
+      "description": "Botの状態を表示"
+    },
+    {
+      "name": "createimige",
+      "description": "AI画像を生成"
+    }
   ],
-
   "管理系": [
-    { "name": "ban", "description": "ユーザーをBAN", "permission": "BanMembers" },
-    { "name": "kick", "description": "ユーザーをKick", "permission": "KickMembers" },
-    { "name": "timeout", "description": "ユーザーをTimeout", "permission": "ModerateMembers" },
-    { "name": "clean", "description": "メッセージを削除", "permission": "ManageMessages" },
-    { "name": "rolepanel", "description": "ロールパネルを作成", "permission": "ManageRoles" },
-    { "name": "thread", "description": "スレッドを作成", "permission": "CreatePublicThreads" },
-    { "name": "warn" , "description": "指定したユーザーに警告を与えます", "permission": "ModerateMember" }
+    {
+      "name": "ban",
+      "description": "ユーザーをBAN",
+      "permission": "BanMembers"
+    },
+    {
+      "name": "kick",
+      "description": "ユーザーをKick",
+      "permission": "KickMembers"
+    },
+    {
+      "name": "timeout",
+      "description": "ユーザーをTimeout",
+      "permission": "ModerateMembers"
+    },
+    {
+      "name": "clean",
+      "description": "メッセージを削除",
+      "permission": "ManageMessages"
+    },
+    {
+      "name": "rolepanel",
+      "description": "ロールパネルを作成",
+      "permission": "ManageRoles"
+    },
+    {
+      "name": "thread",
+      "description": "スレッドを作成",
+      "permission": "CreatePublicThreads"
+    },
+    {
+      "name": "warn",
+      "description": "指定したユーザーに警告を与えます",
+      "permission": "ModerateMember"
+    }
   ],
-
   "開発者限定": [
-    { "name": "admin", "description": "管理者専用コマンド", "permission": "BOT_OWNER" }
+    {
+      "name": "admin",
+      "description": "管理者専用コマンド",
+      "permission": "BOT_OWNER"
+    }
   ]
 }
