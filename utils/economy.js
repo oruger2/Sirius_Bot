@@ -3,6 +3,24 @@ const path = require("path");
 
 const economyPath = path.join(__dirname, "../json/economy.json");
 
+function sanitizeEconomyJson(raw) {
+  return raw
+    .replace(/^\uFEFF/, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1")
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/([{,]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":')
+    .trim();
+}
+
+function backupBrokenEconomy(raw) {
+  const dir = path.dirname(economyPath);
+  const backupName = `economy.broken.${Date.now()}.json`;
+  const backupPath = path.join(dir, backupName);
+  fs.writeFileSync(backupPath, raw, "utf8");
+  console.warn(`[ECONOMY] 壊れたJSONを退避しました: ${backupPath}`);
+}
+
 function loadEconomy() {
   if (!fs.existsSync(economyPath)) {
     saveEconomy({});
@@ -14,7 +32,30 @@ function loadEconomy() {
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     console.error("[ECONOMY] 読み込み失敗", error);
-    return {};
+
+    const raw = fs.readFileSync(economyPath, "utf8");
+    const sanitized = sanitizeEconomyJson(raw);
+
+    if (!sanitized) {
+      backupBrokenEconomy(raw);
+      return {};
+    }
+
+    try {
+      const repaired = JSON.parse(sanitized);
+      if (!repaired || typeof repaired !== "object") {
+        backupBrokenEconomy(raw);
+        return {};
+      }
+
+      saveEconomy(repaired);
+      console.warn("[ECONOMY] JSONを自動修復しました");
+      return repaired;
+    } catch (repairError) {
+      console.error("[ECONOMY] 自動修復失敗", repairError);
+      backupBrokenEconomy(raw);
+      return {};
+    }
   }
 }
 
