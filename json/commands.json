@@ -72,5 +72,23 @@
       "description": "管理者専用コマンド",
       "permission": "BOT_OWNER"
     }
+  ],
+  "経済": [
+    {
+      "name": "work",
+      "description": "10分に1回お金を稼ぐ"
+    },
+    {
+      "name": "money",
+      "description": "所持金を確認する"
+    },
+    {
+      "name": "ranking",
+      "description": "所持金ランキングを表示"
+    },
+    {
+      "name": "blackjack",
+      "description": "ブラックジャックで賭ける"
+    }
   ]
 }
