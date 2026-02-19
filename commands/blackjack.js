@@ -48,18 +48,34 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("blackjack")
     .setDescription("ブラックジャックで賭けをします")
-    .addIntegerOption((option) =>
+    .addStringOption((option) =>
       option
         .setName("bet")
-        .setDescription("賭け金")
-        .setMinValue(1)
+        .setDescription("賭け金（数値 / all / half）")
         .setRequired(true)
     ),
 
   async execute(interaction) {
     const userId = interaction.user.id;
-    const bet = interaction.options.getInteger("bet", true);
+    const betInput = interaction.options.getString("bet", true).trim().toLowerCase();
     const economy = getUserEconomy(userId);
+
+    let bet;
+
+    if (betInput === "all") {
+      bet = economy.balance;
+    } else if (betInput === "half") {
+      bet = Math.floor(economy.balance / 2);
+    } else {
+      bet = Number.parseInt(betInput, 10);
+    }
+
+    if (!Number.isInteger(bet) || bet < 1) {
+      return interaction.reply({
+        content: "❌ 賭け金は **1以上の数値** か **all / half** を指定してください。",
+        ephemeral: true,
+      });
+    }
 
     if (economy.balance < bet) {
       return interaction.reply(`❌ 所持金が足りません。現在 **${economy.balance}円** です。`);
