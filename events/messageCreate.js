@@ -1,7 +1,8 @@
 const { EmbedBuilder } = require("discord.js");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 
-const WINDOW_MS = 3000;
+const DETECTION_WINDOW_MS = 5000;
+const DELETE_WINDOW_MS = 10000;
 const MAX_MESSAGES = 5;
 const TIMEOUT_MS = 10 * 60 * 1000;
 
@@ -29,11 +30,13 @@ module.exports = {
     const now = Date.now();
 
     const history = messageHistory.get(key) || [];
-    const recent = history.filter((entry) => now - entry.timestamp <= WINDOW_MS);
-    recent.push({ timestamp: now, message });
-    messageHistory.set(key, recent);
+    const recentHistory = history.filter((entry) => now - entry.timestamp <= DELETE_WINDOW_MS);
+    recentHistory.push({ timestamp: now, message });
+    messageHistory.set(key, recentHistory);
 
-    if (recent.length < MAX_MESSAGES) return;
+    const detectionEntries = recentHistory.filter((entry) => now - entry.timestamp <= DETECTION_WINDOW_MS);
+
+    if (detectionEntries.length < MAX_MESSAGES) return;
 
     const timeoutUntil = activeTimeouts.get(key) || 0;
     if (now < timeoutUntil || processingTimeouts.has(key)) return;
@@ -45,22 +48,19 @@ module.exports = {
       processingTimeouts.add(key);
       activeTimeouts.set(key, now + TIMEOUT_MS);
 
+      await member.timeout(TIMEOUT_MS, "SpamBlock: 5秒以内に5回メッセージ送信");
+
       let deletedCount = 0;
-      for (const entry of recent) {
+      for (const entry of recentHistory) {
         const deleted = await entry.message.delete().then(() => true).catch(() => false);
         if (deleted) deletedCount += 1;
       }
 
-      if (deletedCount < MAX_MESSAGES) {
-        activeTimeouts.delete(key);
-        console.warn(
-          `[SPAM BLOCK] メッセージ削除に失敗したためタイムアウトをスキップ: ${key} (deleted ${deletedCount}/${MAX_MESSAGES})`
-        );
-        return;
-      }
-
-      await member.timeout(TIMEOUT_MS, "SpamBlock: 3秒以内に5回メッセージ送信");
       messageHistory.set(key, []);
+
+      if (deletedCount === 0) {
+        console.warn(`[SPAM BLOCK] 10秒以内のメッセージ削除に失敗: ${key}`);
+      }
 
       if (!setting.reportChannelId) return;
 
@@ -72,8 +72,8 @@ module.exports = {
         .setTitle("🚨 スパム検知")
         .setDescription(`<@${member.id}> を **10分間タイムアウト** しました。`)
         .addFields(
-          { name: "判定", value: "3秒以内に5回のメッセージ送信" },
-          { name: "対応", value: "該当スパムメッセージ削除 + 10分タイムアウト" },
+          { name: "判定", value: "5秒以内に5回のメッセージ送信" },
+          { name: "対応", value: "10秒以内のメッセージ削除 + 10分タイムアウト" },
           { name: "ユーザー", value: `<@${member.id}>`, inline: true },
           { name: "チャンネル", value: `<#${message.channel.id}>`, inline: true }
         )
