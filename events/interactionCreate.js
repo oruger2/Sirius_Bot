@@ -27,6 +27,10 @@ const {
   getGuildAutoReactionSetting,
   setGuildAutoReactionSetting,
 } = require("../utils/autoReactionSettings");
+const {
+  getGuildShortLinkSetting,
+  setGuildShortLinkSetting,
+} = require("../utils/shortLinkBlockSettings");
 const settingpanel = require("../commands/settingpanel");
 
 const configPath = path.join(__dirname, "../config.json");
@@ -179,11 +183,27 @@ function renderSettingPanel(guildId) {
   const leaveSetting = getGuildLeaveSetting(guildId);
   const spamSetting = getGuildSpamSetting(guildId);
   const autoReactionSetting = getGuildAutoReactionSetting(guildId);
+  const shortLinkSetting = getGuildShortLinkSetting(guildId);
 
   return {
-    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting),
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting),
   };
+}
+
+async function handleShortLinkBlockPanel(interaction) {
+  if (!interaction.inGuild()) return;
+
+  if (!isAdmin(interaction)) {
+    return interaction.reply({ content: "❌ 管理者のみ操作できます。", flags: MessageFlags.Ephemeral });
+  }
+
+  if (!(interaction.isButton() && interaction.customId === "shortlink_toggle")) return;
+
+  const guildId = interaction.guild.id;
+  const setting = getGuildShortLinkSetting(guildId);
+  setGuildShortLinkSetting(guildId, { ...setting, enabled: !setting.enabled });
+  return interaction.update(renderSettingPanel(guildId));
 }
 
 async function handleJoinMessagePanel(interaction) {
@@ -486,6 +506,10 @@ module.exports = {
       (interaction.isModalSubmit() && interaction.customId === "autoreact_modal")
     ) {
       return handleAutoReactionPanel(interaction);
+    }
+
+    if (interaction.isButton() && interaction.customId === "shortlink_toggle") {
+      return handleShortLinkBlockPanel(interaction);
     }
 
     if (!interaction.isChatInputCommand()) return;
