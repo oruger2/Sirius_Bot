@@ -11,6 +11,7 @@ const { getGuildJoinSetting } = require("../utils/joinMessageSettings");
 const { getGuildLeaveSetting } = require("../utils/leaveMessageSettings");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
+const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
 
 function mentionList(ids, type) {
   if (!ids || ids.length === 0) return "なし";
@@ -18,11 +19,11 @@ function mentionList(ids, type) {
   return ids.map((id) => `<@&${id}>`).join(", ");
 }
 
-function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting) {
+function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting) {
   return new EmbedBuilder()
     .setColor("Blue")
     .setTitle("⚙️ サーバー設定パネル")
-    .setDescription("Join / Leave メッセージとスパムブロックをこのパネルから設定できます。")
+    .setDescription("Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock をこのパネルから設定できます。")
     .addFields(
       {
         name: "📥 Joinメッセージ",
@@ -53,6 +54,13 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting)
           `状態: **${autoReactionSetting.enabled ? "ON" : "OFF"}**\n` +
           `対象チャンネル: ${mentionList(autoReactionSetting.channelIds, "channel")}\n` +
           `絵文字: ${(autoReactionSetting.emojis || []).join(", ") || "なし"}`,
+      },
+      {
+        name: "🔗 ショートリンクブロック",
+        value:
+          `状態: **${shortLinkSetting.enabled ? "ON" : "OFF"}**\n` +
+          "対象: bit.ly / tinyurl / t.co など主要短縮URL\n" +
+          "許可: chatgpt.com / bot.com",
       }
     )
     .setFooter({
@@ -60,7 +68,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting)
     });
 }
 
-function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting) {
+function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting) {
   const joinRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("joinmsg_toggle")
@@ -105,13 +113,20 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(ButtonStyle.Secondary)
   );
 
-  return [joinRow, leaveRow, spamRow, reactionRow];
+  const shortLinkRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("shortlink_toggle")
+      .setLabel(shortLinkSetting.enabled ? "ShortLinkBlock OFF" : "ShortLinkBlock ON")
+      .setStyle(shortLinkSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success)
+  );
+
+  return [joinRow, leaveRow, spamRow, reactionRow, shortLinkRow];
 }
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("settingpanel")
-    .setDescription("サーバー設定パネルを開きます（Join/Leave/SpamBlock/AutoReaction）")
+    .setDescription("サーバー設定パネルを開きます（Join/Leave/SpamBlock/AutoReaction/ShortLinkBlock）")
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
@@ -127,10 +142,11 @@ module.exports = {
     const leaveSetting = getGuildLeaveSetting(guildId);
     const spamSetting = getGuildSpamSetting(guildId);
     const autoReactionSetting = getGuildAutoReactionSetting(guildId);
+    const shortLinkSetting = getGuildShortLinkSetting(guildId);
 
     await interaction.reply({
-      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting)],
-      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting),
+      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting)],
+      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting),
       flags: MessageFlags.Ephemeral,
     });
   },

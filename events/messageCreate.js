@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
+const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
 
 const DETECTION_WINDOW_MS = 5000;
 const DELETE_WINDOW_MS = 10000;
@@ -10,6 +11,20 @@ const TIMEOUT_MS = 10 * 60 * 1000;
 const messageHistory = new Map();
 const activeTimeouts = new Map();
 const processingTimeouts = new Set();
+const shortLinkDomains = [
+  "bit.ly",
+  "tinyurl.com",
+  "t.co",
+  "is.gd",
+  "goo.gl",
+  "ow.ly",
+  "buff.ly",
+  "adf.ly",
+  "shorte.st",
+  "cutt.ly",
+  "i8.ae",
+];
+const allowedDomains = ["chatgpt.com", "bot.com"];
 
 function keyOf(guildId, userId) {
   return `${guildId}:${userId}`;
@@ -37,6 +52,37 @@ async function processAutoReaction(message) {
     }
   }
 }
+
+async function processShortLinkBlock(message) {
+  const setting = getGuildShortLinkSetting(message.guild.id);
+  if (!setting.enabled) return false;
+
+  const urls = message.content.match(/https?:\/\/[^\s]+/gi);
+  if (!urls) return false;
+
+  const allowedPattern = new RegExp(
+    allowedDomains.map((domain) => `https?:\\/\\/(?:www\\.)?${domain.replace('.', '\\.')}`).join("|"),
+    "i"
+  );
+  if (urls.some((url) => allowedPattern.test(url))) return false;
+
+  const foundDomain = shortLinkDomains.find((domain) => {
+    const pattern = new RegExp(`https?:\\/\\/(?:www\\.)?${domain.replace('.', '\\.')}`, "i");
+    return urls.some((url) => pattern.test(url));
+  });
+
+  if (!foundDomain) return false;
+
+  try {
+    await message.delete();
+    await message.channel.send(`<@${message.author.id}> ショートリンクは禁止されています！ドメイン: **${foundDomain}**`);
+    return true;
+  } catch (error) {
+    console.error("[SHORTLINK BLOCK] メッセージの削除に失敗しました", error);
+    return false;
+  }
+}
+
 module.exports = {
   name: "messageCreate",
 
@@ -44,6 +90,8 @@ module.exports = {
     if (!message.guild || message.author.bot) return;
 
     await processAutoReaction(message);
+    const shortLinkDeleted = await processShortLinkBlock(message);
+    if (shortLinkDeleted) return;
 
     const setting = getGuildSpamSetting(message.guild.id);
     if (!setting.enabled) return;
