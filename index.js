@@ -2,24 +2,8 @@ const fs = require("fs");
 const { Client, Collection, GatewayIntentBits, Partials } = require("discord.js");
 require("dotenv").config();
 const express = require("express");
-
 const app = express();
-const PORT = process.env.PORT || 20419;
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMembers
-  ],
-  partials: [
-    Partials.Message,
-    Partials.Channel,
-    Partials.Reaction
-  ]
-});
+const PORT = process.env.PORT || 20419; // 念のため固定もOK
 
 /* =========================
    Web Server
@@ -37,8 +21,23 @@ app.get("/api/status", (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log("==================================");
   console.log("🌐 Web Server Started");
-  console.log(`👉 http://0.0.0.0:${PORT}`);
+  console.log(`👉 http://fi2.bot-hosting.net:${PORT}`);
   console.log("==================================");
+});
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions, // ★必須
+    GatewayIntentBits.GuildMembers           // ★ロール付与に必須
+  ],
+  partials: [
+    Partials.Message,
+    Partials.Channel,
+    Partials.Reaction // ★必須
+  ]
 });
 
 // =======================
