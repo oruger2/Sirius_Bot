@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start:web": "node web/server.js"
+  },
   "dependencies": {
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
