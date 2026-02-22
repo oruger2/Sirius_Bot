@@ -2,9 +2,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const HOST = '0.0.0.0'; // 外部公開(ポート解放)向け
+const HOST = '0.0.0.0';
 const PORT = Number(process.env.PORT) || 3000;
-const WEB_ROOT = __dirname;
+const WEB_ROOT = path.join(__dirname, 'public');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -34,14 +34,19 @@ function sendFile(filePath, res) {
 }
 
 const server = http.createServer((req, res) => {
-  const requestedPath = req.url === '/' ? '/index.html' : req.url;
-  const safePath = path.normalize(requestedPath).replace(/^\.{2}(\/|\\|$)/, '');
-  const absolutePath = path.join(WEB_ROOT, safePath);
+  const urlPath = decodeURIComponent(req.url.split('?')[0]);
+  const requestedPath = urlPath === '/' ? '/index.html' : urlPath;
+  const normalizedPath = path.normalize(requestedPath).replace(/^\.{2}(\/|\\|$)/, '');
+  let absolutePath = path.join(WEB_ROOT, normalizedPath);
 
   if (!absolutePath.startsWith(WEB_ROOT)) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('403 Forbidden');
     return;
+  }
+
+  if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isDirectory()) {
+    absolutePath = path.join(absolutePath, 'index.html');
   }
 
   sendFile(absolutePath, res);
