@@ -57,19 +57,29 @@ async function processShortLinkBlock(message) {
   const setting = getGuildShortLinkSetting(message.guild.id);
   if (!setting.enabled) return false;
 
-  const urls = message.content.match(/https?:\/\/[^\s]+/gi);
-  if (!urls) return false;
+  const rawUrls = message.content.match(/https?:\/\/[^\s]+|(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^^\s]*)?/gi);
+  if (!rawUrls) return false;
 
-  const allowedPattern = new RegExp(
-    allowedDomains.map((domain) => `https?:\\/\\/(?:www\\.)?${domain.replace('.', '\\.')}`).join("|"),
-    "i"
-  );
-  if (urls.some((url) => allowedPattern.test(url))) return false;
+  const hosts = rawUrls
+    .map((rawUrl) => {
+      const cleaned = rawUrl.replace(/[)>.,!?]+$/g, "");
+      const withProtocol = /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
 
-  const foundDomain = shortLinkDomains.find((domain) => {
-    const pattern = new RegExp(`https?:\\/\\/(?:www\\.)?${domain.replace('.', '\\.')}`, "i");
-    return urls.some((url) => pattern.test(url));
-  });
+      try {
+        return new URL(withProtocol).hostname.toLowerCase();
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean)
+    .map((host) => host.replace(/^www\./, ""));
+
+  if (!hosts.length) return false;
+
+  const hostMatchesDomain = (host, domain) => host === domain || host.endsWith(`.${domain}`);
+  if (hosts.some((host) => allowedDomains.some((domain) => hostMatchesDomain(host, domain)))) return false;
+
+  const foundDomain = shortLinkDomains.find((domain) => hosts.some((host) => hostMatchesDomain(host, domain)));
 
   if (!foundDomain) return false;
 
