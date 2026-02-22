@@ -1,10 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 
-const DETECTION_WINDOW_MS = 5000;
 const DELETE_WINDOW_MS = 10000;
-const MAX_MESSAGES = 5;
-const TIMEOUT_MS = 10 * 60 * 1000;
 
 const messageHistory = new Map();
 const activeTimeouts = new Map();
@@ -34,8 +31,12 @@ module.exports = {
     recentHistory.push({ timestamp: now, message });
     messageHistory.set(key, recentHistory);
 
-    const detectionEntries = recentHistory.filter((entry) => now - entry.timestamp <= DETECTION_WINDOW_MS);
-    if (detectionEntries.length < MAX_MESSAGES) return;
+    const detectionWindowMs = setting.detectionWindowSeconds * 1000;
+    const maxMessages = setting.maxMessages;
+    const timeoutMs = setting.timeoutMinutes * 60 * 1000;
+
+    const detectionEntries = recentHistory.filter((entry) => now - entry.timestamp <= detectionWindowMs);
+    if (detectionEntries.length < maxMessages) return;
 
     const timeoutUntil = activeTimeouts.get(key) || 0;
     if (now < timeoutUntil || processingTimeouts.has(key)) return;
@@ -45,9 +46,9 @@ module.exports = {
 
     try {
       processingTimeouts.add(key);
-      activeTimeouts.set(key, now + TIMEOUT_MS);
+      activeTimeouts.set(key, now + timeoutMs);
 
-      await member.timeout(TIMEOUT_MS, "SpamBlock: 5秒以内に5回メッセージ送信");
+      await member.timeout(timeoutMs, `SpamBlock: ${setting.detectionWindowSeconds}秒以内に${setting.maxMessages}回メッセージ送信`);
 
       let deletedCount = 0;
       for (const entry of recentHistory) {
@@ -69,10 +70,10 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚨 スパム検知")
-        .setDescription(`<@${member.id}> を **10分間タイムアウト** しました。`)
+        .setDescription(`<@${member.id}> を **${setting.timeoutMinutes}分間タイムアウト** しました。`)
         .addFields(
-          { name: "判定", value: "5秒以内に5回のメッセージ送信" },
-          { name: "対応", value: "10秒以内のメッセージ削除 + 10分タイムアウト" },
+          { name: "判定", value: `${setting.detectionWindowSeconds}秒以内に${setting.maxMessages}回のメッセージ送信` },
+          { name: "対応", value: `10秒以内のメッセージ削除 + ${setting.timeoutMinutes}分タイムアウト` },
           { name: "ユーザー", value: `<@${member.id}>`, inline: true },
           { name: "チャンネル", value: `<#${message.channel.id}>`, inline: true }
         )

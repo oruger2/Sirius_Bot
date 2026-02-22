@@ -31,6 +31,19 @@ function parseIdList(text) {
   )];
 }
 
+function parseInteger(text) {
+  const value = Number.parseInt(String(text || "").trim(), 10);
+  return Number.isNaN(value) ? null : value;
+}
+
+function parseDetectionRule(text) {
+  const [secondsText = "", countText = ""] = String(text || "").split(",");
+  return {
+    detectionWindowSeconds: parseInteger(secondsText),
+    maxMessages: parseInteger(countText),
+  };
+}
+
 function renderSettingPanel(guildId) {
   const joinSetting = getGuildJoinSetting(guildId);
   const leaveSetting = getGuildLeaveSetting(guildId);
@@ -78,6 +91,22 @@ module.exports = {
         .setRequired(false)
         .setValue(setting.reportChannelId || "");
 
+      const detectionRuleInput = new TextInputBuilder()
+        .setCustomId("detection_rule")
+        .setLabel("判定条件（秒数,回数）")
+        .setPlaceholder("例: 5,5")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setValue(`${setting.detectionWindowSeconds || 5},${setting.maxMessages || 5}`);
+
+      const timeoutMinutesInput = new TextInputBuilder()
+        .setCustomId("timeout_minutes")
+        .setLabel("タイムアウト分数（1〜1440分）")
+        .setPlaceholder("例: 10")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setValue(String(setting.timeoutMinutes || 10));
+
       const ignoredChannelsInput = new TextInputBuilder()
         .setCustomId("ignored_channel_ids")
         .setLabel("除外チャンネルID（カンマ区切り）")
@@ -96,6 +125,8 @@ module.exports = {
 
       modal.addComponents(
         new ActionRowBuilder().addComponents(reportChannelInput),
+        new ActionRowBuilder().addComponents(detectionRuleInput),
+        new ActionRowBuilder().addComponents(timeoutMinutesInput),
         new ActionRowBuilder().addComponents(ignoredChannelsInput),
         new ActionRowBuilder().addComponents(ignoredRolesInput)
       );
@@ -105,8 +136,33 @@ module.exports = {
 
     if (interaction.isModalSubmit() && interaction.customId === "spamblock_modal") {
       const reportChannelId = interaction.fields.getTextInputValue("report_channel_id").trim();
+      const { detectionWindowSeconds, maxMessages } = parseDetectionRule(
+        interaction.fields.getTextInputValue("detection_rule")
+      );
+      const timeoutMinutes = parseInteger(interaction.fields.getTextInputValue("timeout_minutes"));
       const ignoredChannelIds = parseIdList(interaction.fields.getTextInputValue("ignored_channel_ids"));
       const ignoredRoleIds = parseIdList(interaction.fields.getTextInputValue("ignored_role_ids"));
+
+      if (!detectionWindowSeconds || detectionWindowSeconds < 1 || detectionWindowSeconds > 60) {
+        return interaction.reply({
+          content: "❌ 判定条件の秒数は1〜60の整数で入力してください。（例: 5,5）",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      if (!maxMessages || maxMessages < 2 || maxMessages > 20) {
+        return interaction.reply({
+          content: "❌ 判定条件の回数は2〜20の整数で入力してください。（例: 5,5）",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      if (!timeoutMinutes || timeoutMinutes < 1 || timeoutMinutes > 1440) {
+        return interaction.reply({
+          content: "❌ タイムアウト分数は1〜1440の整数で入力してください。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
 
       const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
 
@@ -151,6 +207,9 @@ module.exports = {
       setGuildSpamSetting(guildId, {
         ...setting,
         reportChannelId,
+        detectionWindowSeconds,
+        maxMessages,
+        timeoutMinutes,
         ignoredChannelIds,
         ignoredRoleIds,
       });
