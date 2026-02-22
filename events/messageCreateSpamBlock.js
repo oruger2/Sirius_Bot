@@ -1,7 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
-const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
-const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
 
 const DETECTION_WINDOW_MS = 5000;
 const DELETE_WINDOW_MS = 10000;
@@ -11,97 +9,16 @@ const TIMEOUT_MS = 10 * 60 * 1000;
 const messageHistory = new Map();
 const activeTimeouts = new Map();
 const processingTimeouts = new Set();
-const shortLinkDomains = [
-  "bit.ly",
-  "tinyurl.com",
-  "t.co",
-  "is.gd",
-  "goo.gl",
-  "ow.ly",
-  "buff.ly",
-  "adf.ly",
-  "shorte.st",
-  "cutt.ly",
-  "i8.ae",
-];
-const allowedDomains = ["chatgpt.com", "bot.com"];
 
 function keyOf(guildId, userId) {
   return `${guildId}:${userId}`;
-}
-
-
-function toReactionValue(emoji) {
-  const customEmojiMatch = String(emoji).match(/^<?a?:\w+:(\d+)>?$/);
-  if (customEmojiMatch) return customEmojiMatch[1];
-  if (/^\d+$/.test(String(emoji))) return String(emoji);
-  return emoji;
-}
-
-async function processAutoReaction(message) {
-  const setting = getGuildAutoReactionSetting(message.guild.id);
-  if (!setting.enabled) return;
-  if (!setting.channelIds.includes(message.channel.id)) return;
-  if (!Array.isArray(setting.emojis) || setting.emojis.length === 0) return;
-
-  for (const emoji of setting.emojis) {
-    try {
-      await message.react(toReactionValue(emoji));
-    } catch (error) {
-      console.warn(`[AUTO REACTION] リアクション失敗: guild=${message.guild.id} emoji=${emoji}`);
-    }
-  }
-}
-
-async function processShortLinkBlock(message) {
-  const setting = getGuildShortLinkSetting(message.guild.id);
-  if (!setting.enabled) return false;
-
-  const rawUrls = message.content.match(/https?:\/\/[^\s]+|(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^^\s]*)?/gi);
-  if (!rawUrls) return false;
-
-  const hosts = rawUrls
-    .map((rawUrl) => {
-      const cleaned = rawUrl.replace(/[)>.,!?]+$/g, "");
-      const withProtocol = /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
-
-      try {
-        return new URL(withProtocol).hostname.toLowerCase();
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean)
-    .map((host) => host.replace(/^www\./, ""));
-
-  if (!hosts.length) return false;
-
-  const hostMatchesDomain = (host, domain) => host === domain || host.endsWith(`.${domain}`);
-  if (hosts.some((host) => allowedDomains.some((domain) => hostMatchesDomain(host, domain)))) return false;
-
-  const foundDomain = shortLinkDomains.find((domain) => hosts.some((host) => hostMatchesDomain(host, domain)));
-
-  if (!foundDomain) return false;
-
-  try {
-    await message.delete();
-    await message.channel.send(`<@${message.author.id}> ショートリンクは禁止されています！ドメイン: **${foundDomain}**`);
-    return true;
-  } catch (error) {
-    console.error("[SHORTLINK BLOCK] メッセージの削除に失敗しました", error);
-    return false;
-  }
 }
 
 module.exports = {
   name: "messageCreate",
 
   async execute(message) {
-    if (!message.guild || message.author.bot) return;
-
-    await processAutoReaction(message);
-    const shortLinkDeleted = await processShortLinkBlock(message);
-    if (shortLinkDeleted) return;
+    if (!message.guild || message.author.bot || message.deleted) return;
 
     const setting = getGuildSpamSetting(message.guild.id);
     if (!setting.enabled) return;
@@ -118,7 +35,6 @@ module.exports = {
     messageHistory.set(key, recentHistory);
 
     const detectionEntries = recentHistory.filter((entry) => now - entry.timestamp <= DETECTION_WINDOW_MS);
-
     if (detectionEntries.length < MAX_MESSAGES) return;
 
     const timeoutUntil = activeTimeouts.get(key) || 0;

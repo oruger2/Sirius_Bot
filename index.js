@@ -23,7 +23,8 @@ client.commands = new Collection();
 
 const commandFiles = fs
   .readdirSync("./commands")
-  .filter(file => file.endsWith(".js"));
+  .filter(file => file.endsWith(".js"))
+  .sort();
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
@@ -40,7 +41,8 @@ for (const file of commandFiles) {
 // =======================
 const eventFiles = fs
   .readdirSync("./events")
-  .filter(file => file.endsWith(".js"));
+  .filter(file => file.endsWith(".js"))
+  .sort();
 
 for (const file of eventFiles) {
   const event = require(`./events/${file}`);
