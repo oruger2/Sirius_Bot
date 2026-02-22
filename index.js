@@ -6,6 +6,7 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions, // ★必須
     GatewayIntentBits.GuildMembers           // ★ロール付与に必須
   ],
