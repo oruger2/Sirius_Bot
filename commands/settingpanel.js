@@ -43,7 +43,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
         name: "🛡️ スパムブロック",
         value:
           `状態: **${spamSetting.enabled ? "ON" : "OFF"}**\n` +
-          "判定: **5秒以内に5回送信で10分タイムアウト（10秒以内のメッセージ削除）**\n" +
+          `判定: **${spamSetting.detectionWindowSeconds}秒以内に${spamSetting.maxMessages}回送信で${spamSetting.timeoutMinutes}分タイムアウト（10秒以内のメッセージ削除）**\n` +
           `レポート先: ${spamSetting.reportChannelId ? `<#${spamSetting.reportChannelId}>` : "未設定（送信なし）"}\n` +
           `除外チャンネル: ${mentionList(spamSetting.ignoredChannelIds, "channel")}\n` +
           `除外ロール: ${mentionList(spamSetting.ignoredRoleIds, "role")}`,
