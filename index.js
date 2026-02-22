@@ -1,20 +1,44 @@
 const fs = require("fs");
 const { Client, Collection, GatewayIntentBits, Partials } = require("discord.js");
 require("dotenv").config();
+const express = require("express");
+
+const app = express();
+const PORT = process.env.PORT || 20419;
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions, // ★必須
-    GatewayIntentBits.GuildMembers           // ★ロール付与に必須
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers
   ],
   partials: [
     Partials.Message,
     Partials.Channel,
-    Partials.Reaction // ★必須
+    Partials.Reaction
   ]
+});
+
+/* =========================
+   Web Server
+========================= */
+
+app.use(express.static("public"));
+
+app.get("/api/status", (req, res) => {
+  res.json({
+    status: "online",
+    bot: client.user ? client.user.tag : "starting..."
+  });
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("==================================");
+  console.log("🌐 Web Server Started");
+  console.log(`👉 http://0.0.0.0:${PORT}`);
+  console.log("==================================");
 });
 
 // =======================
