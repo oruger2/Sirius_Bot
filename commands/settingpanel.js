@@ -160,14 +160,11 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(ButtonStyle.Secondary)
   );
 
-  const shortLinkRow = new ActionRowBuilder().addComponents(
+  const xpRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('shortlink_toggle')
       .setLabel(shortLinkSetting.enabled ? 'ShortLinkBlock OFF' : 'ShortLinkBlock ON')
-      .setStyle(shortLinkSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success)
-  );
-
-  const xpRow = new ActionRowBuilder().addComponents(
+      .setStyle(shortLinkSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
     new ButtonBuilder()
       .setCustomId('xp_toggle')
       .setLabel(xpSetting.enabled ? 'XP OFF' : 'XP ON')
@@ -178,5 +175,5 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(ButtonStyle.Secondary)
   );
 
-  return [joinRow, leaveRow, spamRow, reactionRow, shortLinkRow, xpRow];
+  return [joinRow, leaveRow, spamRow, reactionRow, xpRow];
 }
