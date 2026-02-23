@@ -23,7 +23,7 @@ function isAdmin(interaction) {
   return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 }
 
-function renderSettingPanel(guildId) {
+function renderSettingPanel(guildId, page = 1) {
   const joinSetting = getGuildJoinSetting(guildId);
   const leaveSetting = getGuildLeaveSetting(guildId);
   const spamSetting = getGuildSpamSetting(guildId);
@@ -33,7 +33,7 @@ function renderSettingPanel(guildId) {
 
   return {
     embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting),
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, page),
   };
 }
 
@@ -64,7 +64,7 @@ module.exports = {
       }
 
       setGuildJoinSetting(guildId, { ...setting, enabled: !setting.enabled });
-      return interaction.update(renderSettingPanel(guildId));
+      return interaction.update(renderSettingPanel(guildId, 1));
     }
 
     if (interaction.isButton() && interaction.customId === "joinmsg_open_modal") {
@@ -119,7 +119,7 @@ module.exports = {
       setGuildJoinSetting(guildId, { ...setting, channelId, message });
 
       return interaction.reply({
-        ...renderSettingPanel(guildId),
+        ...renderSettingPanel(guildId, 1),
         flags: MessageFlags.Ephemeral,
       });
     }

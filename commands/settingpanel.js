@@ -43,7 +43,7 @@ module.exports = {
 
     await interaction.reply({
       embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
-      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting),
+      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, 1),
       flags: MessageFlags.Ephemeral,
     });
   },
@@ -115,7 +115,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
     });
 }
 
-function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting) {
+function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, page = 1) {
   const joinRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('joinmsg_toggle')
@@ -175,5 +175,27 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(ButtonStyle.Secondary)
   );
 
-  return [joinRow, leaveRow, spamRow, reactionRow, xpRow];
+  const pageRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('settingpanel_page_prev')
+      .setLabel('◀ 前へ')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 1),
+    new ButtonBuilder()
+      .setCustomId('settingpanel_page_indicator')
+      .setLabel(`ページ ${page}/2`)
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(true),
+    new ButtonBuilder()
+      .setCustomId('settingpanel_page_next')
+      .setLabel('次へ ▶')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 2)
+  );
+
+  if (page === 1) {
+    return [joinRow, leaveRow, spamRow, pageRow];
+  }
+
+  return [reactionRow, xpRow, pageRow];
 }
