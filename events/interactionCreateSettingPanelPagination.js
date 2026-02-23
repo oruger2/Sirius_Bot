@@ -1,15 +1,9 @@
-const {
-  MessageFlags,
-  PermissionFlagsBits,
-} = require("discord.js");
+const { MessageFlags, PermissionFlagsBits } = require("discord.js");
 const { getGuildJoinSetting } = require("../utils/joinMessageSettings");
 const { getGuildLeaveSetting } = require("../utils/leaveMessageSettings");
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
-const {
-  getGuildShortLinkSetting,
-  setGuildShortLinkSetting,
-} = require("../utils/shortLinkBlockSettings");
+const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
 const { getGuildXpSetting } = require("../utils/xpSystem");
 const settingpanel = require("../commands/settingpanel");
 
@@ -35,16 +29,15 @@ module.exports = {
   name: "interactionCreate",
 
   async execute(interaction) {
-    if (!(interaction.isButton() && interaction.customId === "shortlink_toggle")) return;
+    if (!interaction.isButton()) return;
+    if (!["settingpanel_page_prev", "settingpanel_page_next"].includes(interaction.customId)) return;
     if (!interaction.inGuild()) return;
 
     if (!isAdmin(interaction)) {
       return interaction.reply({ content: "❌ 管理者のみ操作できます。", flags: MessageFlags.Ephemeral });
     }
 
-    const guildId = interaction.guild.id;
-    const setting = getGuildShortLinkSetting(guildId);
-    setGuildShortLinkSetting(guildId, { ...setting, enabled: !setting.enabled });
-    return interaction.update(renderSettingPanel(guildId, 2));
+    const page = interaction.customId === "settingpanel_page_next" ? 2 : 1;
+    return interaction.update(renderSettingPanel(interaction.guild.id, page));
   },
 };
