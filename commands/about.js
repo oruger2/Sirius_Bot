@@ -8,7 +8,6 @@ module.exports = {
       const aboutEmbed = new EmbedBuilder()
         .setColor(0x00ff00) // 緑色
         .setTitle('ボット情報')
-        .setDescription('このボットの詳細情報をご確認ください。')
         .addFields(
           { name: '名前', value: 'Sirius Bot', inline: true },
           { name: 'バージョン', value: '1.11.0', inline: true },
