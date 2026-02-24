@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const { getUserEconomy, addBalance, setLastWorkAt } = require("../utils/economy");
 
 const COOLDOWN_MS = 10 * 60 * 1000;
