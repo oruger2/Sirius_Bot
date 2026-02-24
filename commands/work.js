@@ -26,6 +26,7 @@ module.exports = {
             .setTitle("⏳ まだ働けません")
             .setDescription(`次の勤務まで **${minutes}分${seconds}秒** 待ってください。`),
         ],
+        flags: MessageFlags.Ephemeral
       });
     }
 
