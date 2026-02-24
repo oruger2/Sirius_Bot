@@ -17,7 +17,7 @@ module.exports = {
   async execute(message) {
     if (!message.guild || message.author.bot || message.deleted) return;
 
-    const setting = getGuildSpamSetting(message.guild.id);
+    const setting = await getGuildSpamSetting(message.guild.id);
     if (!setting.enabled) return;
 
     if (setting.ignoredChannelIds.includes(message.channel.id)) return;

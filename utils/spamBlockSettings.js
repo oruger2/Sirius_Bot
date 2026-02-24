@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 const settingsPath = path.join(__dirname, "../json/spamBlockSettings.json");
@@ -17,14 +17,20 @@ function normalizeIdList(list) {
   return [...new Set(list.map((id) => String(id).trim()).filter(Boolean))];
 }
 
-function loadSpamSettings() {
-  if (!fs.existsSync(settingsPath)) {
-    saveSpamSettings({});
-    return {};
+async function loadSpamSettings() {
+  let raw;
+  try {
+    raw = await fsp.readFile(settingsPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      await saveSpamSettings({});
+      return {};
+    }
+    throw err;
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     console.error("[SPAM SETTINGS] 読み込み失敗", error);
@@ -32,14 +38,14 @@ function loadSpamSettings() {
   }
 }
 
-function saveSpamSettings(settings) {
+async function saveSpamSettings(settings) {
   const dir = path.dirname(settingsPath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf8");
+  await fsp.mkdir(dir, { recursive: true });
+  await fsp.writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf8");
 }
 
-function getGuildSpamSetting(guildId) {
-  const settings = loadSpamSettings();
+async function getGuildSpamSetting(guildId) {
+  const settings = await loadSpamSettings();
   const current = settings[guildId] || {};
 
   return {
@@ -58,8 +64,8 @@ function getGuildSpamSetting(guildId) {
   };
 }
 
-function setGuildSpamSetting(guildId, nextValue) {
-  const settings = loadSpamSettings();
+async function setGuildSpamSetting(guildId, nextValue) {
+  const settings = await loadSpamSettings();
   settings[guildId] = {
     enabled: Boolean(nextValue.enabled),
     reportChannelId: nextValue.reportChannelId || "",
@@ -74,7 +80,7 @@ function setGuildSpamSetting(guildId, nextValue) {
     maxMessages: toBoundedInteger(nextValue.maxMessages, DEFAULT_MAX_MESSAGES, 2, 20),
     timeoutMinutes: toBoundedInteger(nextValue.timeoutMinutes, DEFAULT_TIMEOUT_MINUTES, 1, 1440),
   };
-  saveSpamSettings(settings);
+  await saveSpamSettings(settings);
   return settings[guildId];
 }
 

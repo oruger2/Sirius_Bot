@@ -4,27 +4,29 @@ const {
   EmbedBuilder,
   MessageFlags,
 } = require("discord.js");
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 const warningsPath = path.join(__dirname, "../json/warnings.json");
 
-const saveWarnings = (warnings) => {
+const saveWarnings = async (warnings) => {
   const jsonDir = path.dirname(warningsPath);
-
-  if (!fs.existsSync(jsonDir)) {
-    fs.mkdirSync(jsonDir, { recursive: true });
-  }
-
-  fs.writeFileSync(warningsPath, JSON.stringify(warnings, null, 2), "utf8");
+  await fsp.mkdir(jsonDir, { recursive: true });
+  await fsp.writeFile(warningsPath, JSON.stringify(warnings, null, 2), "utf8");
 };
 
-const loadWarnings = () => {
-  if (!fs.existsSync(warningsPath)) {
-    saveWarnings({});
+const loadWarnings = async () => {
+  let raw;
+  try {
+    raw = await fsp.readFile(warningsPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      await saveWarnings({});
+      return {};
+    }
+    throw err;
   }
-
-  return JSON.parse(fs.readFileSync(warningsPath, "utf8"));
+  return JSON.parse(raw);
 };
 
 module.exports = {
@@ -58,13 +60,13 @@ module.exports = {
       });
     }
 
-    const warnings = loadWarnings();
+    const warnings = await loadWarnings();
 
     if (!warnings[guildId]) warnings[guildId] = {};
     if (!warnings[guildId][userId]) warnings[guildId][userId] = [];
 
     warnings[guildId][userId].push({ reason, date: new Date().toISOString() });
-    saveWarnings(warnings);
+    await saveWarnings(warnings);
 
     const warnCount = warnings[guildId][userId].length;
 

@@ -13,7 +13,7 @@ module.exports = {
   async execute(message) {
     if (!message.guild || message.author.bot) return;
 
-    const setting = getGuildAutoReactionSetting(message.guild.id);
+    const setting = await getGuildAutoReactionSetting(message.guild.id);
     if (!setting.enabled) return;
     if (!setting.channelIds.includes(message.channel.id)) return;
     if (!Array.isArray(setting.emojis) || setting.emojis.length === 0) return;

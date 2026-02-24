@@ -1,16 +1,12 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 const { EmbedBuilder, MessageFlags } = require("discord.js");
 
 const blacklistPath = path.join(__dirname, "../json/blacklist.json");
 
-function readBlacklist() {
-  if (!fs.existsSync(blacklistPath)) {
-    return { users: [], servers: [] };
-  }
-
+async function readBlacklist() {
   try {
-    const raw = fs.readFileSync(blacklistPath, "utf8");
+    const raw = await fsp.readFile(blacklistPath, "utf8");
     const parsed = JSON.parse(raw);
 
     return {
@@ -18,7 +14,9 @@ function readBlacklist() {
       servers: Array.isArray(parsed.servers) ? parsed.servers : [],
     };
   } catch (error) {
-    console.error("[BLACKLIST] blacklist.json の読み込みに失敗しました", error);
+    if (error.code !== "ENOENT") {
+      console.error("[BLACKLIST] blacklist.json の読み込みに失敗しました", error);
+    }
     return { users: [], servers: [] };
   }
 }
@@ -26,7 +24,7 @@ function readBlacklist() {
 module.exports = async function blacklistCheck(interaction) {
   if (!interaction?.isChatInputCommand?.()) return false;
 
-  const blacklist = readBlacklist();
+  const blacklist = await readBlacklist();
   const userId = interaction.user?.id;
   const guildId = interaction.guildId;
 

@@ -23,13 +23,13 @@ function isAdmin(interaction) {
   return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 }
 
-function renderSettingPanel(guildId, page = 1) {
-  const joinSetting = getGuildJoinSetting(guildId);
-  const leaveSetting = getGuildLeaveSetting(guildId);
-  const spamSetting = getGuildSpamSetting(guildId);
-  const autoReactionSetting = getGuildAutoReactionSetting(guildId);
-  const shortLinkSetting = getGuildShortLinkSetting(guildId);
-  const xpSetting = getGuildXpSetting(guildId);
+async function renderSettingPanel(guildId, page = 1) {
+  const joinSetting = await getGuildJoinSetting(guildId);
+  const leaveSetting = await getGuildLeaveSetting(guildId);
+  const spamSetting = await getGuildSpamSetting(guildId);
+  const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
+  const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+  const xpSetting = await getGuildXpSetting(guildId);
 
   return {
     embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
@@ -53,7 +53,7 @@ module.exports = {
     }
 
     const guildId = interaction.guild.id;
-    const setting = getGuildLeaveSetting(guildId);
+    const setting = await getGuildLeaveSetting(guildId);
 
     if (interaction.isButton() && interaction.customId === "leavemsg_toggle") {
       if (!setting.channelId || !setting.message) {
@@ -63,8 +63,8 @@ module.exports = {
         });
       }
 
-      setGuildLeaveSetting(guildId, { ...setting, enabled: !setting.enabled });
-      return interaction.update(renderSettingPanel(guildId, 1));
+      await setGuildLeaveSetting(guildId, { ...setting, enabled: !setting.enabled });
+      return interaction.update(await renderSettingPanel(guildId, 1));
     }
 
     if (interaction.isButton() && interaction.customId === "leavemsg_open_modal") {
@@ -116,10 +116,10 @@ module.exports = {
         });
       }
 
-      setGuildLeaveSetting(guildId, { ...setting, channelId, message });
+      await setGuildLeaveSetting(guildId, { ...setting, channelId, message });
 
       return interaction.reply({
-        ...renderSettingPanel(guildId, 1),
+        ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });
     }

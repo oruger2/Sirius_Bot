@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 const settingsPath = path.join(__dirname, "../json/autoReactionSettings.json");
@@ -13,14 +13,20 @@ function normalizeEmojiList(list) {
   return [...new Set(list.map((emoji) => String(emoji).trim()).filter(Boolean))];
 }
 
-function loadAutoReactionSettings() {
-  if (!fs.existsSync(settingsPath)) {
-    saveAutoReactionSettings({});
-    return {};
+async function loadAutoReactionSettings() {
+  let raw;
+  try {
+    raw = await fsp.readFile(settingsPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      await saveAutoReactionSettings({});
+      return {};
+    }
+    throw err;
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     console.error("[AUTO REACTION SETTINGS] 読み込み失敗", error);
@@ -28,14 +34,14 @@ function loadAutoReactionSettings() {
   }
 }
 
-function saveAutoReactionSettings(settings) {
+async function saveAutoReactionSettings(settings) {
   const dir = path.dirname(settingsPath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf8");
+  await fsp.mkdir(dir, { recursive: true });
+  await fsp.writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf8");
 }
 
-function getGuildAutoReactionSetting(guildId) {
-  const settings = loadAutoReactionSettings();
+async function getGuildAutoReactionSetting(guildId) {
+  const settings = await loadAutoReactionSettings();
   const current = settings[guildId] || {};
 
   return {
@@ -45,14 +51,14 @@ function getGuildAutoReactionSetting(guildId) {
   };
 }
 
-function setGuildAutoReactionSetting(guildId, nextValue) {
-  const settings = loadAutoReactionSettings();
+async function setGuildAutoReactionSetting(guildId, nextValue) {
+  const settings = await loadAutoReactionSettings();
   settings[guildId] = {
     enabled: Boolean(nextValue.enabled),
     channelIds: normalizeIdList(nextValue.channelIds),
     emojis: normalizeEmojiList(nextValue.emojis),
   };
-  saveAutoReactionSettings(settings);
+  await saveAutoReactionSettings(settings);
   return settings[guildId];
 }
 

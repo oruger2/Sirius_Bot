@@ -62,7 +62,7 @@ module.exports = {
     const member = interaction.options.getUser("member");
 
     if (sub === "show") {
-      const data = getUserXp(guildId, member.id);
+      const data = await getUserXp(guildId, member.id);
       return interaction.reply({
         embeds: [
           new EmbedBuilder()
@@ -87,14 +87,14 @@ module.exports = {
 
     if (sub === "add") {
       const amount = parseAmount(interaction.options.getInteger("amount"));
-      const current = getUserXp(guildId, member.id);
+      const current = await getUserXp(guildId, member.id);
       nextXp = current.xp + amount;
       action = `+${amount} XP`;
     }
 
     if (sub === "remove") {
       const amount = parseAmount(interaction.options.getInteger("amount"));
-      const current = getUserXp(guildId, member.id);
+      const current = await getUserXp(guildId, member.id);
       nextXp = Math.max(0, current.xp - amount);
       action = `-${amount} XP`;
     }
@@ -104,7 +104,7 @@ module.exports = {
       action = `XPを ${nextXp} に設定`;
     }
 
-    const updated = setUserXp(guildId, member.id, nextXp);
+    const updated = await setUserXp(guildId, member.id, nextXp);
 
     return interaction.reply({
       embeds: [

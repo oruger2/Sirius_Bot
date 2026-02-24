@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 const economyPath = path.join(__dirname, "../json/economy.json");
@@ -13,60 +13,65 @@ function sanitizeEconomyJson(raw) {
     .trim();
 }
 
-function backupBrokenEconomy(raw) {
+async function backupBrokenEconomy(raw) {
   const dir = path.dirname(economyPath);
   const backupName = `economy.broken.${Date.now()}.json`;
   const backupPath = path.join(dir, backupName);
-  fs.writeFileSync(backupPath, raw, "utf8");
+  await fsp.writeFile(backupPath, raw, "utf8");
   console.warn(`[ECONOMY] 壊れたJSONを退避しました: ${backupPath}`);
 }
 
-function loadEconomy() {
-  if (!fs.existsSync(economyPath)) {
-    saveEconomy({});
-    return {};
+async function loadEconomy() {
+  let raw;
+  try {
+    raw = await fsp.readFile(economyPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      await saveEconomy({});
+      return {};
+    }
+    throw err;
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(economyPath, "utf8"));
+    const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     console.error("[ECONOMY] 読み込み失敗", error);
 
-    const raw = fs.readFileSync(economyPath, "utf8");
     const sanitized = sanitizeEconomyJson(raw);
 
     if (!sanitized) {
-      backupBrokenEconomy(raw);
+      await backupBrokenEconomy(raw);
       return {};
     }
 
     try {
       const repaired = JSON.parse(sanitized);
       if (!repaired || typeof repaired !== "object") {
-        backupBrokenEconomy(raw);
+        await backupBrokenEconomy(raw);
         return {};
       }
 
-      saveEconomy(repaired);
+      await saveEconomy(repaired);
       console.warn("[ECONOMY] JSONを自動修復しました");
       return repaired;
     } catch (repairError) {
       console.error("[ECONOMY] 自動修復失敗", repairError);
-      backupBrokenEconomy(raw);
+      await backupBrokenEconomy(raw);
       return {};
     }
   }
 }
 
-function saveEconomy(data) {
+async function saveEconomy(data) {
   const dir = path.dirname(economyPath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(economyPath, JSON.stringify(data, null, 2), "utf8");
+  await fsp.mkdir(dir, { recursive: true });
+  await fsp.writeFile(economyPath, JSON.stringify(data, null, 2), "utf8");
 }
 
-function getUserEconomy(userId) {
-  const data = loadEconomy();
+async function getUserEconomy(userId) {
+  const data = await loadEconomy();
   const user = data[userId] || {};
 
   return {
@@ -75,36 +80,36 @@ function getUserEconomy(userId) {
   };
 }
 
-function setUserEconomy(userId, nextValue) {
-  const data = loadEconomy();
+async function setUserEconomy(userId, nextValue) {
+  const data = await loadEconomy();
   data[userId] = {
     balance: Math.max(0, Math.floor(nextValue.balance || 0)),
     lastWorkAt: Number.isFinite(nextValue.lastWorkAt) ? nextValue.lastWorkAt : 0,
   };
-  saveEconomy(data);
+  await saveEconomy(data);
   return data[userId];
 }
 
-function addBalance(userId, amount) {
-  const current = getUserEconomy(userId);
+async function addBalance(userId, amount) {
+  const current = await getUserEconomy(userId);
   const next = {
     ...current,
     balance: Math.max(0, current.balance + Math.floor(amount)),
   };
 
-  return setUserEconomy(userId, next);
+  return await setUserEconomy(userId, next);
 }
 
-function setLastWorkAt(userId, timestamp) {
-  const current = getUserEconomy(userId);
-  return setUserEconomy(userId, {
+async function setLastWorkAt(userId, timestamp) {
+  const current = await getUserEconomy(userId);
+  return await setUserEconomy(userId, {
     ...current,
     lastWorkAt: timestamp,
   });
 }
 
-function getRanking(limit = 10) {
-  const data = loadEconomy();
+async function getRanking(limit = 10) {
+  const data = await loadEconomy();
 
   return Object.entries(data)
     .map(([userId, value]) => ({

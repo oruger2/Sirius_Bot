@@ -34,12 +34,12 @@ module.exports = {
     }
 
     const guildId = interaction.guild.id;
-    const joinSetting = getGuildJoinSetting(guildId);
-    const leaveSetting = getGuildLeaveSetting(guildId);
-    const spamSetting = getGuildSpamSetting(guildId);
-    const autoReactionSetting = getGuildAutoReactionSetting(guildId);
-    const shortLinkSetting = getGuildShortLinkSetting(guildId);
-    const xpSetting = getGuildXpSetting(guildId);
+    const joinSetting = await getGuildJoinSetting(guildId);
+    const leaveSetting = await getGuildLeaveSetting(guildId);
+    const spamSetting = await getGuildSpamSetting(guildId);
+    const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
+    const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+    const xpSetting = await getGuildXpSetting(guildId);
 
     await interaction.reply({
       embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],

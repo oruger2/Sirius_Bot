@@ -1,17 +1,23 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 const dataPath = path.join(__dirname, "../json/xpSystem.json");
 const MAX_LEVEL = 100;
 
-function readData() {
-  if (!fs.existsSync(dataPath)) {
-    writeData({});
-    return {};
+async function readData() {
+  let raw;
+  try {
+    raw = await fsp.readFile(dataPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      await writeData({});
+      return {};
+    }
+    throw err;
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+    const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     console.error("[XP] データ読み込み失敗", error);
@@ -19,10 +25,10 @@ function readData() {
   }
 }
 
-function writeData(data) {
+async function writeData(data) {
   const dir = path.dirname(dataPath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2), "utf8");
+  await fsp.mkdir(dir, { recursive: true });
+  await fsp.writeFile(dataPath, JSON.stringify(data, null, 2), "utf8");
 }
 
 function normalizeChannelIds(channelIds) {
@@ -75,8 +81,8 @@ function calculateLevelFromXp(xp) {
   };
 }
 
-function getGuildData(guildId) {
-  const all = readData();
+async function getGuildData(guildId) {
+  const all = await readData();
   const guild = all[guildId] || {};
   const settings = guild.settings || {};
 
@@ -90,29 +96,29 @@ function getGuildData(guildId) {
   };
 }
 
-function saveGuildData(guildId, guildData) {
-  const all = readData();
+async function saveGuildData(guildId, guildData) {
+  const all = await readData();
   all[guildId] = guildData;
-  writeData(all);
+  await writeData(all);
 }
 
-function getGuildXpSetting(guildId) {
-  return getGuildData(guildId).settings;
+async function getGuildXpSetting(guildId) {
+  return (await getGuildData(guildId)).settings;
 }
 
-function setGuildXpSetting(guildId, nextSetting) {
-  const guildData = getGuildData(guildId);
+async function setGuildXpSetting(guildId, nextSetting) {
+  const guildData = await getGuildData(guildId);
   guildData.settings = {
     enabled: Boolean(nextSetting.enabled),
     notifyChannelId: nextSetting.notifyChannelId || "",
     ignoredChannelIds: normalizeChannelIds(nextSetting.ignoredChannelIds),
   };
-  saveGuildData(guildId, guildData);
+  await saveGuildData(guildId, guildData);
   return guildData.settings;
 }
 
-function getUserXp(guildId, userId) {
-  const guildData = getGuildData(guildId);
+async function getUserXp(guildId, userId) {
+  const guildData = await getGuildData(guildId);
   const xp = Math.max(0, Number.parseInt(guildData.users[userId]?.xp, 10) || 0);
   const levelInfo = calculateLevelFromXp(xp);
 
@@ -124,19 +130,19 @@ function getUserXp(guildId, userId) {
   };
 }
 
-function setUserXp(guildId, userId, nextXp) {
-  const guildData = getGuildData(guildId);
+async function setUserXp(guildId, userId, nextXp) {
+  const guildData = await getGuildData(guildId);
   const xp = Math.max(0, Number.parseInt(nextXp, 10) || 0);
   guildData.users[userId] = { xp };
-  saveGuildData(guildId, guildData);
+  await saveGuildData(guildId, guildData);
 
-  return getUserXp(guildId, userId);
+  return await getUserXp(guildId, userId);
 }
 
-function addUserXp(guildId, userId, amount) {
-  const current = getUserXp(guildId, userId);
+async function addUserXp(guildId, userId, amount) {
+  const current = await getUserXp(guildId, userId);
   const add = Math.max(0, Number.parseInt(amount, 10) || 0);
-  const next = setUserXp(guildId, userId, current.xp + add);
+  const next = await setUserXp(guildId, userId, current.xp + add);
 
   return {
     before: current,

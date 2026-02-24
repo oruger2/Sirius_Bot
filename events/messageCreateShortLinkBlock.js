@@ -21,7 +21,7 @@ module.exports = {
   async execute(message) {
     if (!message.guild || message.author.bot) return;
 
-    const setting = getGuildShortLinkSetting(message.guild.id);
+    const setting = await getGuildShortLinkSetting(message.guild.id);
     if (!setting.enabled) return;
 
     const rawUrls = message.content.match(/https?:\/\/[^\s]+|(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^\^\s]*)?/gi);

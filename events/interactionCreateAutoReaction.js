@@ -49,13 +49,13 @@ function toReactionValue(emoji) {
   return emoji;
 }
 
-function renderSettingPanel(guildId, page = 1) {
-  const joinSetting = getGuildJoinSetting(guildId);
-  const leaveSetting = getGuildLeaveSetting(guildId);
-  const spamSetting = getGuildSpamSetting(guildId);
-  const autoReactionSetting = getGuildAutoReactionSetting(guildId);
-  const shortLinkSetting = getGuildShortLinkSetting(guildId);
-  const xpSetting = getGuildXpSetting(guildId);
+async function renderSettingPanel(guildId, page = 1) {
+  const joinSetting = await getGuildJoinSetting(guildId);
+  const leaveSetting = await getGuildLeaveSetting(guildId);
+  const spamSetting = await getGuildSpamSetting(guildId);
+  const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
+  const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+  const xpSetting = await getGuildXpSetting(guildId);
 
   return {
     embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
@@ -79,7 +79,7 @@ module.exports = {
     }
 
     const guildId = interaction.guild.id;
-    const setting = getGuildAutoReactionSetting(guildId);
+    const setting = await getGuildAutoReactionSetting(guildId);
 
     if (interaction.isButton() && interaction.customId === "autoreact_toggle") {
       if (!setting.channelIds.length || !setting.emojis.length) {
@@ -89,8 +89,8 @@ module.exports = {
         });
       }
 
-      setGuildAutoReactionSetting(guildId, { ...setting, enabled: !setting.enabled });
-      return interaction.update(renderSettingPanel(guildId, 2));
+      await setGuildAutoReactionSetting(guildId, { ...setting, enabled: !setting.enabled });
+      return interaction.update(await renderSettingPanel(guildId, 2));
     }
 
     if (interaction.isButton() && interaction.customId === "autoreact_open_modal") {
@@ -154,14 +154,14 @@ module.exports = {
         }
       }
 
-      setGuildAutoReactionSetting(guildId, {
+      await setGuildAutoReactionSetting(guildId, {
         ...setting,
         channelIds,
         emojis,
       });
 
       return interaction.reply({
-        ...renderSettingPanel(guildId, 2),
+        ...(await renderSettingPanel(guildId, 2)),
         flags: MessageFlags.Ephemeral,
       });
     }

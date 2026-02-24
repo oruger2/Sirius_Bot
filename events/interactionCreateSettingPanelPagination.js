@@ -11,13 +11,13 @@ function isAdmin(interaction) {
   return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 }
 
-function renderSettingPanel(guildId, page = 1) {
-  const joinSetting = getGuildJoinSetting(guildId);
-  const leaveSetting = getGuildLeaveSetting(guildId);
-  const spamSetting = getGuildSpamSetting(guildId);
-  const autoReactionSetting = getGuildAutoReactionSetting(guildId);
-  const shortLinkSetting = getGuildShortLinkSetting(guildId);
-  const xpSetting = getGuildXpSetting(guildId);
+async function renderSettingPanel(guildId, page = 1) {
+  const joinSetting = await getGuildJoinSetting(guildId);
+  const leaveSetting = await getGuildLeaveSetting(guildId);
+  const spamSetting = await getGuildSpamSetting(guildId);
+  const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
+  const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+  const xpSetting = await getGuildXpSetting(guildId);
 
   return {
     embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
@@ -38,6 +38,6 @@ module.exports = {
     }
 
     const page = interaction.customId === "settingpanel_page_next" ? 2 : 1;
-    return interaction.update(renderSettingPanel(interaction.guild.id, page));
+    return interaction.update(await renderSettingPanel(interaction.guild.id, page));
   },
 };

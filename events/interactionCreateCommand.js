@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 const {
   MessageFlags,
@@ -8,18 +8,19 @@ const blacklistCheck = require("./blacklist");
 
 const configPath = path.join(__dirname, "../config.json");
 
-function getStoppingCommands() {
-  if (!fs.existsSync(configPath)) return [];
-
+async function getStoppingCommands() {
   try {
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const raw = await fsp.readFile(configPath, "utf8");
+    const config = JSON.parse(raw);
     return Array.isArray(config.stopping)
       ? config.stopping
           .map((name) => String(name).replace(/^\//, "").trim().toLowerCase())
           .filter(Boolean)
       : [];
   } catch (error) {
-    console.error("[CONFIG] config.json の読み込みに失敗しました", error);
+    if (error.code !== "ENOENT") {
+      console.error("[CONFIG] config.json の読み込みに失敗しました", error);
+    }
     return [];
   }
 }
@@ -33,7 +34,7 @@ module.exports = {
     const blocked = await blacklistCheck(interaction);
     if (blocked) return;
 
-    const stoppingCommands = getStoppingCommands();
+    const stoppingCommands = await getStoppingCommands();
     const commandName = interaction.commandName.toLowerCase();
 
     if (stoppingCommands.includes(commandName)) {

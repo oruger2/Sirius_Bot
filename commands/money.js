@@ -14,7 +14,7 @@ module.exports = {
 
   async execute(interaction) {
     const target = interaction.options.getUser("user") || interaction.user;
-    const economy = getUserEconomy(target.id);
+    const economy = await getUserEconomy(target.id);
 
     return interaction.reply({
       embeds: [

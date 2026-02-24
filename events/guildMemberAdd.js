@@ -4,7 +4,7 @@ module.exports = {
   name: "guildMemberAdd",
 
   async execute(member) {
-    const setting = getGuildJoinSetting(member.guild.id);
+    const setting = await getGuildJoinSetting(member.guild.id);
 
     if (!setting.enabled || !setting.channelId || !setting.message) {
       return;

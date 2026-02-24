@@ -17,13 +17,13 @@ function isAdmin(interaction) {
   return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 }
 
-function renderSettingPanel(guildId, page = 1) {
-  const joinSetting = getGuildJoinSetting(guildId);
-  const leaveSetting = getGuildLeaveSetting(guildId);
-  const spamSetting = getGuildSpamSetting(guildId);
-  const autoReactionSetting = getGuildAutoReactionSetting(guildId);
-  const shortLinkSetting = getGuildShortLinkSetting(guildId);
-  const xpSetting = getGuildXpSetting(guildId);
+async function renderSettingPanel(guildId, page = 1) {
+  const joinSetting = await getGuildJoinSetting(guildId);
+  const leaveSetting = await getGuildLeaveSetting(guildId);
+  const spamSetting = await getGuildSpamSetting(guildId);
+  const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
+  const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+  const xpSetting = await getGuildXpSetting(guildId);
 
   return {
     embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
@@ -43,8 +43,8 @@ module.exports = {
     }
 
     const guildId = interaction.guild.id;
-    const setting = getGuildShortLinkSetting(guildId);
-    setGuildShortLinkSetting(guildId, { ...setting, enabled: !setting.enabled });
-    return interaction.update(renderSettingPanel(guildId, 2));
+    const setting = await getGuildShortLinkSetting(guildId);
+    await setGuildShortLinkSetting(guildId, { ...setting, enabled: !setting.enabled });
+    return interaction.update(await renderSettingPanel(guildId, 2));
   },
 };

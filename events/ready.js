@@ -1,5 +1,5 @@
 const { Events, REST, Routes, ActivityType } = require("discord.js");
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 module.exports = {
@@ -31,8 +31,7 @@ module.exports = {
 
     /* ===== コマンド読み込み ===== */
     const commands = [];
-    const commandFiles = fs
-      .readdirSync(path.join(__dirname, "../commands"))
+    const commandFiles = (await fsp.readdir(path.join(__dirname, "../commands")))
       .filter(file => file.endsWith(".js"));
 
     for (const file of commandFiles) {

@@ -4,7 +4,7 @@ module.exports = {
   name: "guildMemberRemove",
 
   async execute(member) {
-    const setting = getGuildLeaveSetting(member.guild.id);
+    const setting = await getGuildLeaveSetting(member.guild.id);
 
     if (!setting.enabled || !setting.channelId || !setting.message) {
       return;

@@ -1,16 +1,22 @@
-const fs = require("fs");
+const fsp = require("fs/promises");
 const path = require("path");
 
 const settingsPath = path.join(__dirname, "../json/shortLinkBlockSettings.json");
 
-function loadShortLinkSettings() {
-  if (!fs.existsSync(settingsPath)) {
-    saveShortLinkSettings({});
-    return {};
+async function loadShortLinkSettings() {
+  let raw;
+  try {
+    raw = await fsp.readFile(settingsPath, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      await saveShortLinkSettings({});
+      return {};
+    }
+    throw err;
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (error) {
     console.error("[SHORTLINK SETTINGS] 読み込み失敗", error);
@@ -18,14 +24,14 @@ function loadShortLinkSettings() {
   }
 }
 
-function saveShortLinkSettings(settings) {
+async function saveShortLinkSettings(settings) {
   const dir = path.dirname(settingsPath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf8");
+  await fsp.mkdir(dir, { recursive: true });
+  await fsp.writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf8");
 }
 
-function getGuildShortLinkSetting(guildId) {
-  const settings = loadShortLinkSettings();
+async function getGuildShortLinkSetting(guildId) {
+  const settings = await loadShortLinkSettings();
   const current = settings[guildId] || {};
 
   return {
@@ -33,12 +39,12 @@ function getGuildShortLinkSetting(guildId) {
   };
 }
 
-function setGuildShortLinkSetting(guildId, nextValue) {
-  const settings = loadShortLinkSettings();
+async function setGuildShortLinkSetting(guildId, nextValue) {
+  const settings = await loadShortLinkSettings();
   settings[guildId] = {
     enabled: Boolean(nextValue.enabled),
   };
-  saveShortLinkSettings(settings);
+  await saveShortLinkSettings(settings);
   return settings[guildId];
 }
 

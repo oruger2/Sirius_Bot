@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fsp = require('fs/promises');
 const path = require('path');
 const { EmbedBuilder } = require('discord.js');
 
@@ -22,11 +22,10 @@ module.exports = {
       }
     }
 
-    if (!fs.existsSync(DATA_PATH)) return;
-
     let data;
     try {
-      data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+      const raw = await fsp.readFile(DATA_PATH, 'utf8');
+      data = JSON.parse(raw);
     } catch {
       return;
     }

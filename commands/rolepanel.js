@@ -4,7 +4,7 @@ const {
   PermissionFlagsBits,
   MessageFlags
 } = require('discord.js');
-const fs = require('fs');
+const fsp = require('fs/promises');
 const path = require('path');
 
 const DATA_PATH = path.join(__dirname, '../json/rolepanels.json');
@@ -23,13 +23,19 @@ const COLOR_MAP = {
 };
 
 /* ===== JSON操作 ===== */
-function loadData() {
-  if (!fs.existsSync(DATA_PATH)) return {};
-  return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+async function loadData() {
+  let raw;
+  try {
+    raw = await fsp.readFile(DATA_PATH, 'utf8');
+  } catch (err) {
+    if (err.code === 'ENOENT') return {};
+    throw err;
+  }
+  return JSON.parse(raw);
 }
 
-function saveData(data) {
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
+async function saveData(data) {
+  await fsp.writeFile(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
 /* ===== 絵文字キー変換 ===== */
@@ -82,7 +88,7 @@ module.exports = {
     }
 
     const sub = interaction.options.getSubcommand();
-    const data = loadData();
+    const data = await loadData();
 
     /* ================= create ================= */
     if (sub === 'create') {
@@ -132,7 +138,7 @@ module.exports = {
         roles: { [emojiKey]: role.id }
       };
 
-      saveData(data);
+      await saveData(data);
 
       return interaction.reply({
         embeds: [
@@ -190,7 +196,7 @@ module.exports = {
         const emojiKey = getEmojiKeyFromString(emoji);
         panel.roles[emojiKey] = role.id;
 
-        saveData(data);
+        await saveData(data);
       } catch {
         return interaction.reply({
           embeds: [

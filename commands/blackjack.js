@@ -58,7 +58,7 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     const betInput = interaction.options.getString("bet", true).trim().toLowerCase();
-    const economy = getUserEconomy(userId);
+    const economy = await getUserEconomy(userId);
 
     let bet;
 
@@ -115,7 +115,7 @@ module.exports = {
     };
 
     const settle = async (resultText, delta, revealDealer = true) => {
-      const updated = addBalance(userId, delta);
+      const updated = await addBalance(userId, delta);
       const color = delta > 0 ? "Green" : delta < 0 ? "Red" : "Yellow";
 
       const embed = buildEmbed(revealDealer)

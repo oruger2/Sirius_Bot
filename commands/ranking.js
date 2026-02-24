@@ -7,7 +7,7 @@ module.exports = {
     .setDescription("所持金ランキングを表示します"),
 
   async execute(interaction) {
-    const ranking = getRanking(10);
+    const ranking = await getRanking(10);
 
     if (ranking.length === 0) {
       return interaction.reply("まだランキングデータがありません。`/work` で稼いでみよう！");

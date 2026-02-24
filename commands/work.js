@@ -11,7 +11,7 @@ module.exports = {
   async execute(interaction) {
     const userId = interaction.user.id;
     const now = Date.now();
-    const economy = getUserEconomy(userId);
+    const economy = await getUserEconomy(userId);
     const elapsed = now - economy.lastWorkAt;
 
     if (elapsed < COOLDOWN_MS) {
@@ -30,8 +30,8 @@ module.exports = {
     }
 
     const earned = Math.floor(Math.random() * 1001) + 500;
-    const updated = addBalance(userId, earned);
-    setLastWorkAt(userId, now);
+    const updated = await addBalance(userId, earned);
+    await setLastWorkAt(userId, now);
 
     return interaction.reply({
       embeds: [

@@ -4,13 +4,10 @@ const {
   MessageFlags,
 } = require("discord.js");
 const path = require("path");
-const fs = require("fs");
+const fsp = require("fs/promises");
 
-const adminPath = "./json/admin.json";
-const blacklistPath = "./json/blacklist.json";
-
-const admin = JSON.parse(fs.readFileSync(adminPath, "utf8"));
-const blacklist = JSON.parse(fs.readFileSync(blacklistPath, "utf8"));
+const adminPath = path.join(__dirname, "../json/admin.json");
+const blacklistPath = path.join(__dirname, "../json/blacklist.json");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -78,6 +75,28 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    let admin, blacklist;
+    try {
+      admin = JSON.parse(await fsp.readFile(adminPath, "utf8"));
+    } catch (err) {
+      if (err.code === "ENOENT") {
+        admin = { users: [] };
+      } else {
+        console.error("Failed to read or parse admin config:", err);
+        throw err;
+      }
+    }
+    try {
+      blacklist = JSON.parse(await fsp.readFile(blacklistPath, "utf8"));
+    } catch (err) {
+      if (err.code === "ENOENT") {
+        blacklist = { users: [], servers: [] };
+      } else {
+        console.error("Failed to read or parse blacklist config:", err);
+        throw err;
+      }
+    }
+
     // ===== 管理者チェック =====
     if (!admin.users.includes(interaction.user.id)) {
       return interaction.reply({
@@ -196,7 +215,7 @@ module.exports = {
     if (sub === "member") {
       const user = interaction.options.getUser("user");
 
-      if (admins.admins.includes(user.id)) {
+      if (admin.users.includes(user.id)) {
         return interaction.reply({
           embeds: [
             new EmbedBuilder()
@@ -208,8 +227,8 @@ module.exports = {
         });
       }
 
-      admins.admins.push(user.id);
-      fs.writeFileSync(adminPath, JSON.stringify(admins, null, 2));
+      admin.users.push(user.id);
+      await fsp.writeFile(adminPath, JSON.stringify(admin, null, 2));
 
       return interaction.reply({
         embeds: [
@@ -259,7 +278,7 @@ module.exports = {
         blacklist.servers.push(id);
       }
 
-      fs.writeFileSync(blacklistPath, JSON.stringify(blacklist, null, 2));
+      await fsp.writeFile(blacklistPath, JSON.stringify(blacklist, null, 2));
 
       return interaction.reply({
         embeds: [
