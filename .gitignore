@@ -145,4 +145,3 @@ vite.config.ts.timestamp-*
 start.sh
 json/
 package-lock.json
-economy.json
