@@ -1,7 +1,0 @@
-{
-  "123456789012345678": {
-    "enabled": true,
-    "channelId": "987654321012345678",
-    "message": "[user]さんようこそ！\n現在のサーバー人数: [membercount]"
-  }
-}

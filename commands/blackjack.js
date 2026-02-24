@@ -7,6 +7,7 @@ const {
   ComponentType,
 } = require("discord.js");
 const { getUserEconomy, addBalance } = require("../utils/economy");
+const { isUserPlayingBlackjack, setUserPlayingBlackjack } = require("../utils/gameState");
 
 function drawCard() {
   const cards = [
@@ -57,6 +58,16 @@ module.exports = {
 
   async execute(interaction) {
     const userId = interaction.user.id;
+
+    // === ゲーム状態チェック ===
+    const isPlaying = await isUserPlayingBlackjack(userId);
+    if (isPlaying) {
+      return interaction.reply({
+        content: "❌ 既にブラックジャックをプレイ中です。ゲームを完了してからもう一度お試しください。",
+        ephemeral: true,
+      });
+    }
+
     const betInput = interaction.options.getString("bet", true).trim().toLowerCase();
     const economy = await getUserEconomy(userId);
 
@@ -80,6 +91,9 @@ module.exports = {
     if (economy.balance < bet) {
       return interaction.reply(`❌ 所持金が足りません。現在 **${economy.balance}円** です。`);
     }
+
+    // === ゲーム開始 ===
+    await setUserPlayingBlackjack(userId, true);
 
     const playerHand = [drawCard(), drawCard()];
     const dealerHand = [drawCard(), drawCard()];
@@ -123,13 +137,13 @@ module.exports = {
         .setFooter({ text: `${resultText} | 現在の所持金: ${updated.balance}円` });
 
       await interaction.editReply({ embeds: [embed], components: [] });
+
+      // === ゲーム状態をリセット ===
+      await setUserPlayingBlackjack(userId, false);
     };
 
     const playerTotal = getHandTotal(playerHand);
     const dealerTotal = getHandTotal(dealerHand);
-
-    await interaction.reply({ embeds: [buildEmbed(false)], components: [row] });
-    const message = await interaction.fetchReply();
 
     if (playerTotal === 21 || dealerTotal === 21) {
       if (playerTotal === 21 && dealerTotal === 21) {
@@ -141,6 +155,9 @@ module.exports = {
       }
       return settle("ディーラーブラックジャック…敗北", -bet);
     }
+
+    await interaction.reply({ embeds: [buildEmbed(false)], components: [row] });
+    const message = await interaction.fetchReply();
 
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -195,6 +212,9 @@ module.exports = {
           .setFooter({ text: "時間切れでゲーム終了しました（所持金の変動なし）" });
 
         await interaction.editReply({ embeds: [embed], components: [] }).catch(() => {});
+
+        // === ゲーム状態をリセット ===
+        await setUserPlayingBlackjack(userId, false);
       }
     });
   },
