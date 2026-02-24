@@ -15,7 +15,7 @@ module.exports = {
 
     const lines = ranking.map((entry, index) => {
       const user = interaction.client.users.cache.get(entry.userId);
-      const name = user ? user.tag : `UserID: ${entry.userId}`;
+      const name = entry.username || (user ? user.tag : `UserID: ${entry.userId}`);
       return `**${index + 1}.** ${name} - **${entry.balance}円**`;
     });
 

@@ -31,8 +31,9 @@ module.exports = {
     }
 
     const earned = Math.floor(Math.random() * 1001) + 500;
-    const updated = await addBalance(userId, earned);
-    await setLastWorkAt(userId, now);
+    const username = interaction.user.tag;
+    const updated = await addBalance(userId, earned, username);
+    await setLastWorkAt(userId, now, username);
 
     return interaction.reply({
       embeds: [
