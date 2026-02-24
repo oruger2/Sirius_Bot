@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const { Client, Collection, GatewayIntentBits, Partials } = require("discord.js");
 require("dotenv").config();
 const express = require("express");
@@ -46,7 +47,7 @@ const client = new Client({
 client.commands = new Collection();
 
 const commandFiles = fs
-  .readdirSync("./commands")
+  .readdirSync(path.join(__dirname, "commands"))
   .filter(file => file.endsWith(".js"))
   .sort();
 
