@@ -7,7 +7,7 @@ const app = express();
 const PORT = 20419
 
 /* =========================
-   Web Server
+    Web Server
 ========================= */
 
 app.use(express.static("public"));
@@ -55,7 +55,11 @@ const client = new Client({
     const command = require(`./commands/${file}`);
 
     if (command.data && command.execute) {
-      client.commands.set(command.data.name, command);
+      if (client.commands.has(command.data.name)) {
+        console.warn(`⚠️  スラッシュコマンド ${command.data.name} が重複してます`)
+      }else {
+        client.commands.set(command.data.name, command);
+      }
     } else {
       console.warn(`⚠️  ${file} は data または execute が不足しています`);
     }
