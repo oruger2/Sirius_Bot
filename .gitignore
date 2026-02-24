@@ -142,8 +142,6 @@ vite.config.ts.timestamp-*
 .lesshst
 
 
-# Start bash file
 start.sh
-
-# JSON files
 json/
+package-lock.json
