@@ -1,52 +1,217 @@
-const { SlashCommandBuilder, EmbedBuilder,ChannelType } = require('discord.js');
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  PermissionFlagsBits,
+  MessageFlags
+} = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
+const DATA_PATH = path.join(__dirname, '../json/rolepanels.json');
+
+/* ===== カラー定義 ===== */
+const COLOR_MAP = {
+  RED: 0xed4245,
+  GREEN: 0x57f287,
+  BLUE: 0x3498db,
+  YELLOW: 0xfee75c,
+  PURPLE: 0x9b59b6,
+  ORANGE: 0xe67e22,
+  BLURPLE: 0x5865f2,
+  GREY: 0x95a5a6,
+  DARK: 0x2c2f33
+};
+
+/* ===== JSON操作 ===== */
+function loadData() {
+  if (!fs.existsSync(DATA_PATH)) return {};
+  return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+}
+
+function saveData(data) {
+  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
+}
+
+/* ===== 絵文字キー変換 ===== */
+function getEmojiKeyFromString(emoji) {
+  const match = emoji.match(/<(a?):(\w+):(\d+)>/);
+  if (match) return match[3];
+  return emoji;
+}
+
+/* ===== エラーEmbed ===== */
+function errorEmbed(title, description) {
+  return new EmbedBuilder()
+    .setColor('Red')
+    .setTitle(title)
+    .setDescription(description);
+}
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('server')
-        .setDescription('サーバー情報を表示します。'),
-    async execute(interaction) {
-        const { guild } = interaction;
+  data: new SlashCommandBuilder()
+    .setName('rolepanel')
+    .setDescription('リアクションロールパネル')
+    .addSubcommand(sub =>
+      sub.setName('create')
+        .setDescription('ロールパネルを作成')
+        .addStringOption(o => o.setName('emoji').setDescription('絵文字').setRequired(true))
+        .addRoleOption(o => o.setName('role').setDescription('付与するロール').setRequired(true))
+        .addStringOption(o => o.setName('title').setDescription('タイトル').setRequired(true))
+        .addStringOption(o => o.setName('color').setDescription('色 (RED, BLUE など)').setRequired(true))
+    )
+    .addSubcommand(sub =>
+      sub.setName('add')
+        .setDescription('既存パネルに追加')
+        .addStringOption(o => o.setName('messageid').setDescription('メッセージID').setRequired(true))
+        .addStringOption(o => o.setName('emoji').setDescription('絵文字').setRequired(true))
+        .addRoleOption(o => o.setName('role').setDescription('ロール').setRequired(true))
+    ),
 
-        // サーバーオーナーの取得
-        const owner = await guild.fetchOwner(); // サーバーオーナー
-        const totalMembers = guild.memberCount; // 合計メンバー数
-        const botCount = guild.members.cache.filter(member => member.user.bot).size; // ボット数
-        const userCount = totalMembers - botCount; // ユーザー数
-        const applicationCount = guild.members.cache.filter(member => member.user.bot).size; // アプリケーション（ボット）の数
+  async execute(interaction) {
+    /* ===== 権限チェック ===== */
+    if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles)) {
+      return interaction.reply({
+        embeds: [
+          errorEmbed(
+            '権限エラー',
+            'このコマンドを使用するには **ロールの管理** 権限が必要です。'
+          )
+        ],
+        flags: MessageFlags.Ephemeral
+      });
+    }
 
-        // サーバーブースト情報
-        const boostCount = guild.premiumSubscriptionCount || 0; // ブースト数
-        const boostLevel = guild.premiumTier; // ブーストレベル
+    const sub = interaction.options.getSubcommand();
+    const data = loadData();
 
-        const channels = await interaction.guild.channels.fetch();
+    /* ================= create ================= */
+    if (sub === 'create') {
+      const emoji = interaction.options.getString('emoji');
+      const role = interaction.options.getRole('role');
+      const title = interaction.options.getString('title');
+      const colorName = interaction.options.getString('color').toUpperCase();
 
-        // チャンネル数の取得 (ボットがアクセスできるテキストとボイス)
-        const text = channels.filter(ch=>ch.type === ChannelType.GuildText);
-        const voice = channels.filter(ch=>ch.type === ChannelType.GuildVoice);
-        const category = channels.filter(ch=>ch.type === ChannelType.GuildCategory);
-
-        // ロールの数（すべてのロール）
-        const allRolesCount = guild.roles.cache.size;
-
-        // サーバーアイコン
-        const serverIcon = guild.iconURL({ dynamic: true, size: 512 });
-
-        // 埋め込みメッセージの作成
-        const embed = new EmbedBuilder()
-            .setColor(0x00AEFF) // 青色
-            .setTitle(`🌐 サーバー情報: ${guild.name}`)
-            .setThumbnail(serverIcon) // アイコンを埋め込み
-            .addFields(
-                { name: 'サーバー ID', value: guild.id, inline: true },
-                { name: '創設者', value: `${owner.user.tag} (${owner.id})`, inline: true },
-                { name: '合計人数', value: `👤 ${totalMembers}人`, inline: true },
-                { name: 'サーバーブースト', value: `レベル: ${boostLevel}\nブースト数: ${boostCount}`, inline: true },
-                { name: 'チャンネル数', value: `チャンネル:${channels.size}個(💬:${text.size} 🔊:${voice.size} 📁:${category.size})`},
-                { name: 'ロール数', value: `${allRolesCount}個`, inline: true }
+      if (!COLOR_MAP[colorName]) {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              '色指定エラー',
+              `指定された色 **${colorName}** は無効です。`
             )
-            .setTimestamp();
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
 
-        // 埋め込みを送信
-        await interaction.reply({ embeds: [embed] });
-    },
+      let msg;
+      try {
+        const embed = new EmbedBuilder()
+          .setTitle(title)
+          .setColor(COLOR_MAP[colorName])
+          .setDescription(`${emoji} → <@&${role.id}>`)
+          .setFooter({ text: 'リアクションでロール付与（10秒クールダウン）' });
+
+        msg = await interaction.channel.send({ embeds: [embed] });
+        await msg.react(emoji);
+      } catch {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              '作成失敗',
+              'メッセージ送信またはリアクション追加に失敗しました。'
+            )
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
+      const emojiKey = getEmojiKeyFromString(emoji);
+
+      data[msg.id] = {
+        channelId: interaction.channel.id,
+        roles: { [emojiKey]: role.id }
+      };
+
+      saveData(data);
+
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor('Green')
+            .setTitle('✅ 作成完了')
+            .setDescription(`ロールパネルを作成しました。\n\n**メッセージID**\n\`${msg.id}\``)
+        ],
+        flags: MessageFlags.Ephemeral
+      });
+    }
+
+    /* ================= add ================= */
+    if (sub === 'add') {
+      const messageId = interaction.options.getString('messageid');
+      const emoji = interaction.options.getString('emoji');
+      const role = interaction.options.getRole('role');
+
+      const panel = data[messageId];
+      if (!panel) {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              'パネル未発見',
+              '指定されたメッセージIDのロールパネルが存在しません。'
+            )
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
+      let msg;
+      try {
+        const channel = await interaction.client.channels.fetch(panel.channelId);
+        msg = await channel.messages.fetch(messageId);
+      } catch {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              '取得失敗',
+              'パネルのメッセージまたはチャンネルを取得できませんでした。'
+            )
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
+      try {
+        const embed = EmbedBuilder.from(msg.embeds[0]);
+        embed.setDescription(`${embed.data.description}\n${emoji} → <@&${role.id}>`);
+
+        await msg.edit({ embeds: [embed] });
+        await msg.react(emoji);
+
+        const emojiKey = getEmojiKeyFromString(emoji);
+        panel.roles[emojiKey] = role.id;
+
+        saveData(data);
+      } catch {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              '追加失敗',
+              'リアクション追加または埋め込み編集に失敗しました。'
+            )
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor('Green')
+            .setTitle('✅ 追加完了')
+            .setDescription(`${emoji} → <@&${role.id}> を追加しました。`)
+        ],
+        flags: MessageFlags.Ephemeral
+      });
+    }
+  }
 };

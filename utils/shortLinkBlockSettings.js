@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const settingsPath = path.join(__dirname, "../json/shortlinkblock.json");
+const settingsPath = path.join(__dirname, "../json/shortLinkBlockSettings.json");
 
 function loadShortLinkSettings() {
   if (!fs.existsSync(settingsPath)) {

@@ -1,11 +1,11 @@
 {
-  "scripts": {
-    "start:web": "node web/server.js"
-  },
+  "name": "sirius-system",
+  "version": "1.0.0",
+  "main": "index.js",
   "dependencies": {
     "discord.js": "^14.25.1",
+    "express": "^4.18.2",
     "dotenv": "^17.2.3",
-    "mysql2": "^3.17.2",
-    "express": "^4.21.2"
+    "mysql2": "^3.17.2"
   }
 }

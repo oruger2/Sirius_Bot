@@ -29,7 +29,7 @@ module.exports = {
       });
     }
 
-    const earned = Math.floor(Math.random() * 401) + 100;
+    const earned = Math.floor(Math.random() * 1001) + 500;
     const updated = addBalance(userId, earned);
     setLastWorkAt(userId, now);
 

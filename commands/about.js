@@ -11,12 +11,12 @@ module.exports = {
         .setDescription('このボットの詳細情報をご確認ください。')
         .addFields(
           { name: '名前', value: 'Sirius Bot', inline: true },
-          { name: 'バージョン', value: '1.00.0', inline: true },
+          { name: 'バージョン', value: '1.11.0', inline: true },
           { name: '作者', value: 'Oruger', inline: true },
           { name: '公式ホームページ', value: '[現在非公開]()', inline: false },
           { name: 'サポート', value: '[サポートサーバーに参加](https://discord.gg/TbPtJW5pkt)', inline: false },
         )
-        .setFooter({ text: 'Clystal Bot | Powered by Discord.js', iconURL: 'https://i.imgur.com/AfFp7pu.png' })
+        .setFooter({ text: 'Sirius Bot | Powered by Discord.js', iconURL: 'https://i.imgur.com/AfFp7pu.png' })
         .setTimestamp();
 
       await interaction.reply({ embeds: [aboutEmbed] });

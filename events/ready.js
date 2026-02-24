@@ -6,7 +6,7 @@ module.exports = {
   name: Events.ClientReady,
   once: true,
   async execute(client) {
-    console.log(`✅ Logged in as ${client.user.tag}`);
+    console.log(`✅  Logged in as ${client.user.tag}`);
 
     /* ===== ステータス更新 ===== */
     const updateStatus = () => {
@@ -41,7 +41,7 @@ module.exports = {
         commands.push(command.data.toJSON());
         console.log(`✔ Command loaded: ${command.data.name}`);
       } else {
-        console.warn(`⚠ ${file} は data / execute が不足`);
+        console.warn(`⚠ ${file} は data / execute が不足しています`);
       }
     }
 
@@ -59,7 +59,7 @@ module.exports = {
         Routes.applicationCommands(client.user.id),
         { body: commands }
       );
-      console.log("✅ スラッシュコマンド登録完了");
+      console.log("✅  スラッシュコマンドの登録が完了しました");
     } catch (error) {
       console.error("❌ コマンド登録失敗:", error);
     }

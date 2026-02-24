@@ -1,39 +1,143 @@
-const { EmbedBuilder } = require("discord.js");
-const { getGuildXpSetting, addUserXp, MAX_LEVEL } = require("../utils/xpSystem");
+const {
+  MessageFlags,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  ChannelType,
+  PermissionFlagsBits,
+  PermissionsBitField,
+} = require("discord.js");
+const { getGuildJoinSetting } = require("../utils/joinMessageSettings");
+const { getGuildLeaveSetting } = require("../utils/leaveMessageSettings");
+const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
+const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
+const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
+const { getGuildXpSetting, setGuildXpSetting } = require("../utils/xpSystem");
+const settingpanel = require("../commands/settingpanel");
+
+function isAdmin(interaction) {
+  return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+}
+
+function parseIdList(text) {
+  return [...new Set(String(text || "").split(",").map((value) => value.trim()).filter(Boolean))];
+}
+
+function renderSettingPanel(guildId, page = 1) {
+  const joinSetting = getGuildJoinSetting(guildId);
+  const leaveSetting = getGuildLeaveSetting(guildId);
+  const spamSetting = getGuildSpamSetting(guildId);
+  const autoReactionSetting = getGuildAutoReactionSetting(guildId);
+  const shortLinkSetting = getGuildShortLinkSetting(guildId);
+  const xpSetting = getGuildXpSetting(guildId);
+
+  return {
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, page),
+  };
+}
 
 module.exports = {
-  name: "messageCreate",
+  name: "interactionCreate",
 
-  async execute(message) {
-    if (!message.guild || message.author.bot || message.deleted) return;
+  async execute(interaction) {
+    const isTarget =
+      (interaction.isButton() && ["xp_toggle", "xp_open_modal"].includes(interaction.customId)) ||
+      (interaction.isModalSubmit() && interaction.customId === "xp_modal");
 
-    const setting = getGuildXpSetting(message.guild.id);
-    if (!setting.enabled) return;
-    if (!setting.notifyChannelId) return;
-    if (setting.ignoredChannelIds.includes(message.channel.id)) return;
+    if (!isTarget) return;
+    if (!interaction.inGuild()) return;
 
-    const gain = Math.floor(Math.random() * 6) + 5;
-    const result = addUserXp(message.guild.id, message.author.id, gain);
+    if (!isAdmin(interaction)) {
+      return interaction.reply({ content: "❌ 管理者のみ操作できます。", flags: MessageFlags.Ephemeral });
+    }
 
-    if (!result.leveledUp) return;
+    const guildId = interaction.guild.id;
+    const setting = getGuildXpSetting(guildId);
 
-    const notifyChannel = message.guild.channels.cache.get(setting.notifyChannelId);
-    if (!notifyChannel || !notifyChannel.isTextBased()) return;
+    if (interaction.isButton() && interaction.customId === "xp_toggle") {
+      if (!setting.enabled && !setting.notifyChannelId) {
+        return interaction.reply({
+          content: "⚠️ XPをONにするには通知チャンネル設定が必須です。先に『XP 設定』を行ってください。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
 
-    const embed = new EmbedBuilder()
-      .setColor("Green")
-      .setTitle("🎉 レベルアップ！")
-      .setDescription(`<@${message.author.id}> のレベルが **${result.after.level}** になりました！`)
-      .addFields(
-        { name: "現在XP", value: `${result.after.xp}`, inline: true },
-        {
-          name: "次レベルまで",
-          value: result.after.level >= MAX_LEVEL ? "最大レベル到達" : `${result.after.neededXp} XP`,
-          inline: true,
+      setGuildXpSetting(guildId, { ...setting, enabled: !setting.enabled });
+      return interaction.update(renderSettingPanel(guildId, 2));
+    }
+
+    if (interaction.isButton() && interaction.customId === "xp_open_modal") {
+      const modal = new ModalBuilder().setCustomId("xp_modal").setTitle("XPシステム設定");
+
+      const notifyChannelInput = new TextInputBuilder()
+        .setCustomId("notify_channel_id")
+        .setLabel("通知チャンネルID（必須）")
+        .setPlaceholder("123456789012345678")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setValue(setting.notifyChannelId || "");
+
+      const ignoredChannelsInput = new TextInputBuilder()
+        .setCustomId("ignored_channel_ids")
+        .setLabel("無効チャンネルID（カンマ区切り）")
+        .setPlaceholder("123...,456...")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+        .setValue((setting.ignoredChannelIds || []).join(","));
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(notifyChannelInput),
+        new ActionRowBuilder().addComponents(ignoredChannelsInput)
+      );
+
+      return interaction.showModal(modal);
+    }
+
+    if (interaction.isModalSubmit() && interaction.customId === "xp_modal") {
+      const notifyChannelId = interaction.fields.getTextInputValue("notify_channel_id").trim();
+      const ignoredChannelIds = parseIdList(interaction.fields.getTextInputValue("ignored_channel_ids"));
+
+      const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
+      const notifyChannel = interaction.guild.channels.cache.get(notifyChannelId);
+
+      if (!notifyChannel || !textLike.includes(notifyChannel.type)) {
+        return interaction.reply({
+          content: "❌ 通知チャンネルはテキストチャンネルIDで設定してください。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      const botMember = interaction.guild.members.me;
+      const notifyPerms = notifyChannel.permissionsFor(botMember);
+      if (!notifyPerms?.has(PermissionsBitField.Flags.SendMessages)) {
+        return interaction.reply({
+          content: "❌ 通知チャンネルにBotの送信権限がありません。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      for (const channelId of ignoredChannelIds) {
+        const channel = interaction.guild.channels.cache.get(channelId);
+        if (!channel || !textLike.includes(channel.type)) {
+          return interaction.reply({
+            content: "❌ 無効チャンネルIDに無効な値があります。",
+            flags: MessageFlags.Ephemeral,
+          });
         }
-      )
-      .setTimestamp();
+      }
 
-    await notifyChannel.send({ embeds: [embed] }).catch(() => null);
+      setGuildXpSetting(guildId, {
+        ...setting,
+        notifyChannelId,
+        ignoredChannelIds,
+      });
+
+      return interaction.reply({
+        ...renderSettingPanel(guildId, 2),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
   },
 };

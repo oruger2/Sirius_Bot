@@ -3,7 +3,7 @@ const { Client, Collection, GatewayIntentBits, Partials } = require("discord.js"
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 20419; // 念のため固定もOK
+const PORT = 20419
 
 /* =========================
    Web Server
@@ -20,8 +20,8 @@ app.get("/api/status", (req, res) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("==================================");
-  console.log("🌐 Web Server Started");
-  console.log(`👉 http://fi2.bot-hosting.net:${PORT}`);
+  console.log("🌐  Web Server Started");
+  console.log(`👉  http://fi2.bot-hosting.net:${PORT}`);
   console.log("==================================");
 });
 
@@ -56,7 +56,7 @@ for (const file of commandFiles) {
   if (command.data && command.execute) {
     client.commands.set(command.data.name, command);
   } else {
-    console.warn(`⚠️ ${file} は data または execute が不足しています`);
+    console.warn(`⚠️  ${file} は data または execute が不足しています`);
   }
 }
 
