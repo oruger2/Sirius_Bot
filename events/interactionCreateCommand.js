@@ -6,7 +6,7 @@ const {
 } = require("discord.js");
 const blacklistCheck = require("./blacklist");
 
-const stopConfigPath = path.join(__dirname, "../json/conifg.json");
+const stopConfigPath = path.join(__dirname, "../json/config.json");
 
 function normalizeStopping(list) {
   return Array.isArray(list)
