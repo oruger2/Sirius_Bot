@@ -115,7 +115,7 @@ module.exports = {
           .setTitle(title)
           .setColor(COLOR_MAP[colorName])
           .setDescription(`${emoji} → <@&${role.id}>`)
-          .setFooter({ text: 'リアクションでロール付与（10秒クールダウン）' });
+          .setFooter({ text: 'リアクションでロール付与' });
 
         msg = await interaction.channel.send({ embeds: [embed] });
         await msg.react(emoji);
