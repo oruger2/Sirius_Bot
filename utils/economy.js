@@ -85,6 +85,16 @@ async function setLastWorkAt(userId, timestamp, username) {
   }));
 }
 
+async function setBalance(userId, amount, username) {
+  const normalized = Number.isFinite(amount) ? amount : 0;
+
+  return updateUser(userId, (user) => ({
+    ...user,
+    balance: normalized,
+    username: typeof username === "string" && username.length > 0 ? username : user.username,
+  }));
+}
+
 async function getRanking(limit = 10) {
   const economy = await readEconomy();
 
@@ -102,6 +112,7 @@ async function getRanking(limit = 10) {
 module.exports = {
   getUserEconomy,
   addBalance,
+  setBalance,
   setLastWorkAt,
   getRanking,
 };

@@ -6,17 +6,33 @@ const {
 } = require("discord.js");
 const blacklistCheck = require("./blacklist");
 
-const configPath = path.join(__dirname, "../config.json");
+const stopConfigPath = path.join(__dirname, "../json/confg.json");
+const legacyConfigPath = path.join(__dirname, "../config.json");
+
+function normalizeStopping(list) {
+  return Array.isArray(list)
+    ? list
+        .map((name) => String(name).replace(/^\//, "").trim().toLowerCase())
+        .filter(Boolean)
+    : [];
+}
 
 async function getStoppingCommands() {
   try {
-    const raw = await fsp.readFile(configPath, "utf8");
+    const raw = await fsp.readFile(stopConfigPath, "utf8");
     const config = JSON.parse(raw);
-    return Array.isArray(config.stopping)
-      ? config.stopping
-          .map((name) => String(name).replace(/^\//, "").trim().toLowerCase())
-          .filter(Boolean)
-      : [];
+    return normalizeStopping(config.stopping);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.error("[CONFIG] json/confg.json の読み込みに失敗しました", error);
+      return [];
+    }
+  }
+
+  try {
+    const raw = await fsp.readFile(legacyConfigPath, "utf8");
+    const config = JSON.parse(raw);
+    return normalizeStopping(config.stopping);
   } catch (error) {
     if (error.code !== "ENOENT") {
       console.error("[CONFIG] config.json の読み込みに失敗しました", error);
