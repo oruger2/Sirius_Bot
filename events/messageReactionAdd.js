@@ -1,6 +1,6 @@
 const fsp = require('fs/promises');
 const path = require('path');
-const { EmbedBuilder, MessageFlags } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 const DATA_PATH = path.join(__dirname, '../json/rolepanels.json');
 
@@ -62,14 +62,13 @@ module.exports = {
         .setTimestamp();
 
     await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral
+        embeds: [embed]
     });
 
       /* 5秒後に削除 */
       setTimeout(() => {
         msg.delete().catch(() => {});
-      }, 5000);
+      }, 3000);
 
       /* リアクション削除 */
       await reaction.users.remove(user.id).catch(() => {});
