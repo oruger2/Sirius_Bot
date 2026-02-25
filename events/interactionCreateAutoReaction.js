@@ -2,6 +2,9 @@ const {
   MessageFlags,
   PermissionsBitField,
   ModalBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
@@ -21,15 +24,6 @@ const settingpanel = require("../commands/settingpanel");
 
 function isAdmin(interaction) {
   return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
-}
-
-function parseIdList(text) {
-  return [...new Set(
-    String(text || "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean)
-  )];
 }
 
 function parseEmojiList(text) {
@@ -68,8 +62,9 @@ module.exports = {
 
   async execute(interaction) {
     const isTarget =
-      (interaction.isButton() && ["autoreact_toggle", "autoreact_open_modal"].includes(interaction.customId)) ||
-      (interaction.isModalSubmit() && interaction.customId === "autoreact_modal");
+      (interaction.isButton() && ["autoreact_toggle", "autoreact_open_modal", "autoreact_open_emoji_modal"].includes(interaction.customId)) ||
+      (interaction.isModalSubmit() && interaction.customId === "autoreact_modal") ||
+      (interaction.isChannelSelectMenu() && interaction.customId === "autoreact_select_channels");
 
     if (!isTarget) return;
     if (!interaction.inGuild()) return;
@@ -94,15 +89,33 @@ module.exports = {
     }
 
     if (interaction.isButton() && interaction.customId === "autoreact_open_modal") {
-      const modal = new ModalBuilder().setCustomId("autoreact_modal").setTitle("自動リアクション設定");
+      const channelSelect = new ChannelSelectMenuBuilder()
+        .setCustomId("autoreact_select_channels")
+        .setPlaceholder("対象チャンネルを選択（複数可）")
+        .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setMinValues(1)
+        .setMaxValues(25);
 
-      const channelsInput = new TextInputBuilder()
-        .setCustomId("channel_ids")
-        .setLabel("対象チャンネルID（カンマ区切り）")
-        .setPlaceholder("123...,456...")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true)
-        .setValue((setting.channelIds || []).join(","));
+      if ((setting.channelIds || []).length) {
+        channelSelect.setDefaultChannels(...setting.channelIds.slice(0, 25));
+      }
+
+      const openEmojiModalRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("autoreact_open_emoji_modal")
+          .setLabel("絵文字を編集")
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      return interaction.reply({
+        content: "対象チャンネルはセレクトメニューから、絵文字は下のボタンから設定できます。",
+        components: [new ActionRowBuilder().addComponents(channelSelect), openEmojiModalRow],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isButton() && interaction.customId === "autoreact_open_emoji_modal") {
+      const modal = new ModalBuilder().setCustomId("autoreact_modal").setTitle("自動リアクション絵文字設定");
 
       const emojisInput = new TextInputBuilder()
         .setCustomId("emoji_list")
@@ -113,23 +126,21 @@ module.exports = {
         .setValue((setting.emojis || []).join(","));
 
       modal.addComponents(
-        new ActionRowBuilder().addComponents(channelsInput),
         new ActionRowBuilder().addComponents(emojisInput)
       );
 
       return interaction.showModal(modal);
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === "autoreact_modal") {
-      const channelIds = parseIdList(interaction.fields.getTextInputValue("channel_ids"));
-      const emojis = parseEmojiList(interaction.fields.getTextInputValue("emoji_list"));
+    if (interaction.isChannelSelectMenu() && interaction.customId === "autoreact_select_channels") {
+      const channelIds = interaction.values;
       const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
 
       for (const channelId of channelIds) {
         const channel = interaction.guild.channels.cache.get(channelId);
         if (!channel || !textLike.includes(channel.type)) {
           return interaction.reply({
-            content: "❌ 対象チャンネルIDに無効な値があります。",
+            content: "❌ 対象チャンネルに無効な値があります。",
             flags: MessageFlags.Ephemeral,
           });
         }
@@ -144,6 +155,20 @@ module.exports = {
         }
       }
 
+      await setGuildAutoReactionSetting(guildId, {
+        ...setting,
+        channelIds,
+      });
+
+      return interaction.reply({
+        ...(await renderSettingPanel(guildId, 2)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isModalSubmit() && interaction.customId === "autoreact_modal") {
+      const emojis = parseEmojiList(interaction.fields.getTextInputValue("emoji_list"));
+
       for (const emoji of emojis) {
         const reactionValue = toReactionValue(emoji);
         if (/^\d+$/.test(reactionValue) && !interaction.guild.emojis.cache.has(reactionValue)) {
@@ -156,7 +181,6 @@ module.exports = {
 
       await setGuildAutoReactionSetting(guildId, {
         ...setting,
-        channelIds,
         emojis,
       });
 

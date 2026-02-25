@@ -1,12 +1,12 @@
 const {
   MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
   ActionRowBuilder,
   ChannelType,
   PermissionFlagsBits,
   PermissionsBitField,
+  ChannelSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } = require("discord.js");
 const { getGuildJoinSetting } = require("../utils/joinMessageSettings");
 const { getGuildLeaveSetting } = require("../utils/leaveMessageSettings");
@@ -18,10 +18,6 @@ const settingpanel = require("../commands/settingpanel");
 
 function isAdmin(interaction) {
   return interaction.inGuild() && interaction.member.permissions.has(PermissionFlagsBits.Administrator);
-}
-
-function parseIdList(text) {
-  return [...new Set(String(text || "").split(",").map((value) => value.trim()).filter(Boolean))];
 }
 
 async function renderSettingPanel(guildId, page = 1) {
@@ -43,8 +39,8 @@ module.exports = {
 
   async execute(interaction) {
     const isTarget =
-      (interaction.isButton() && ["xp_toggle", "xp_open_modal"].includes(interaction.customId)) ||
-      (interaction.isModalSubmit() && interaction.customId === "xp_modal");
+      (interaction.isButton() && ["xp_toggle", "xp_open_modal", "xp_clear_ignored_channels"].includes(interaction.customId)) ||
+      (interaction.isChannelSelectMenu() && ["xp_select_notify_channel", "xp_select_ignored_channels"].includes(interaction.customId));
 
     if (!isTarget) return;
     if (!interaction.inGuild()) return;
@@ -69,42 +65,60 @@ module.exports = {
     }
 
     if (interaction.isButton() && interaction.customId === "xp_open_modal") {
-      const modal = new ModalBuilder().setCustomId("xp_modal").setTitle("XPシステム設定");
+      const notifyChannelSelect = new ChannelSelectMenuBuilder()
+        .setCustomId("xp_select_notify_channel")
+        .setPlaceholder("通知チャンネルを選択（必須）")
+        .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setMinValues(1)
+        .setMaxValues(1);
 
-      const notifyChannelInput = new TextInputBuilder()
-        .setCustomId("notify_channel_id")
-        .setLabel("通知チャンネルID（必須）")
-        .setPlaceholder("123456789012345678")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true)
-        .setValue(setting.notifyChannelId || "");
+      if (setting.notifyChannelId) {
+        notifyChannelSelect.setDefaultChannels(setting.notifyChannelId);
+      }
 
-      const ignoredChannelsInput = new TextInputBuilder()
-        .setCustomId("ignored_channel_ids")
-        .setLabel("無効チャンネルID（カンマ区切り）")
-        .setPlaceholder("123...,456...")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(false)
-        .setValue((setting.ignoredChannelIds || []).join(","));
+      const ignoredChannelSelect = new ChannelSelectMenuBuilder()
+        .setCustomId("xp_select_ignored_channels")
+        .setPlaceholder("無効チャンネルを選択（複数可）")
+        .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setMinValues(0)
+        .setMaxValues(25);
 
-      modal.addComponents(
-        new ActionRowBuilder().addComponents(notifyChannelInput),
-        new ActionRowBuilder().addComponents(ignoredChannelsInput)
-      );
+      if ((setting.ignoredChannelIds || []).length) {
+        ignoredChannelSelect.setDefaultChannels(...setting.ignoredChannelIds.slice(0, 25));
+      }
 
-      return interaction.showModal(modal);
+      const clearIgnoredButton = new ButtonBuilder()
+        .setCustomId("xp_clear_ignored_channels")
+        .setLabel("無効チャンネルをクリア")
+        .setStyle(ButtonStyle.Secondary);
+
+      return interaction.reply({
+        content: "通知チャンネルと無効チャンネルをセレクトメニューから選択してください。",
+        components: [
+          new ActionRowBuilder().addComponents(notifyChannelSelect),
+          new ActionRowBuilder().addComponents(ignoredChannelSelect),
+          new ActionRowBuilder().addComponents(clearIgnoredButton),
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === "xp_modal") {
-      const notifyChannelId = interaction.fields.getTextInputValue("notify_channel_id").trim();
-      const ignoredChannelIds = parseIdList(interaction.fields.getTextInputValue("ignored_channel_ids"));
+    if (interaction.isButton() && interaction.customId === "xp_clear_ignored_channels") {
+      await setGuildXpSetting(guildId, { ...setting, ignoredChannelIds: [] });
+      return interaction.reply({
+        ...(await renderSettingPanel(guildId, 2)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
+    if (interaction.isChannelSelectMenu() && interaction.customId === "xp_select_notify_channel") {
+      const [notifyChannelId] = interaction.values;
       const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
       const notifyChannel = interaction.guild.channels.cache.get(notifyChannelId);
 
       if (!notifyChannel || !textLike.includes(notifyChannel.type)) {
         return interaction.reply({
-          content: "❌ 通知チャンネルはテキストチャンネルIDで設定してください。",
+          content: "❌ 通知チャンネルはテキストチャンネルを選択してください。",
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -118,20 +132,18 @@ module.exports = {
         });
       }
 
-      for (const channelId of ignoredChannelIds) {
-        const channel = interaction.guild.channels.cache.get(channelId);
-        if (!channel || !textLike.includes(channel.type)) {
-          return interaction.reply({
-            content: "❌ 無効チャンネルIDに無効な値があります。",
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-      }
+      await setGuildXpSetting(guildId, { ...setting, notifyChannelId });
 
+      return interaction.reply({
+        ...(await renderSettingPanel(guildId, 2)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isChannelSelectMenu() && interaction.customId === "xp_select_ignored_channels") {
       await setGuildXpSetting(guildId, {
         ...setting,
-        notifyChannelId,
-        ignoredChannelIds,
+        ignoredChannelIds: interaction.values,
       });
 
       return interaction.reply({
