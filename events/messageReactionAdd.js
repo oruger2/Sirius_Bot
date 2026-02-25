@@ -45,25 +45,26 @@ module.exports = {
     let actionText;
 
     try {
-      if (member.roles.cache.has(roleId)) {
-        await member.roles.remove(role);
-        actionText = '❌ ロールを削除しました';
-      } else {
-        await member.roles.add(role);
-        actionText = '✅ ロールを付与しました';
-      }
+    let actionText;
 
-      /* ===== 通知 Embed ===== */
-      const embed = new EmbedBuilder()
-        .setColor(member.roles.cache.has(roleId) ? 'Red' : 'Green')
+    if (member.roles.cache.has(roleId)) {
+        await member.roles.remove(role);
+        actionText = "❌ ロールを削除しました";
+    } else {
+        await member.roles.add(role);
+        actionText = "✅ ロールを付与しました";
+    }
+
+    const embed = new EmbedBuilder()
+        .setColor(member.roles.cache.has(roleId) ? 0xED4245 : 0x57F287)
         .setTitle(actionText)
-        .setDescription(`${user}\n**${role.name}**`)
+        .setDescription(`${member.user} に **${role.name}** を処理しました`)
         .setTimestamp();
 
-      const msg = await reaction.message.channel.send({
+    await interaction.reply({
         embeds: [embed],
-                flags: MessageFlags.Ephemeral
-      });
+        flags: MessageFlags.Ephemeral
+    });
 
       /* 5秒後に削除 */
       setTimeout(() => {
