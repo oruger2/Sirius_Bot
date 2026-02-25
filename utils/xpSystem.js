@@ -152,6 +152,25 @@ async function addUserXp(guildId, userId, amount) {
   };
 }
 
+async function getGuildXpRanking(guildId, userIds = []) {
+  const guildData = await getGuildData(guildId);
+  const targetIds = Array.isArray(userIds) && userIds.length > 0
+    ? [...new Set(userIds.map((id) => String(id)))]
+    : Object.keys(guildData.users);
+
+  return targetIds
+    .map((userId) => {
+      const xp = Math.max(0, Number.parseInt(guildData.users[userId]?.xp, 10) || 0);
+      const levelInfo = calculateLevelFromXp(xp);
+      return {
+        userId,
+        xp,
+        level: levelInfo.level,
+      };
+    })
+    .sort((a, b) => b.xp - a.xp || b.level - a.level || a.userId.localeCompare(b.userId));
+}
+
 module.exports = {
   MAX_LEVEL,
   calculateLevelFromXp,
@@ -160,4 +179,5 @@ module.exports = {
   getUserXp,
   setUserXp,
   addUserXp,
+  getGuildXpRanking,
 };
