@@ -61,7 +61,7 @@ module.exports = {
         .setDescription(`${member.user} に **${role.name}** を処理しました`)
         .setTimestamp();
 
-    await interaction.reply({
+    const msg = await reaction.message.channel.send({
         embeds: [embed]
     });
 
