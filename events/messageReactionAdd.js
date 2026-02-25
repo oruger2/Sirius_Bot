@@ -1,6 +1,6 @@
 const fsp = require('fs/promises');
 const path = require('path');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 
 const DATA_PATH = path.join(__dirname, '../json/rolepanels.json');
 
