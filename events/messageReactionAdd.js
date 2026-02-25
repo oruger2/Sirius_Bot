@@ -4,10 +4,6 @@ const { EmbedBuilder } = require('discord.js');
 
 const DATA_PATH = path.join(__dirname, '../json/rolepanels.json');
 
-/* ===== クールダウン ===== */
-const cooldowns = new Map(); // userId => timestamp
-const COOLDOWN_TIME = 10_000; // 10秒
-
 module.exports = {
   name: 'messageReactionAdd',
   async execute(reaction, user) {
@@ -34,17 +30,6 @@ module.exports = {
     const emojiKey = reaction.emoji.id ?? reaction.emoji.name;
 
     if (!data[messageId]?.roles[emojiKey]) return;
-
-    /* ===== クールダウン判定 ===== */
-    const now = Date.now();
-    const last = cooldowns.get(user.id) || 0;
-
-    if (now - last < COOLDOWN_TIME) {
-      await reaction.users.remove(user.id).catch(() => {});
-      return;
-    }
-
-    cooldowns.set(user.id, now);
 
     /* ===== ロール処理 ===== */
     const roleId = data[messageId].roles[emojiKey];
@@ -76,7 +61,8 @@ module.exports = {
         .setTimestamp();
 
       const msg = await reaction.message.channel.send({
-        embeds: [embed]
+        embeds: [embed],
+                flags: MessageFlags.Ephemeral
       });
 
       /* 5秒後に削除 */
