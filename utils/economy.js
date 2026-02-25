@@ -1,7 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-const ECONOMY_PATH = path.join(__dirname, "..", "../json/economy.json");
+const ECONOMY_PATH = path.join(__dirname, "..", "json/economy.json");
 
 async function readEconomy() {
   try {
