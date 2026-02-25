@@ -2,6 +2,9 @@ const {
   MessageFlags,
   PermissionsBitField,
   ModalBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
@@ -42,8 +45,9 @@ module.exports = {
 
   async execute(interaction) {
     const isTarget =
-      (interaction.isButton() && ["joinmsg_toggle", "joinmsg_open_modal"].includes(interaction.customId)) ||
-      (interaction.isModalSubmit() && interaction.customId === "joinmsg_modal");
+      (interaction.isButton() && ["joinmsg_toggle", "joinmsg_open_modal", "joinmsg_open_message_modal"].includes(interaction.customId)) ||
+      (interaction.isModalSubmit() && interaction.customId === "joinmsg_modal") ||
+      (interaction.isChannelSelectMenu() && interaction.customId === "joinmsg_select_channel");
 
     if (!isTarget) return;
     if (!interaction.inGuild()) return;
@@ -58,7 +62,7 @@ module.exports = {
     if (interaction.isButton() && interaction.customId === "joinmsg_toggle") {
       if (!setting.channelId || !setting.message) {
         return interaction.reply({
-          content: "⚠️ ONにする前にチャンネルIDとメッセージを設定してください。",
+          content: "⚠️ ONにする前に送信先チャンネルとメッセージを設定してください。",
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -68,15 +72,34 @@ module.exports = {
     }
 
     if (interaction.isButton() && interaction.customId === "joinmsg_open_modal") {
-      const modal = new ModalBuilder().setCustomId("joinmsg_modal").setTitle("Joinメッセージ設定");
+      const channelSelect = new ChannelSelectMenuBuilder()
+        .setCustomId("joinmsg_select_channel")
+        .setPlaceholder("送信先チャンネルを選択")
+        .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setMinValues(1)
+        .setMaxValues(1);
 
-      const channelInput = new TextInputBuilder()
-        .setCustomId("channel_id")
-        .setLabel("送信先チャンネルID")
-        .setPlaceholder("123456789012345678")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true)
-        .setValue(setting.channelId || "");
+      if (setting.channelId) {
+        channelSelect.setDefaultChannels(setting.channelId);
+      }
+
+      const channelRow = new ActionRowBuilder().addComponents(channelSelect);
+      const openMessageModalRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("joinmsg_open_message_modal")
+          .setLabel("Joinメッセージ本文を編集")
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      return interaction.reply({
+        content: "送信先チャンネルはセレクトメニューから、本文は下のボタンから設定できます。",
+        components: [channelRow, openMessageModalRow],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isButton() && interaction.customId === "joinmsg_open_message_modal") {
+      const modal = new ModalBuilder().setCustomId("joinmsg_modal").setTitle("Joinメッセージ本文設定");
 
       const messageInput = new TextInputBuilder()
         .setCustomId("join_message")
@@ -87,25 +110,15 @@ module.exports = {
         .setValue(setting.message || "");
 
       modal.addComponents(
-        new ActionRowBuilder().addComponents(channelInput),
         new ActionRowBuilder().addComponents(messageInput)
       );
 
       return interaction.showModal(modal);
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === "joinmsg_modal") {
-      const channelId = interaction.fields.getTextInputValue("channel_id").trim();
-      const message = interaction.fields.getTextInputValue("join_message").trim();
+    if (interaction.isChannelSelectMenu() && interaction.customId === "joinmsg_select_channel") {
+      const [channelId] = interaction.values;
       const channel = interaction.guild.channels.cache.get(channelId);
-
-      const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
-      if (!channel || !textLike.includes(channel.type)) {
-        return interaction.reply({
-          content: "❌ テキストチャンネルのIDを入力してください。",
-          flags: MessageFlags.Ephemeral,
-        });
-      }
 
       const botMember = interaction.guild.members.me;
       const channelPerms = channel.permissionsFor(botMember);
@@ -116,7 +129,24 @@ module.exports = {
         });
       }
 
-      await setGuildJoinSetting(guildId, { ...setting, channelId, message });
+      await setGuildJoinSetting(guildId, { ...setting, channelId });
+
+      return interaction.reply({
+        ...(await renderSettingPanel(guildId, 1)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isModalSubmit() && interaction.customId === "joinmsg_modal") {
+      const message = interaction.fields.getTextInputValue("join_message").trim();
+      if (!setting.channelId) {
+        return interaction.reply({
+          content: "❌ 先に送信先チャンネルを選択してください。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      await setGuildJoinSetting(guildId, { ...setting, message });
 
       return interaction.reply({
         ...(await renderSettingPanel(guildId, 1)),
