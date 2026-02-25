@@ -13,7 +13,7 @@ const {
 
 const adminPath = path.join(__dirname, "../json/admin.json");
 const blacklistPath = path.join(__dirname, "../json/blacklist.json");
-const stopConfigPath = path.join(__dirname, "../json/confg.json");
+const stopConfigPath = path.join(__dirname, "../json/config.json");
 
 module.exports = {
   data: new SlashCommandBuilder()
