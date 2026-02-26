@@ -141,7 +141,7 @@ module.exports = {
         ...setting,
         reportChannelId: "",
       });
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });
@@ -208,7 +208,7 @@ module.exports = {
         reportChannelId,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });
@@ -220,7 +220,7 @@ module.exports = {
         ignoredChannelIds: interaction.values,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });
@@ -271,7 +271,7 @@ module.exports = {
         ignoredRoleIds,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });

@@ -107,7 +107,7 @@ module.exports = {
           .setStyle(ButtonStyle.Primary)
       );
 
-      return interaction.reply({
+      return interaction.update({
         content: "対象チャンネルはセレクトメニューから、絵文字は下のボタンから設定できます。",
         components: [new ActionRowBuilder().addComponents(channelSelect), openEmojiModalRow],
         flags: MessageFlags.Ephemeral,
@@ -160,7 +160,7 @@ module.exports = {
         channelIds,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 2)),
         flags: MessageFlags.Ephemeral,
       });
@@ -184,7 +184,7 @@ module.exports = {
         emojis,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 2)),
         flags: MessageFlags.Ephemeral,
       });

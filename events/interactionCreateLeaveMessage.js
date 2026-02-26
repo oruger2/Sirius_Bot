@@ -131,7 +131,7 @@ module.exports = {
 
       await setGuildLeaveSetting(guildId, { ...setting, channelId });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });
@@ -148,7 +148,7 @@ module.exports = {
 
       await setGuildLeaveSetting(guildId, { ...setting, message });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });

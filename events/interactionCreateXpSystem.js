@@ -105,7 +105,7 @@ module.exports = {
 
     if (interaction.isButton() && interaction.customId === "xp_clear_ignored_channels") {
       await setGuildXpSetting(guildId, { ...setting, ignoredChannelIds: [] });
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 2)),
         flags: MessageFlags.Ephemeral,
       });
@@ -134,7 +134,7 @@ module.exports = {
 
       await setGuildXpSetting(guildId, { ...setting, notifyChannelId });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 2)),
         flags: MessageFlags.Ephemeral,
       });
@@ -146,7 +146,7 @@ module.exports = {
         ignoredChannelIds: interaction.values,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 2)),
         flags: MessageFlags.Ephemeral,
       });
