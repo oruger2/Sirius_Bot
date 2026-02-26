@@ -1,7 +1,7 @@
 const { ChannelType, PermissionsBitField } = require("discord.js");
 const { getGuildXpSetting, addUserXp } = require("../utils/xpSystem");
 
-const XP_PER_MESSAGE = 5;
+const XP_PER_MESSAGE = Math.floor(Math.random() * 5) + 5;
 const XP_COOLDOWN_MS = 5 * 1000;
 
 const recentXpMap = new Map();
