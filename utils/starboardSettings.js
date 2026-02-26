@@ -12,6 +12,12 @@ function normalizeEmoji(emoji) {
   return String(emoji || '').trim();
 }
 
+function normalizeRequiredCount(value) {
+  const parsed = Number.parseInt(String(value ?? ''), 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return Math.min(parsed, 50);
+}
+
 async function loadStarboardSettings() {
   try {
     const raw = await fsp.readFile(settingsPath, 'utf8');
@@ -41,6 +47,7 @@ async function getGuildStarboardSetting(guildId) {
     targetChannelIds: normalizeIdList(current.targetChannelIds),
     emoji: normalizeEmoji(current.emoji),
     sendChannelId: String(current.sendChannelId || '').trim(),
+    requiredCount: normalizeRequiredCount(current.requiredCount),
   };
 }
 
@@ -52,6 +59,7 @@ async function setGuildStarboardSetting(guildId, nextValue) {
     targetChannelIds: normalizeIdList(nextValue.targetChannelIds),
     emoji: normalizeEmoji(nextValue.emoji),
     sendChannelId: String(nextValue.sendChannelId || '').trim(),
+    requiredCount: normalizeRequiredCount(nextValue.requiredCount),
   };
 
   await saveStarboardSettings(settings);
