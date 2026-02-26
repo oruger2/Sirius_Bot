@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const { getUserXp, getGuildXpRanking } = require("../utils/xpSystem");
+const { getGuildXpSetting, getUserXp, getGuildXpRanking } = require("../utils/xpSystem");
 const { getUserEconomy } = require("../utils/economy");
 
 function formatDateWithDays(date) {
@@ -50,7 +50,7 @@ function formatRoles(member) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("user")
-    .setDescription("ユーザー情報（XP/順位・所持金/順位・アバター）を表示します")
+    .setDescription("ユーザー情報（XP/順位・所持金/順位・右上アバター）を表示します")
     .addUserOption((opt) =>
       opt.setName("member").setDescription("表示対象ユーザー（未指定で自分）").setRequired(false)
     ),
@@ -60,13 +60,28 @@ module.exports = {
 
     const targetUser = interaction.options.getUser("member") || interaction.user;
     const member = await interaction.guild.members.fetch(targetUser.id);
+    const xpSetting = await getGuildXpSetting(interaction.guild.id);
+    const isXpEnabled = xpSetting.enabled;
 
     const joinedAt = member.joinedAt || new Date();
-    const xpData = await getUserXp(interaction.guild.id, targetUser.id);
+    let xpData = null;
+    let xpRank = 0;
+    let xpRanking = [];
+    let xpImageUrl = null;
 
     const memberIds = interaction.guild.members.cache.map((m) => m.id);
-    const xpRanking = await getGuildXpRanking(interaction.guild.id, memberIds);
-    const xpRank = xpRanking.findIndex((entry) => entry.userId === targetUser.id) + 1;
+    if (isXpEnabled) {
+      xpData = await getUserXp(interaction.guild.id, targetUser.id);
+      xpRanking = await getGuildXpRanking(interaction.guild.id, memberIds);
+      xpRank = xpRanking.findIndex((entry) => entry.userId === targetUser.id) + 1;
+      xpImageUrl = createXpChartUrl({
+        level: xpData.level,
+        xp: xpData.xp,
+        neededXp: xpData.neededXp,
+        rank: xpRank || xpRanking.length || 1,
+        total: xpRanking.length || 1,
+      });
+    }
 
     const economyEntries = await Promise.all(
       memberIds.map(async (id) => {
@@ -79,19 +94,10 @@ module.exports = {
     const moneyData = economyEntries.find((entry) => entry.userId === targetUser.id) || { balance: 0 };
     const moneyRank = economyEntries.findIndex((entry) => entry.userId === targetUser.id) + 1;
 
-    const xpImageUrl = createXpChartUrl({
-      level: xpData.level,
-      xp: xpData.xp,
-      neededXp: xpData.neededXp,
-      rank: xpRank || xpRanking.length || 1,
-      total: xpRanking.length || 1,
-    });
-
     const embed = new EmbedBuilder()
       .setColor("Aqua")
       .setTitle(`👤 ${targetUser.tag} のユーザー情報`)
       .setThumbnail(targetUser.displayAvatarURL({ size: 512 }))
-      .setImage(xpImageUrl)
       .addFields(
         { name: "ユーザー名", value: targetUser.tag, inline: true },
         { name: "ユーザーID", value: targetUser.id, inline: true },
@@ -99,19 +105,23 @@ module.exports = {
         { name: "サーバー参加日", value: formatDateWithDays(joinedAt), inline: false },
         { name: "持ちロール", value: formatRoles(member), inline: false },
         {
-          name: "サーバーでのレベル(XP)",
-          value: `レベル: **${xpData.level}**\nXP: **${xpData.xp}**\n順位: **#${xpRank || "-"}/${xpRanking.length || 1}**`,
-          inline: true,
-        },
-        { name: "アバター", value: `[表示する](${targetUser.displayAvatarURL({ size: 1024 })})`, inline: true },
-        {
           name: "持ち金",
           value: `${moneyData.balance}円\n順位: **#${moneyRank || "-"}/${economyEntries.length || 1}**`,
           inline: true,
         }
       )
-      .setFooter({ text: "XPは画像で可視化しています" })
       .setTimestamp();
+
+    if (isXpEnabled && xpData && xpImageUrl) {
+      embed
+        .addFields({
+          name: "サーバーでのレベル(XP)",
+          value: `レベル: **${xpData.level}**\nXP: **${xpData.xp}**\n順位: **#${xpRank || "-"}/${xpRanking.length || 1}**`,
+          inline: true,
+        })
+        .setImage(xpImageUrl)
+        .setFooter({ text: "XPは画像で可視化しています" });
+    }
 
     return interaction.reply({ embeds: [embed] });
   },
