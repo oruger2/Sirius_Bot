@@ -57,6 +57,37 @@ function normalizeIdList(list) {
   return [...new Set(list.map((id) => String(id).trim()).filter(Boolean))];
 }
 
+function removeChannelIdFromValue(value, channelId) {
+  if (typeof value === "string") {
+    return value === channelId ? "" : value;
+  }
+
+  if (Array.isArray(value)) {
+    return normalizeIdList(value).filter((id) => id !== channelId);
+  }
+
+  return value;
+}
+
+function cleanupSpamChannelRefs(spamSetting, channelId) {
+  if (!spamSetting || typeof spamSetting !== "object") return spamSetting;
+
+  const next = { ...spamSetting };
+
+  next.reportChannelId = removeChannelIdFromValue(next.reportChannelId, channelId) || "";
+  next.ignoredChannelIds = removeChannelIdFromValue(next.ignoredChannelIds, channelId);
+
+  // 互換: 旧キーが残っている場合も削除する
+  if ("channelId" in next) {
+    next.channelId = removeChannelIdFromValue(next.channelId, channelId);
+  }
+  if ("channelIds" in next) {
+    next.channelIds = removeChannelIdFromValue(next.channelIds, channelId);
+  }
+
+  return next;
+}
+
 async function cleanupOnGuildDelete(guildId) {
   const guildScopedFiles = [
     FILES.join,
@@ -125,12 +156,7 @@ async function cleanupOnChannelDelete(guildId, channelId) {
 
   const spamSettings = await readJsonObject(FILES.spam);
   if (spamSettings[guildId]) {
-    if (spamSettings[guildId].reportChannelId === channelId) {
-      spamSettings[guildId].reportChannelId = "";
-    }
-    spamSettings[guildId].ignoredChannelIds = normalizeIdList(
-      spamSettings[guildId].ignoredChannelIds
-    ).filter((id) => id !== channelId);
+    spamSettings[guildId] = cleanupSpamChannelRefs(spamSettings[guildId], channelId);
 
     await writeJsonObject(FILES.spam, spamSettings);
   }
