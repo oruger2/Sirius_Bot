@@ -31,6 +31,23 @@ function toEmojiValue(emoji) {
   return String(emoji || '').trim();
 }
 
+function isSingleEmojiInput(input) {
+  const text = String(input || '').trim();
+  if (!text) return false;
+
+  if (/^<a?:\w+:\d+>$/.test(text)) {
+    return true;
+  }
+
+  const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
+  const graphemes = [...segmenter.segment(text)].map((segment) => segment.segment);
+  if (graphemes.length !== 1) {
+    return false;
+  }
+
+  return /\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F/u.test(text);
+}
+
 async function renderSettingPanel(guildId, page = 1) {
   const joinSetting = await getGuildJoinSetting(guildId);
   const leaveSetting = await getGuildLeaveSetting(guildId);
@@ -178,9 +195,8 @@ module.exports = {
 
     if (interaction.isModalSubmit() && interaction.customId === 'starboard_modal') {
       const emojiText = interaction.fields.getTextInputValue('starboard_emoji').trim();
-      const values = [...emojiText.matchAll(/<a?:\w+:\d+>|\p{Extended_Pictographic}/gu)].map((m) => m[0]);
 
-      if (values.length !== 1 || values[0] !== emojiText) {
+      if (!isSingleEmojiInput(emojiText)) {
         return interaction.reply({
           content: '❌ 絵文字は1つだけ指定してください。',
           flags: MessageFlags.Ephemeral,

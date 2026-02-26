@@ -140,47 +140,29 @@ function shouldDeleteStarboardSetting(setting) {
 }
 
 async function cleanupOnGuildDelete(guildId) {
-  const guildScopedFiles = [
-    FILES.join,
-    FILES.leave,
-    FILES.autoReaction,
-    FILES.shortLink,
-    FILES.spam,
-    FILES.xp,
-    FILES.starboard,
-    FILES.warnings,
-  ];
+  const fileNames = (await fsp.readdir(JSON_DIR))
+    .filter((fileName) => fileName.endsWith(".json"));
 
-  for (const filePath of guildScopedFiles) {
+  for (const fileName of fileNames) {
+    const filePath = path.join(JSON_DIR, fileName);
     const data = await readJsonObject(filePath);
-    if (data[guildId] === undefined) continue;
+    let dirty = false;
 
-    delete data[guildId];
-    await writeJsonObject(filePath, data);
-  }
-
-  const starboardPosts = await readJsonObject(FILES.starboardPosts);
-  let starboardDirty = false;
-  for (const [postKey, post] of Object.entries(starboardPosts)) {
-    if (post?.guildId === guildId) {
-      delete starboardPosts[postKey];
-      starboardDirty = true;
-    }
-  }
-  if (starboardDirty) {
-    await writeJsonObject(FILES.starboardPosts, starboardPosts);
-  }
-
-  const panels = await readJsonObject(FILES.rolePanels);
-  let dirty = false;
-  for (const [messageId, panel] of Object.entries(panels)) {
-    if (panel?.guildId === guildId) {
-      delete panels[messageId];
+    if (data[guildId] !== undefined) {
+      delete data[guildId];
       dirty = true;
     }
-  }
-  if (dirty) {
-    await writeJsonObject(FILES.rolePanels, panels);
+
+    for (const [entryKey, value] of Object.entries(data)) {
+      if (value?.guildId === guildId) {
+        delete data[entryKey];
+        dirty = true;
+      }
+    }
+
+    if (dirty) {
+      await writeJsonObject(filePath, data);
+    }
   }
 }
 
