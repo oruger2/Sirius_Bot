@@ -31,10 +31,19 @@ async function loadData() {
     if (err.code === 'ENOENT') return {};
     throw err;
   }
-  return JSON.parse(raw);
+
+  if (!raw.trim()) return {};
+
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
 async function saveData(data) {
+  await fsp.mkdir(path.dirname(DATA_PATH), { recursive: true });
   await fsp.writeFile(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
