@@ -10,6 +10,8 @@ const FILES = {
   shortLink: path.join(JSON_DIR, "shortLinkBlockSettings.json"),
   spam: path.join(JSON_DIR, "spamBlockSettings.json"),
   xp: path.join(JSON_DIR, "xpSystem.json"),
+  starboard: path.join(JSON_DIR, "starboardSettings.json"),
+  starboardPosts: path.join(JSON_DIR, "starboardPosts.json"),
   warnings: path.join(JSON_DIR, "warnings.json"),
   rolePanels: path.join(JSON_DIR, "rolepanels.json"),
 };
@@ -63,6 +65,7 @@ async function cleanupOnGuildDelete(guildId) {
     FILES.shortLink,
     FILES.spam,
     FILES.xp,
+    FILES.starboard,
     FILES.warnings,
   ];
 
@@ -72,6 +75,18 @@ async function cleanupOnGuildDelete(guildId) {
 
     delete data[guildId];
     await writeJsonObject(filePath, data);
+  }
+
+  const starboardPosts = await readJsonObject(FILES.starboardPosts);
+  let starboardDirty = false;
+  for (const [postKey, post] of Object.entries(starboardPosts)) {
+    if (post?.guildId === guildId) {
+      delete starboardPosts[postKey];
+      starboardDirty = true;
+    }
+  }
+  if (starboardDirty) {
+    await writeJsonObject(FILES.starboardPosts, starboardPosts);
   }
 
   const panels = await readJsonObject(FILES.rolePanels);
@@ -132,6 +147,32 @@ async function cleanupOnChannelDelete(guildId, channelId) {
     await writeJsonObject(FILES.xp, xpData);
   }
 
+  const starboardSettings = await readJsonObject(FILES.starboard);
+  if (starboardSettings[guildId]) {
+    if (starboardSettings[guildId].sendChannelId === channelId) {
+      starboardSettings[guildId].sendChannelId = "";
+    }
+
+    starboardSettings[guildId].targetChannelIds = normalizeIdList(
+      starboardSettings[guildId].targetChannelIds
+    ).filter((id) => id !== channelId);
+
+    await writeJsonObject(FILES.starboard, starboardSettings);
+  }
+
+  const starboardPosts = await readJsonObject(FILES.starboardPosts);
+  let starboardDirty = false;
+  for (const [postKey, post] of Object.entries(starboardPosts)) {
+    if (post?.guildId !== guildId) continue;
+    if (post?.sourceChannelId === channelId || post?.starboardChannelId === channelId) {
+      delete starboardPosts[postKey];
+      starboardDirty = true;
+    }
+  }
+  if (starboardDirty) {
+    await writeJsonObject(FILES.starboardPosts, starboardPosts);
+  }
+
   const panels = await readJsonObject(FILES.rolePanels);
   let dirty = false;
   for (const [messageId, panel] of Object.entries(panels)) {
@@ -180,6 +221,18 @@ async function cleanupOnRoleDelete(guildId, roleId) {
 }
 
 async function cleanupOnMessageDelete(messageId) {
+  const starboardPosts = await readJsonObject(FILES.starboardPosts);
+  let starboardDirty = false;
+  for (const [postKey, post] of Object.entries(starboardPosts)) {
+    if (post?.sourceMessageId === messageId || post?.starboardMessageId === messageId) {
+      delete starboardPosts[postKey];
+      starboardDirty = true;
+    }
+  }
+  if (starboardDirty) {
+    await writeJsonObject(FILES.starboardPosts, starboardPosts);
+  }
+
   const panels = await readJsonObject(FILES.rolePanels);
   if (panels[messageId] === undefined) return;
 

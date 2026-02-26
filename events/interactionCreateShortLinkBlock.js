@@ -11,6 +11,7 @@ const {
   setGuildShortLinkSetting,
 } = require("../utils/shortLinkBlockSettings");
 const { getGuildXpSetting } = require("../utils/xpSystem");
+const { getGuildStarboardSetting } = require("../utils/starboardSettings");
 const settingpanel = require("../commands/settingpanel");
 
 function isAdmin(interaction) {
@@ -24,10 +25,11 @@ async function renderSettingPanel(guildId, page = 1) {
   const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
   const shortLinkSetting = await getGuildShortLinkSetting(guildId);
   const xpSetting = await getGuildXpSetting(guildId);
+  const starboardSetting = await getGuildStarboardSetting(guildId);
 
   return {
-    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, page),
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, page),
   };
 }
 
