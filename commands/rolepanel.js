@@ -140,6 +140,7 @@ module.exports = {
       const emojiKey = getEmojiKeyFromString(emoji);
 
       data[msg.id] = {
+        guildId: interaction.guild.id,
         channelId: interaction.channel.id,
         roles: { [emojiKey]: role.id }
       };
