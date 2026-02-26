@@ -17,13 +17,29 @@ const FILES = {
 async function readJsonObject(filePath) {
   try {
     const raw = await fsp.readFile(filePath, "utf8");
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, "").trim());
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed;
     }
     return {};
   } catch (error) {
     if (error.code === "ENOENT") return {};
+    if (error instanceof SyntaxError) {
+      const backupPath = `${filePath}.corrupt-${Date.now()}`;
+      try {
+        await fsp.copyFile(filePath, backupPath);
+        await writeJsonObject(filePath, {});
+        console.error(
+          `[CLEANUP] 壊れたJSONを検出したため初期化しました: ${filePath} (backup: ${backupPath})`
+        );
+      } catch (recoveryError) {
+        console.error(
+          `[CLEANUP] 壊れたJSONの復旧に失敗: ${filePath}`,
+          recoveryError
+        );
+      }
+      return {};
+    }
     console.error(`[CLEANUP] JSON読み込み失敗: ${filePath}`, error);
     return {};
   }
