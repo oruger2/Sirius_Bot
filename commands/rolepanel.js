@@ -45,6 +45,12 @@ function getEmojiKeyFromString(emoji) {
   return emoji;
 }
 
+function isValidEmojiInput(value) {
+  const customEmojiRegex = /^<a?:\w{2,32}:\d{17,20}>$/;
+  const unicodeEmojiRegex = /^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*$/u;
+  return customEmojiRegex.test(value) || unicodeEmojiRegex.test(value);
+}
+
 /* ===== エラーEmbed ===== */
 function errorEmbed(title, description) {
   return new EmbedBuilder()
@@ -156,6 +162,18 @@ module.exports = {
       const messageId = interaction.options.getString('messageid');
       const emoji = interaction.options.getString('emoji');
       const role = interaction.options.getRole('role');
+
+      if (!isValidEmojiInput(emoji)) {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              '絵文字指定エラー',
+              '絵文字以外は指定できません。有効な絵文字を指定してください。'
+            )
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
 
       const panel = data[messageId];
       if (!panel) {
