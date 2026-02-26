@@ -88,6 +88,57 @@ function cleanupSpamChannelRefs(spamSetting, channelId) {
   return next;
 }
 
+function shouldDeleteAutoReactionSetting(setting) {
+  if (!setting || typeof setting !== "object") return true;
+  const channelIds = normalizeIdList(setting.channelIds);
+  const emojis = Array.isArray(setting.emojis)
+    ? [...new Set(setting.emojis.map((emoji) => String(emoji).trim()).filter(Boolean))]
+    : [];
+
+  return !Boolean(setting.enabled) && channelIds.length === 0 && emojis.length === 0;
+}
+
+function shouldDeleteSpamSetting(setting) {
+  if (!setting || typeof setting !== "object") return true;
+
+  const reportChannelId = String(setting.reportChannelId || "").trim();
+  const ignoredChannelIds = normalizeIdList(setting.ignoredChannelIds);
+  const ignoredRoleIds = normalizeIdList(setting.ignoredRoleIds);
+
+  return (
+    !Boolean(setting.enabled) &&
+    !reportChannelId &&
+    ignoredChannelIds.length === 0 &&
+    ignoredRoleIds.length === 0
+  );
+}
+
+function shouldDeleteXpSetting(guildXpData) {
+  if (!guildXpData || typeof guildXpData !== "object") return true;
+  const settings = guildXpData.settings && typeof guildXpData.settings === "object"
+    ? guildXpData.settings
+    : {};
+  const users = guildXpData.users && typeof guildXpData.users === "object"
+    ? guildXpData.users
+    : {};
+
+  const notifyChannelId = String(settings.notifyChannelId || "").trim();
+  const ignoredChannelIds = normalizeIdList(settings.ignoredChannelIds);
+  const userCount = Object.keys(users).length;
+
+  return !Boolean(settings.enabled) && !notifyChannelId && ignoredChannelIds.length === 0 && userCount === 0;
+}
+
+function shouldDeleteStarboardSetting(setting) {
+  if (!setting || typeof setting !== "object") return true;
+
+  const targetChannelIds = normalizeIdList(setting.targetChannelIds);
+  const sendChannelId = String(setting.sendChannelId || "").trim();
+  const emoji = String(setting.emoji || "").trim();
+
+  return !Boolean(setting.enabled) && targetChannelIds.length === 0 && !sendChannelId && !emoji;
+}
+
 async function cleanupOnGuildDelete(guildId) {
   const guildScopedFiles = [
     FILES.join,
@@ -136,13 +187,13 @@ async function cleanupOnGuildDelete(guildId) {
 async function cleanupOnChannelDelete(guildId, channelId) {
   const joinSettings = await readJsonObject(FILES.join);
   if (joinSettings[guildId]?.channelId === channelId) {
-    joinSettings[guildId].channelId = "";
+    delete joinSettings[guildId];
     await writeJsonObject(FILES.join, joinSettings);
   }
 
   const leaveSettings = await readJsonObject(FILES.leave);
   if (leaveSettings[guildId]?.channelId === channelId) {
-    leaveSettings[guildId].channelId = "";
+    delete leaveSettings[guildId];
     await writeJsonObject(FILES.leave, leaveSettings);
   }
 
@@ -151,12 +202,21 @@ async function cleanupOnChannelDelete(guildId, channelId) {
     autoReactionSettings[guildId].channelIds = normalizeIdList(
       autoReactionSettings[guildId].channelIds
     ).filter((id) => id !== channelId);
+
+    if (shouldDeleteAutoReactionSetting(autoReactionSettings[guildId])) {
+      delete autoReactionSettings[guildId];
+    }
+
     await writeJsonObject(FILES.autoReaction, autoReactionSettings);
   }
 
   const spamSettings = await readJsonObject(FILES.spam);
   if (spamSettings[guildId]) {
     spamSettings[guildId] = cleanupSpamChannelRefs(spamSettings[guildId], channelId);
+
+    if (shouldDeleteSpamSetting(spamSettings[guildId])) {
+      delete spamSettings[guildId];
+    }
 
     await writeJsonObject(FILES.spam, spamSettings);
   }
@@ -170,6 +230,10 @@ async function cleanupOnChannelDelete(guildId, channelId) {
       xpData[guildId].settings.ignoredChannelIds
     ).filter((id) => id !== channelId);
 
+    if (shouldDeleteXpSetting(xpData[guildId])) {
+      delete xpData[guildId];
+    }
+
     await writeJsonObject(FILES.xp, xpData);
   }
 
@@ -182,6 +246,10 @@ async function cleanupOnChannelDelete(guildId, channelId) {
     starboardSettings[guildId].targetChannelIds = normalizeIdList(
       starboardSettings[guildId].targetChannelIds
     ).filter((id) => id !== channelId);
+
+    if (shouldDeleteStarboardSetting(starboardSettings[guildId])) {
+      delete starboardSettings[guildId];
+    }
 
     await writeJsonObject(FILES.starboard, starboardSettings);
   }
@@ -218,6 +286,10 @@ async function cleanupOnRoleDelete(guildId, roleId) {
     spamSettings[guildId].ignoredRoleIds = normalizeIdList(
       spamSettings[guildId].ignoredRoleIds
     ).filter((id) => id !== roleId);
+
+    if (shouldDeleteSpamSetting(spamSettings[guildId])) {
+      delete spamSettings[guildId];
+    }
 
     await writeJsonObject(FILES.spam, spamSettings);
   }
