@@ -58,7 +58,7 @@ module.exports = {
     if (!starboardChannel || !starboardChannel.isTextBased()) return;
 
     const count = reaction.count || 0;
-    if (count < 1) return;
+    if (count < setting.requiredCount) return;
 
     const posts = await loadPosts();
     const key = `${message.guild.id}:${message.id}`;

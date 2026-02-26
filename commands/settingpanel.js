@@ -109,6 +109,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
           `状態: **${starboardSetting.enabled ? 'ON' : 'OFF'}**\n` +
           `対象チャンネル: ${mentionList(starboardSetting.targetChannelIds, 'channel')}\n` +
           `絵文字: ${starboardSetting.emoji || '未設定'}\n` +
+          `必要数: ${starboardSetting.requiredCount || 1}\n` +
           `送信チャンネル: ${starboardSetting.sendChannelId ? `<#${starboardSetting.sendChannelId}>` : '未設定'}`,
       },
       {

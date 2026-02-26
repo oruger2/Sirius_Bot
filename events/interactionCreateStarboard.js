@@ -145,7 +145,18 @@ module.exports = {
         .setRequired(true)
         .setValue(setting.emoji || '');
 
-      modal.addComponents(new ActionRowBuilder().addComponents(emojiInput));
+      const requiredCountInput = new TextInputBuilder()
+        .setCustomId('starboard_required_count')
+        .setLabel('必要な絵文字数（1〜50）')
+        .setPlaceholder('3')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setValue(String(setting.requiredCount || 1));
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(emojiInput),
+        new ActionRowBuilder().addComponents(requiredCountInput)
+      );
       return interaction.showModal(modal);
     }
 
@@ -211,7 +222,17 @@ module.exports = {
         });
       }
 
-      await setGuildStarboardSetting(guildId, { ...setting, emoji: emojiText });
+      const requiredCountText = interaction.fields.getTextInputValue('starboard_required_count').trim();
+      const requiredCount = Number.parseInt(requiredCountText, 10);
+
+      if (!Number.isInteger(requiredCount) || requiredCount < 1 || requiredCount > 50) {
+        return interaction.reply({
+          content: '❌ 必要な絵文字数は 1〜50 の整数で指定してください。',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      await setGuildStarboardSetting(guildId, { ...setting, emoji: emojiText, requiredCount });
       return interaction.update({ ...(await renderSettingPanel(guildId, 2)), flags: MessageFlags.Ephemeral });
     }
   },
