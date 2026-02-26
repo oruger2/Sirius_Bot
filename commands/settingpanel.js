@@ -13,6 +13,7 @@ const { getGuildSpamSetting } = require('../utils/spamBlockSettings');
 const { getGuildAutoReactionSetting } = require('../utils/autoReactionSettings');
 const { getGuildShortLinkSetting } = require('../utils/shortLinkBlockSettings');
 const { getGuildXpSetting } = require('../utils/xpSystem');
+const { getGuildStarboardSetting } = require('../utils/starboardSettings');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -40,10 +41,11 @@ module.exports = {
     const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
     const shortLinkSetting = await getGuildShortLinkSetting(guildId);
     const xpSetting = await getGuildXpSetting(guildId);
+    const starboardSetting = await getGuildStarboardSetting(guildId);
 
     await interaction.reply({
-      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
-      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, 1),
+      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting)],
+      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, 1),
       flags: MessageFlags.Ephemeral,
     });
   },
@@ -58,11 +60,11 @@ function mentionList(ids, type) {
   return ids.map((id) => `<@&${id}>`).join(', ');
 }
 
-function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting) {
+function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting) {
   return new EmbedBuilder()
     .setColor('Blue')
     .setTitle('⚙️ サーバー設定パネル')
-    .setDescription('Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock / XP をこのパネルから設定できます。')
+    .setDescription('Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock / XP / Starboard をこのパネルから設定できます。')
     .addFields(
       {
         name: '📥 Joinメッセージ',
@@ -102,6 +104,14 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
           '許可: chatgpt.com / bot.com',
       },
       {
+        name: '⭐ スターボード',
+        value:
+          `状態: **${starboardSetting.enabled ? 'ON' : 'OFF'}**\n` +
+          `対象チャンネル: ${mentionList(starboardSetting.targetChannelIds, 'channel')}\n` +
+          `絵文字: ${starboardSetting.emoji || '未設定'}\n` +
+          `送信チャンネル: ${starboardSetting.sendChannelId ? `<#${starboardSetting.sendChannelId}>` : '未設定'}`,
+      },
+      {
         name: '📈 XPシステム',
         value:
           `状態: **${xpSetting.enabled ? 'ON' : 'OFF'}**\n` +
@@ -115,7 +125,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
     });
 }
 
-function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, page = 1) {
+function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, page = 1) {
   const joinRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('joinmsg_toggle')
@@ -167,6 +177,18 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(shortLinkSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
   );
 
+
+  const starboardRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('starboard_toggle')
+      .setLabel(starboardSetting.enabled ? 'Starboard OFF' : 'Starboard ON')
+      .setStyle(starboardSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId('starboard_open_modal')
+      .setLabel('Starboard 設定')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
   const xpRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('xp_toggle')
@@ -197,8 +219,12 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
   );
 
   if (page === 1) {
-    return [joinRow, leaveRow, spamRow, pageRow];
-  } else if (page === 2) {
-    return [reactionRow, shortLinkRow, xpRow, pageRow];
+    return [joinRow, leaveRow, spamRow, reactionRow, pageRow];
   }
+
+  if (page === 2) {
+    return [shortLinkRow, xpRow, starboardRow, pageRow];
+  }
+
+  return [joinRow, leaveRow, spamRow, reactionRow, pageRow];
 }
