@@ -5,6 +5,7 @@ const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
 const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
 const { getGuildXpSetting } = require("../utils/xpSystem");
+const { getGuildStarboardSetting } = require("../utils/starboardSettings");
 
 function formatDateWithDays(date) {
   const now = Date.now();
@@ -67,13 +68,14 @@ module.exports = {
     const guild = interaction.guild;
     const owner = await guild.fetchOwner();
 
-    const [joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting] = await Promise.all([
+    const [joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting] = await Promise.all([
       getGuildJoinSetting(guild.id),
       getGuildLeaveSetting(guild.id),
       getGuildSpamSetting(guild.id),
       getGuildAutoReactionSetting(guild.id),
       getGuildShortLinkSetting(guild.id),
       getGuildXpSetting(guild.id),
+      getGuildStarboardSetting(guild.id),
     ]);
 
     const channelCount = countChannelsByType(guild);
@@ -115,7 +117,8 @@ module.exports = {
             `SpamBlock: **${spamSetting.enabled ? "ON" : "OFF"}**\n` +
             `AutoReaction: **${autoReactionSetting.enabled ? "ON" : "OFF"}**\n` +
             `ShortLinkBlock: **${shortLinkSetting.enabled ? "ON" : "OFF"}**\n` +
-            `XP: **${xpSetting.enabled ? "ON" : "OFF"}**`,
+            `XP: **${xpSetting.enabled ? "ON" : "OFF"}**\n` +
+            `Starboard: **${starboardSetting.enabled ? "ON" : "OFF"}**`,
           inline: false,
         }
       )

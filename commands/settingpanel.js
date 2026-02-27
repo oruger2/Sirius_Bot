@@ -104,6 +104,14 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
           '許可: chatgpt.com / bot.com',
       },
       {
+        name: '📈 XPシステム',
+        value:
+          `状態: **${xpSetting.enabled ? 'ON' : 'OFF'}**\n` +
+          `通知チャンネル: ${xpSetting.notifyChannelId ? `<#${xpSetting.notifyChannelId}>` : '未設定（必須）'}\n` +
+          `無効チャンネル: ${mentionList(xpSetting.ignoredChannelIds, 'channel')}\n` +
+          '獲得量: 1発言ごとに 5〜10 XP',
+      },
+      {
         name: '⭐ スターボード',
         value:
           `状態: **${starboardSetting.enabled ? 'ON' : 'OFF'}**\n` +
@@ -111,14 +119,6 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
           `絵文字: ${starboardSetting.emoji || '未設定'}\n` +
           `必要数: ${starboardSetting.requiredCount || 1}\n` +
           `送信チャンネル: ${starboardSetting.sendChannelId ? `<#${starboardSetting.sendChannelId}>` : '未設定'}`,
-      },
-      {
-        name: '📈 XPシステム',
-        value:
-          `状態: **${xpSetting.enabled ? 'ON' : 'OFF'}**\n` +
-          `通知チャンネル: ${xpSetting.notifyChannelId ? `<#${xpSetting.notifyChannelId}>` : '未設定（必須）'}\n` +
-          `無効チャンネル: ${mentionList(xpSetting.ignoredChannelIds, 'channel')}\n` +
-          '獲得量: 1発言ごとに 5〜10 XP',
       }
     )
     .setFooter({
@@ -178,6 +178,16 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(shortLinkSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
   );
 
+  const xpRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('xp_toggle')
+      .setLabel(xpSetting.enabled ? 'XP OFF' : 'XP ON')
+      .setStyle(xpSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId('xp_open_modal')
+      .setLabel('XP 設定')
+      .setStyle(ButtonStyle.Secondary)
+  );
 
   const starboardRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -187,17 +197,6 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
     new ButtonBuilder()
       .setCustomId('starboard_open_modal')
       .setLabel('Starboard 設定')
-      .setStyle(ButtonStyle.Secondary)
-  );
-
-  const xpRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('xp_toggle')
-      .setLabel(xpSetting.enabled ? 'XP OFF' : 'XP ON')
-      .setStyle(xpSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId('xp_open_modal')
-      .setLabel('XP 設定')
       .setStyle(ButtonStyle.Secondary)
   );
 
