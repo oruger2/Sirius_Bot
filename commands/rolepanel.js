@@ -55,9 +55,15 @@ function getEmojiKeyFromString(emoji) {
 }
 
 function isValidEmojiInput(value) {
+  if (!value || typeof value !== 'string') return false;
+
+  const emoji = value.trim();
+  if (!emoji) return false;
+
   const customEmojiRegex = /^<a?:\w{2,32}:\d{17,20}>$/;
-  const unicodeEmojiRegex = /^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*$/u;
-  return customEmojiRegex.test(value) || unicodeEmojiRegex.test(value);
+  const unicodeEmojiRegex = /^(?:\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier})?(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier})?)*)$/u;
+
+  return customEmojiRegex.test(emoji) || unicodeEmojiRegex.test(emoji);
 }
 
 /* ===== エラーEmbed ===== */
