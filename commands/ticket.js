@@ -24,18 +24,6 @@ module.exports = {
         .setRequired(true)
         .addChannelTypes(ChannelType.GuildCategory)
     )
-    .addUserOption((option) =>
-      option
-        .setName("staff_user")
-        .setDescription("チケット対応者ユーザー（任意）")
-        .setRequired(false)
-    )
-    .addRoleOption((option) =>
-      option
-        .setName("staff_role")
-        .setDescription("チケット対応者ロール（任意）")
-        .setRequired(false)
-    )
     .addStringOption((option) =>
       option
         .setName("title")
@@ -49,6 +37,18 @@ module.exports = {
         .setDescription("埋め込み本文")
         .setRequired(true)
         .setMaxLength(2000)
+    )
+    .addUserOption((option) =>
+      option
+        .setName("staff_user")
+        .setDescription("チケット対応者ユーザー（任意）")
+        .setRequired(false)
+    )
+    .addRoleOption((option) =>
+      option
+        .setName("staff_role")
+        .setDescription("チケット対応者ロール（任意）")
+        .setRequired(false)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
