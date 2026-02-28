@@ -12,13 +12,14 @@ const { getGuildLeaveSetting } = require('../utils/leaveMessageSettings');
 const { getGuildSpamSetting } = require('../utils/spamBlockSettings');
 const { getGuildAutoReactionSetting } = require('../utils/autoReactionSettings');
 const { getGuildShortLinkSetting } = require('../utils/shortLinkBlockSettings');
+const { getGuildInviteLinkSetting } = require('../utils/inviteLinkBlockSettings');
 const { getGuildXpSetting } = require('../utils/xpSystem');
 const { getGuildStarboardSetting } = require('../utils/starboardSettings');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('settingpanel')
-    .setDescription('サーバー設定パネルを開きます（Join/Leave/SpamBlock/AutoReaction/ShortLinkBlock/XP）')
+    .setDescription('サーバー設定パネルを開きます（Join/Leave/SpamBlock/AutoReaction/ShortLinkBlock/InviteLinkBlock/XP）')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
@@ -40,12 +41,13 @@ module.exports = {
     const spamSetting = await getGuildSpamSetting(guildId);
     const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
     const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+    const inviteLinkSetting = await getGuildInviteLinkSetting(guildId);
     const xpSetting = await getGuildXpSetting(guildId);
     const starboardSetting = await getGuildStarboardSetting(guildId);
 
     await interaction.reply({
-      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting)],
-      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, 1),
+      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting)],
+      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, 1),
       flags: MessageFlags.Ephemeral,
     });
   },
@@ -60,11 +62,11 @@ function mentionList(ids, type) {
   return ids.map((id) => `<@&${id}>`).join(', ');
 }
 
-function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting) {
+function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting = { enabled: false, allowedChannelIds: [], allowedRoleIds: [] }) {
   return new EmbedBuilder()
     .setColor('Blue')
     .setTitle('⚙️ サーバー設定パネル')
-    .setDescription('Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock / XP / Starboard をこのパネルから設定できます。')
+    .setDescription('Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock / InviteLinkBlock / XP / Starboard をこのパネルから設定できます。')
     .addFields(
       {
         name: '📥 Joinメッセージ',
@@ -104,6 +106,13 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
           '許可: chatgpt.com / bot.com',
       },
       {
+        name: '🚫 招待リンクブロック',
+        value:
+          `状態: **${inviteLinkSetting.enabled ? 'ON' : 'OFF'}**\n` +
+          `許可チャンネル: ${mentionList(inviteLinkSetting.allowedChannelIds, 'channel')}\n` +
+          `許可ロール: ${mentionList(inviteLinkSetting.allowedRoleIds, 'role')}`,
+      },
+      {
         name: '📈 XPシステム',
         value:
           `状態: **${xpSetting.enabled ? 'ON' : 'OFF'}**\n` +
@@ -126,7 +135,7 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
     });
 }
 
-function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, page = 1) {
+function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting = { enabled: false }, page = 1) {
   const joinRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('joinmsg_toggle')
@@ -189,6 +198,17 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(ButtonStyle.Secondary)
   );
 
+  const inviteLinkRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('invitelink_toggle')
+      .setLabel(inviteLinkSetting.enabled ? 'InviteLinkBlock OFF' : 'InviteLinkBlock ON')
+      .setStyle(inviteLinkSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId('invitelink_open_modal')
+      .setLabel('InviteLink 設定')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
   const starboardRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('starboard_toggle')
@@ -223,7 +243,7 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
   }
 
   if (page === 2) {
-    return [shortLinkRow, xpRow, starboardRow, pageRow];
+    return [shortLinkRow, inviteLinkRow, xpRow, starboardRow, pageRow];
   }
 
   return [joinRow, leaveRow, spamRow, reactionRow, pageRow];
