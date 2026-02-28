@@ -8,6 +8,10 @@ const {
   MessageFlags,
   ChannelType,
 } = require("discord.js");
+const {
+  loadTicketPanelSettings,
+  saveTicketPanelSettings,
+} = require("../utils/ticketPanelSettings");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,9 +26,15 @@ module.exports = {
     )
     .addUserOption((option) =>
       option
-        .setName("staff")
-        .setDescription("チケット作成時に通知する対応者")
-        .setRequired(true)
+        .setName("staff_user")
+        .setDescription("チケット対応者ユーザー（任意）")
+        .setRequired(false)
+    )
+    .addRoleOption((option) =>
+      option
+        .setName("staff_role")
+        .setDescription("チケット対応者ロール（任意）")
+        .setRequired(false)
     )
     .addStringOption((option) =>
       option
@@ -51,29 +61,51 @@ module.exports = {
     }
 
     const category = interaction.options.getChannel("category", true);
-    const staff = interaction.options.getUser("staff", true);
+    const staffUser = interaction.options.getUser("staff_user", false);
+    const staffRole = interaction.options.getRole("staff_role", false);
     const title = interaction.options.getString("title", true);
     const message = interaction.options.getString("message", true);
+
+    if (!staffUser && !staffRole) {
+      return interaction.reply({
+        content: "❌ `staff_user` または `staff_role` のどちらかは必須です。",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    const staffMentions = [];
+    if (staffUser) staffMentions.push(`<@${staffUser.id}>`);
+    if (staffRole) staffMentions.push(`<@&${staffRole.id}>`);
 
     const embed = new EmbedBuilder()
       .setColor(0x5865f2)
       .setTitle(title)
       .setDescription(message)
       .addFields(
-        { name: "対応者", value: `<@${staff.id}>`, inline: true },
+        { name: "対応者", value: staffMentions.join(" "), inline: true },
         { name: "作成先カテゴリ", value: `${category}`, inline: true }
       )
       .setFooter({ text: "下のボタンを押すとチケットチャンネルを作成します" });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`ticket:create:${category.id}:${staff.id}`)
+        .setCustomId("ticket:create")
         .setLabel("チケットを作成")
         .setStyle(ButtonStyle.Primary)
         .setEmoji("🎫")
     );
 
-    await interaction.channel.send({ embeds: [embed], components: [row] });
+    const sentMessage = await interaction.channel.send({ embeds: [embed], components: [row] });
+
+    const panelSettings = await loadTicketPanelSettings();
+    panelSettings[sentMessage.id] = {
+      guildId: interaction.guildId,
+      channelId: sentMessage.channelId,
+      categoryId: category.id,
+      staffUserId: staffUser?.id || "",
+      staffRoleId: staffRole?.id || "",
+    };
+    await saveTicketPanelSettings(panelSettings);
 
     return interaction.reply({
       content: "✅ チケット作成用の埋め込みを送信しました。",

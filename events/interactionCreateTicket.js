@@ -8,6 +8,10 @@ const {
   MessageFlags,
   PermissionFlagsBits,
 } = require("discord.js");
+const {
+  loadTicketPanelSettings,
+  saveTicketPanelSettings,
+} = require("../utils/ticketPanelSettings");
 
 const DATA_PATH = path.join(__dirname, "../json/tickets.json");
 
@@ -70,17 +74,42 @@ module.exports = {
       });
     }
 
-    const [namespace, action, arg1, arg2] = interaction.customId.split(":");
+    const [namespace, action] = interaction.customId.split(":");
     if (namespace !== "ticket") return;
 
     if (action === "create") {
-      const categoryId = arg1;
-      const staffId = arg2;
+      const panelSettings = await loadTicketPanelSettings();
+      const panel = panelSettings[interaction.message.id];
+
+      if (!panel || panel.guildId !== interaction.guildId) {
+        return interaction.reply({
+          content: "❌ チケット設定が見つかりません。もう一度 `/ticket` を設定してください。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      const categoryId = panel.categoryId;
+      const staffUserId = panel.staffUserId || "";
+      const staffRoleId = panel.staffRoleId || "";
 
       const category = interaction.guild.channels.cache.get(categoryId);
       if (!category || category.type !== ChannelType.GuildCategory) {
+        delete panelSettings[interaction.message.id];
+        await saveTicketPanelSettings(panelSettings);
         return interaction.reply({
           content: "❌ 設定されたカテゴリが見つかりません。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      const staffUser = staffUserId ? await interaction.client.users.fetch(staffUserId).catch(() => null) : null;
+      const staffRole = staffRoleId ? interaction.guild.roles.cache.get(staffRoleId) : null;
+
+      if (!staffUser && !staffRole) {
+        delete panelSettings[interaction.message.id];
+        await saveTicketPanelSettings(panelSettings);
+        return interaction.reply({
+          content: "❌ 設定された対応者（ユーザー/ロール）が見つかりません。",
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -111,59 +140,82 @@ module.exports = {
       const baseName = sanitizeChannelName(`ticket-${interaction.user.username}`) || `ticket-${interaction.user.id.slice(-4)}`;
       const channelName = `${baseName}-${interaction.user.id.slice(-4)}`;
 
+      const permissionOverwrites = [
+        {
+          id: interaction.guild.roles.everyone.id,
+          deny: [PermissionFlagsBits.ViewChannel],
+        },
+        {
+          id: interaction.user.id,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory,
+            PermissionFlagsBits.AttachFiles,
+            PermissionFlagsBits.EmbedLinks,
+          ],
+        },
+        {
+          id: me.id,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ManageChannels,
+            PermissionFlagsBits.ReadMessageHistory,
+          ],
+        },
+      ];
+
+      if (staffUserId) {
+        permissionOverwrites.push({
+          id: staffUserId,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory,
+            PermissionFlagsBits.AttachFiles,
+            PermissionFlagsBits.EmbedLinks,
+          ],
+        });
+      }
+
+      if (staffRoleId) {
+        permissionOverwrites.push({
+          id: staffRoleId,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory,
+            PermissionFlagsBits.AttachFiles,
+            PermissionFlagsBits.EmbedLinks,
+          ],
+        });
+      }
+
       const channel = await interaction.guild.channels.create({
         name: channelName,
         type: ChannelType.GuildText,
         parent: categoryId,
-        permissionOverwrites: [
-          {
-            id: interaction.guild.roles.everyone.id,
-            deny: [PermissionFlagsBits.ViewChannel],
-          },
-          {
-            id: interaction.user.id,
-            allow: [
-              PermissionFlagsBits.ViewChannel,
-              PermissionFlagsBits.SendMessages,
-              PermissionFlagsBits.ReadMessageHistory,
-              PermissionFlagsBits.AttachFiles,
-              PermissionFlagsBits.EmbedLinks,
-            ],
-          },
-          {
-            id: staffId,
-            allow: [
-              PermissionFlagsBits.ViewChannel,
-              PermissionFlagsBits.SendMessages,
-              PermissionFlagsBits.ReadMessageHistory,
-              PermissionFlagsBits.AttachFiles,
-              PermissionFlagsBits.EmbedLinks,
-            ],
-          },
-          {
-            id: me.id,
-            allow: [
-              PermissionFlagsBits.ViewChannel,
-              PermissionFlagsBits.SendMessages,
-              PermissionFlagsBits.ManageChannels,
-              PermissionFlagsBits.ReadMessageHistory,
-            ],
-          },
-        ],
+        permissionOverwrites,
       });
 
       tickets[channel.id] = {
         guildId: interaction.guildId,
         categoryId,
         creatorId: interaction.user.id,
-        staffId,
+        staffUserId,
+        staffRoleId,
         locked: false,
         closed: false,
       };
       await saveTickets(tickets);
 
+      const mentions = [`<@${interaction.user.id}>`];
+      if (staffUserId) mentions.push(`<@${staffUserId}>`);
+      if (staffRoleId) mentions.push(`<@&${staffRoleId}>`);
+
       await channel.send({
-        content: `<@${interaction.user.id}> <@${staffId}>`,
+        content: mentions.join(" "),
         components: [buildControls(false)],
       });
 
@@ -183,18 +235,27 @@ module.exports = {
       });
     }
 
-    const isStaff = interaction.user.id === ticket.staffId;
+    const isStaffUser = Boolean(ticket.staffUserId) && interaction.user.id === ticket.staffUserId;
+    const isStaffRole = Boolean(ticket.staffRoleId) && interaction.member.roles.cache.has(ticket.staffRoleId);
+    const isStaff = isStaffUser || isStaffRole;
     const isManager = interaction.member.permissions.has(PermissionFlagsBits.ManageChannels);
 
-    if (!isStaff && !isManager) {
+    if (action === "close" && !isStaff) {
       return interaction.reply({
-        content: "❌ 対応者またはチャンネル管理者のみ操作できます。",
+        content: "❌ チケットを閉じられるのはスタッフのみです。",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (action !== "close" && !isStaff && !isManager) {
+      return interaction.reply({
+        content: "❌ スタッフまたはチャンネル管理者のみ操作できます。",
         flags: MessageFlags.Ephemeral,
       });
     }
 
     if (action === "close") {
-      tickets[interaction.channelId].closed = true;
+      delete tickets[interaction.channelId];
       await saveTickets(tickets);
 
       await interaction.reply({

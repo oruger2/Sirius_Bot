@@ -14,6 +14,8 @@ const FILES = {
   starboardPosts: path.join(JSON_DIR, "starboardPosts.json"),
   warnings: path.join(JSON_DIR, "warnings.json"),
   rolePanels: path.join(JSON_DIR, "rolepanels.json"),
+  ticketPanels: path.join(JSON_DIR, "ticketPanelSettings.json"),
+  tickets: path.join(JSON_DIR, "tickets.json"),
 };
 
 async function readJsonObject(filePath) {
@@ -139,6 +141,29 @@ function shouldDeleteStarboardSetting(setting) {
   return !Boolean(setting.enabled) && targetChannelIds.length === 0 && !sendChannelId && !emoji;
 }
 
+
+function cleanupTicketRuntimeEntry(ticket, guildId, channelId) {
+  if (!ticket || typeof ticket !== "object") return { ticket, remove: false };
+
+  if (ticket.guildId !== guildId) return { ticket, remove: false };
+
+  const next = { ...ticket };
+  let changed = false;
+
+  if (next.categoryId === channelId) {
+    next.categoryId = "";
+    changed = true;
+  }
+
+  const staffUserId = String(next.staffUserId || "").trim();
+  const staffRoleId = String(next.staffRoleId || "").trim();
+  const hasStaff = Boolean(staffUserId) || Boolean(staffRoleId);
+
+  const remove = !String(next.categoryId || "").trim() || !hasStaff;
+  if (!changed && !remove) return { ticket, remove: false };
+  return { ticket: next, remove };
+}
+
 async function cleanupOnGuildDelete(guildId) {
   const fileNames = (await fsp.readdir(JSON_DIR))
     .filter((fileName) => fileName.endsWith(".json"));
@@ -260,6 +285,44 @@ async function cleanupOnChannelDelete(guildId, channelId) {
   if (dirty) {
     await writeJsonObject(FILES.rolePanels, panels);
   }
+
+  const ticketPanels = await readJsonObject(FILES.ticketPanels);
+  let ticketPanelDirty = false;
+  for (const [messageId, panel] of Object.entries(ticketPanels)) {
+    if (panel?.guildId !== guildId) continue;
+    if (panel?.channelId === channelId || panel?.categoryId === channelId) {
+      delete ticketPanels[messageId];
+      ticketPanelDirty = true;
+    }
+  }
+  if (ticketPanelDirty) {
+    await writeJsonObject(FILES.ticketPanels, ticketPanels);
+  }
+
+  const tickets = await readJsonObject(FILES.tickets);
+  let ticketDirty = false;
+  for (const [ticketChannelId, ticket] of Object.entries(tickets)) {
+    if (ticketChannelId === channelId) {
+      delete tickets[ticketChannelId];
+      ticketDirty = true;
+      continue;
+    }
+
+    const result = cleanupTicketRuntimeEntry(ticket, guildId, channelId);
+    if (result.remove) {
+      delete tickets[ticketChannelId];
+      ticketDirty = true;
+      continue;
+    }
+
+    if (result.ticket !== ticket) {
+      tickets[ticketChannelId] = result.ticket;
+      ticketDirty = true;
+    }
+  }
+  if (ticketDirty) {
+    await writeJsonObject(FILES.tickets, tickets);
+  }
 }
 
 async function cleanupOnRoleDelete(guildId, roleId) {
@@ -298,6 +361,32 @@ async function cleanupOnRoleDelete(guildId, roleId) {
   if (dirty) {
     await writeJsonObject(FILES.rolePanels, panels);
   }
+
+  const ticketPanels = await readJsonObject(FILES.ticketPanels);
+  let ticketPanelDirty = false;
+  for (const [messageId, panel] of Object.entries(ticketPanels)) {
+    if (panel?.guildId !== guildId) continue;
+    if (panel?.staffRoleId === roleId) {
+      delete ticketPanels[messageId];
+      ticketPanelDirty = true;
+    }
+  }
+  if (ticketPanelDirty) {
+    await writeJsonObject(FILES.ticketPanels, ticketPanels);
+  }
+
+  const tickets = await readJsonObject(FILES.tickets);
+  let ticketDirty = false;
+  for (const [ticketChannelId, ticket] of Object.entries(tickets)) {
+    if (ticket?.guildId !== guildId) continue;
+    if (ticket?.staffRoleId === roleId) {
+      delete tickets[ticketChannelId];
+      ticketDirty = true;
+    }
+  }
+  if (ticketDirty) {
+    await writeJsonObject(FILES.tickets, tickets);
+  }
 }
 
 async function cleanupOnMessageDelete(messageId) {
@@ -314,10 +403,16 @@ async function cleanupOnMessageDelete(messageId) {
   }
 
   const panels = await readJsonObject(FILES.rolePanels);
-  if (panels[messageId] === undefined) return;
+  if (panels[messageId] !== undefined) {
+    delete panels[messageId];
+    await writeJsonObject(FILES.rolePanels, panels);
+  }
 
-  delete panels[messageId];
-  await writeJsonObject(FILES.rolePanels, panels);
+  const ticketPanels = await readJsonObject(FILES.ticketPanels);
+  if (ticketPanels[messageId] === undefined) return;
+
+  delete ticketPanels[messageId];
+  await writeJsonObject(FILES.ticketPanels, ticketPanels);
 }
 
 module.exports = {
