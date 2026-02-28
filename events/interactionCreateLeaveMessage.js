@@ -19,6 +19,7 @@ const {
 const { getGuildSpamSetting } = require("../utils/spamBlockSettings");
 const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
 const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
+const { getGuildInviteLinkSetting } = require("../utils/inviteLinkBlockSettings");
 const { getGuildXpSetting } = require("../utils/xpSystem");
 const { getGuildStarboardSetting } = require("../utils/starboardSettings");
 const settingpanel = require("../commands/settingpanel");
@@ -33,12 +34,13 @@ async function renderSettingPanel(guildId, page = 1) {
   const spamSetting = await getGuildSpamSetting(guildId);
   const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
   const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+  const inviteLinkSetting = await getGuildInviteLinkSetting(guildId);
   const xpSetting = await getGuildXpSetting(guildId);
   const starboardSetting = await getGuildStarboardSetting(guildId);
 
   return {
-    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, page),
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, page),
   };
 }
 

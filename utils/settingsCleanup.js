@@ -8,6 +8,7 @@ const FILES = {
   leave: path.join(JSON_DIR, "leaveMessageSettings.json"),
   autoReaction: path.join(JSON_DIR, "autoReactionSettings.json"),
   shortLink: path.join(JSON_DIR, "shortLinkBlockSettings.json"),
+  inviteLink: path.join(JSON_DIR, "inviteLinkBlockSettings.json"),
   spam: path.join(JSON_DIR, "spamBlockSettings.json"),
   xp: path.join(JSON_DIR, "xpSystem.json"),
   starboard: path.join(JSON_DIR, "starboardSettings.json"),
@@ -115,6 +116,15 @@ function shouldDeleteSpamSetting(setting) {
   );
 }
 
+function shouldDeleteInviteLinkSetting(setting) {
+  if (!setting || typeof setting !== "object") return true;
+
+  const allowedChannelIds = normalizeIdList(setting.allowedChannelIds);
+  const allowedRoleIds = normalizeIdList(setting.allowedRoleIds);
+
+  return !Boolean(setting.enabled) && allowedChannelIds.length === 0 && allowedRoleIds.length === 0;
+}
+
 function shouldDeleteXpSetting(guildXpData) {
   if (!guildXpData || typeof guildXpData !== "object") return true;
   const settings = guildXpData.settings && typeof guildXpData.settings === "object"
@@ -165,8 +175,14 @@ function cleanupTicketRuntimeEntry(ticket, guildId, channelId) {
 }
 
 async function cleanupOnGuildDelete(guildId) {
-  const fileNames = (await fsp.readdir(JSON_DIR))
-    .filter((fileName) => fileName.endsWith(".json"));
+  let fileNames = [];
+  try {
+    fileNames = (await fsp.readdir(JSON_DIR))
+      .filter((fileName) => fileName.endsWith(".json"));
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
 
   for (const fileName of fileNames) {
     const filePath = path.join(JSON_DIR, fileName);
@@ -226,6 +242,19 @@ async function cleanupOnChannelDelete(guildId, channelId) {
     }
 
     await writeJsonObject(FILES.spam, spamSettings);
+  }
+
+  const inviteLinkSettings = await readJsonObject(FILES.inviteLink);
+  if (inviteLinkSettings[guildId]) {
+    inviteLinkSettings[guildId].allowedChannelIds = normalizeIdList(
+      inviteLinkSettings[guildId].allowedChannelIds
+    ).filter((id) => id !== channelId);
+
+    if (shouldDeleteInviteLinkSetting(inviteLinkSettings[guildId])) {
+      delete inviteLinkSettings[guildId];
+    }
+
+    await writeJsonObject(FILES.inviteLink, inviteLinkSettings);
   }
 
   const xpData = await readJsonObject(FILES.xp);
@@ -340,6 +369,20 @@ async function cleanupOnRoleDelete(guildId, roleId) {
   }
 
   const panels = await readJsonObject(FILES.rolePanels);
+
+  const inviteLinkSettings = await readJsonObject(FILES.inviteLink);
+  if (inviteLinkSettings[guildId]) {
+    inviteLinkSettings[guildId].allowedRoleIds = normalizeIdList(
+      inviteLinkSettings[guildId].allowedRoleIds
+    ).filter((id) => id !== roleId);
+
+    if (shouldDeleteInviteLinkSetting(inviteLinkSettings[guildId])) {
+      delete inviteLinkSettings[guildId];
+    }
+
+    await writeJsonObject(FILES.inviteLink, inviteLinkSettings);
+  }
+
   let dirty = false;
 
   for (const [messageId, panel] of Object.entries(panels)) {
