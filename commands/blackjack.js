@@ -136,7 +136,11 @@ module.exports = {
         .setColor(color)
         .setFooter({ text: `${resultText} | 現在の所持金: ${updated.balance}円` });
 
-      await interaction.editReply({ embeds: [embed], components: [] });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ embeds: [embed], components: [] });
+      } else {
+        await interaction.reply({ embeds: [embed], components: [] });
+      }
 
       // === ゲーム状態をリセット ===
       await setUserPlayingBlackjack(userId, false);
