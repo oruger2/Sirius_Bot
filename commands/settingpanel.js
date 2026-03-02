@@ -15,11 +15,12 @@ const { getGuildShortLinkSetting } = require('../utils/shortLinkBlockSettings');
 const { getGuildInviteLinkSetting } = require('../utils/inviteLinkBlockSettings');
 const { getGuildXpSetting } = require('../utils/xpSystem');
 const { getGuildStarboardSetting } = require('../utils/starboardSettings');
+const { getGuildBumpUpNotifierSetting } = require('../utils/bumpUpNotifierSettings');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('settingpanel')
-    .setDescription('サーバー設定パネルを開きます（Join/Leave/SpamBlock/AutoReaction/ShortLinkBlock/InviteLinkBlock/XP）')
+    .setDescription('サーバー設定パネルを開きます（通知系・ブロック系・XP・Starboard）')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
@@ -44,10 +45,11 @@ module.exports = {
     const inviteLinkSetting = await getGuildInviteLinkSetting(guildId);
     const xpSetting = await getGuildXpSetting(guildId);
     const starboardSetting = await getGuildStarboardSetting(guildId);
+    const bumpUpNotifierSetting = await getGuildBumpUpNotifierSetting(guildId);
 
     await interaction.reply({
-      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting)],
-      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, 1),
+      embeds: [buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, bumpUpNotifierSetting)],
+      components: buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, bumpUpNotifierSetting, 1),
       flags: MessageFlags.Ephemeral,
     });
   },
@@ -62,11 +64,11 @@ function mentionList(ids, type) {
   return ids.map((id) => `<@&${id}>`).join(', ');
 }
 
-function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting = { enabled: false, allowedChannelIds: [], allowedRoleIds: [] }) {
+function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting = { enabled: false, allowedChannelIds: [], allowedRoleIds: [] }, bumpUpNotifierSetting = { enabled: false, notifyChannelId: '', bumpMentionRoleId: '', upMentionRoleId: '' }) {
   return new EmbedBuilder()
     .setColor('Blue')
     .setTitle('⚙️ サーバー設定パネル')
-    .setDescription('Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock / InviteLinkBlock / XP / Starboard をこのパネルから設定できます。')
+    .setDescription('Join / Leave / SpamBlock / AutoReaction / ShortLinkBlock / InviteLinkBlock / XP / Starboard / BumpUp通知 をこのパネルから設定できます。')
     .addFields(
       {
         name: '📥 Joinメッセージ',
@@ -128,6 +130,14 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
           `絵文字: ${starboardSetting.emoji || '未設定'}\n` +
           `必要数: ${starboardSetting.requiredCount || 1}\n` +
           `送信チャンネル: ${starboardSetting.sendChannelId ? `<#${starboardSetting.sendChannelId}>` : '未設定'}`,
+      },
+      {
+        name: '📣 Bump/Up通知',
+        value:
+          `状態: **${bumpUpNotifierSetting.enabled ? 'ON' : 'OFF'}**\n` +
+          `通知チャンネル: ${bumpUpNotifierSetting.notifyChannelId ? `<#${bumpUpNotifierSetting.notifyChannelId}>` : '未設定'}\n` +
+          `/bumpメンション: ${bumpUpNotifierSetting.bumpMentionRoleId ? `<@&${bumpUpNotifierSetting.bumpMentionRoleId}>` : 'なし'}\n` +
+          `/upメンション: ${bumpUpNotifierSetting.upMentionRoleId ? `<@&${bumpUpNotifierSetting.upMentionRoleId}>` : 'なし'}`,
       }
     )
     .setFooter({
@@ -135,7 +145,11 @@ function buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting,
     });
 }
 
-function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting = { enabled: false }, page = 1) {
+function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting = { enabled: false }, bumpUpNotifierSetting = { enabled: false }, page = 1) {
+  if (typeof bumpUpNotifierSetting === 'number') {
+    page = bumpUpNotifierSetting;
+    bumpUpNotifierSetting = { enabled: false };
+  }
   const joinRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('joinmsg_toggle')
@@ -220,6 +234,17 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setStyle(ButtonStyle.Secondary)
   );
 
+  const bumpUpRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('bumpup_toggle')
+      .setLabel(bumpUpNotifierSetting.enabled ? 'BumpUp通知 OFF' : 'BumpUp通知 ON')
+      .setStyle(bumpUpNotifierSetting.enabled ? ButtonStyle.Danger : ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId('bumpup_open_modal')
+      .setLabel('BumpUp通知 設定')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
   const pageRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('settingpanel_page_prev')
@@ -228,14 +253,14 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
       .setDisabled(page === 1),
     new ButtonBuilder()
       .setCustomId('settingpanel_page_indicator')
-      .setLabel(`ページ ${page}/2`)
+      .setLabel(`ページ ${page}/3`)
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(true),
     new ButtonBuilder()
       .setCustomId('settingpanel_page_next')
       .setLabel('次へ ▶')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(page === 2)
+      .setDisabled(page === 3)
   );
 
   if (page === 1) {
@@ -244,6 +269,10 @@ function buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSettin
 
   if (page === 2) {
     return [shortLinkRow, inviteLinkRow, xpRow, starboardRow, pageRow];
+  }
+
+  if (page === 3) {
+    return [bumpUpRow, pageRow];
   }
 
   return [joinRow, leaveRow, spamRow, reactionRow, pageRow];

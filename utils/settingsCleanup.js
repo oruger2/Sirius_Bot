@@ -13,6 +13,7 @@ const FILES = {
   xp: path.join(JSON_DIR, "xpSystem.json"),
   starboard: path.join(JSON_DIR, "starboardSettings.json"),
   starboardPosts: path.join(JSON_DIR, "starboardPosts.json"),
+  bumpUpNotifier: path.join(JSON_DIR, "bumpUpNotifierSettings.json"),
   warnings: path.join(JSON_DIR, "warnings.json"),
   rolePanels: path.join(JSON_DIR, "rolepanels.json"),
   ticketPanels: path.join(JSON_DIR, "ticketPanelSettings.json"),
@@ -123,6 +124,16 @@ function shouldDeleteInviteLinkSetting(setting) {
   const allowedRoleIds = normalizeIdList(setting.allowedRoleIds);
 
   return !Boolean(setting.enabled) && allowedChannelIds.length === 0 && allowedRoleIds.length === 0;
+}
+
+function shouldDeleteBumpUpNotifierSetting(setting) {
+  if (!setting || typeof setting !== "object") return true;
+
+  const notifyChannelId = String(setting.notifyChannelId || "").trim();
+  const bumpMentionRoleId = String(setting.bumpMentionRoleId || "").trim();
+  const upMentionRoleId = String(setting.upMentionRoleId || "").trim();
+
+  return !Boolean(setting.enabled) && !notifyChannelId && !bumpMentionRoleId && !upMentionRoleId;
 }
 
 function shouldDeleteXpSetting(guildXpData) {
@@ -290,6 +301,19 @@ async function cleanupOnChannelDelete(guildId, channelId) {
     await writeJsonObject(FILES.starboard, starboardSettings);
   }
 
+  const bumpUpNotifierSettings = await readJsonObject(FILES.bumpUpNotifier);
+  if (bumpUpNotifierSettings[guildId]) {
+    if (bumpUpNotifierSettings[guildId].notifyChannelId === channelId) {
+      bumpUpNotifierSettings[guildId].notifyChannelId = "";
+    }
+
+    if (shouldDeleteBumpUpNotifierSetting(bumpUpNotifierSettings[guildId])) {
+      delete bumpUpNotifierSettings[guildId];
+    }
+
+    await writeJsonObject(FILES.bumpUpNotifier, bumpUpNotifierSettings);
+  }
+
   const starboardPosts = await readJsonObject(FILES.starboardPosts);
   let starboardDirty = false;
   for (const [postKey, post] of Object.entries(starboardPosts)) {
@@ -381,6 +405,22 @@ async function cleanupOnRoleDelete(guildId, roleId) {
     }
 
     await writeJsonObject(FILES.inviteLink, inviteLinkSettings);
+  }
+
+  const bumpUpNotifierSettings = await readJsonObject(FILES.bumpUpNotifier);
+  if (bumpUpNotifierSettings[guildId]) {
+    if (bumpUpNotifierSettings[guildId].bumpMentionRoleId === roleId) {
+      bumpUpNotifierSettings[guildId].bumpMentionRoleId = "";
+    }
+    if (bumpUpNotifierSettings[guildId].upMentionRoleId === roleId) {
+      bumpUpNotifierSettings[guildId].upMentionRoleId = "";
+    }
+
+    if (shouldDeleteBumpUpNotifierSetting(bumpUpNotifierSettings[guildId])) {
+      delete bumpUpNotifierSettings[guildId];
+    }
+
+    await writeJsonObject(FILES.bumpUpNotifier, bumpUpNotifierSettings);
   }
 
   let dirty = false;
