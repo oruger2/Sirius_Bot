@@ -15,6 +15,8 @@ const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings")
 const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
 const { getGuildInviteLinkSetting } = require("../utils/inviteLinkBlockSettings");
 const { getGuildXpSetting, setGuildXpSetting } = require("../utils/xpSystem");
+const { getGuildStarboardSetting } = require("../utils/starboardSettings");
+const { getGuildBumpUpNotifierSetting } = require("../utils/bumpUpNotifierSettings");
 const settingpanel = require("../commands/settingpanel");
 
 function isAdmin(interaction) {
@@ -30,10 +32,11 @@ async function renderSettingPanel(guildId, page = 1) {
   const inviteLinkSetting = await getGuildInviteLinkSetting(guildId);
   const xpSetting = await getGuildXpSetting(guildId);
   const starboardSetting = await getGuildStarboardSetting(guildId);
+  const bumpUpNotifierSetting = await getGuildBumpUpNotifierSetting(guildId);
 
   return {
-    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, page),
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, bumpUpNotifierSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, bumpUpNotifierSetting, page),
   };
 }
 
