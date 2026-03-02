@@ -43,9 +43,9 @@ module.exports = {
       return interaction.reply({ content: "❌ 管理者のみ操作できます。", flags: MessageFlags.Ephemeral });
     }
 
-    const currentPage = Number((interaction.message.components?.[interaction.message.components.length - 1]?.components?.[1]?.label || "").match(/ページ (\d+)\/3/)?.[1] || 1);
+    const currentPage = Number((interaction.message.components?.[interaction.message.components.length - 1]?.components?.[1]?.label || "").match(/ページ (\d+)\/2/)?.[1] || 1);
     const page = interaction.customId === "settingpanel_page_next"
-      ? Math.min(currentPage + 1, 3)
+      ? Math.min(currentPage + 1, 2)
       : Math.max(currentPage - 1, 1);
     return interaction.update(await renderSettingPanel(interaction.guild.id, page));
   },
