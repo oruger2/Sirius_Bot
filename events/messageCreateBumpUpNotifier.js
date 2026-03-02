@@ -3,7 +3,7 @@ const { getGuildBumpUpNotifierSetting } = require("../utils/bumpUpNotifierSettin
 const DISBOARD_BOT_ID = "302050872383242240";
 const DISSOKU_BOT_ID = "761562078095867916";
 const BUMP_COOLDOWN_MS = 2 * 60 * 60 * 1000;
-const UP_COOLDOWN_MS = 60 * 60 * 1000;
+const UP_COOLDOWN_MS = 6 * 1000;
 
 const timers = new Map();
 
