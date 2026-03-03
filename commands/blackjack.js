@@ -7,7 +7,7 @@ const {
   ComponentType,
 } = require("discord.js");
 const { getUserEconomy, addBalance } = require("../utils/economy");
-const { isUserPlayingBlackjack, setUserPlayingBlackjack } = require("../utils/gameState");
+const { isUserPlayingAnyGame, setUserPlayingBlackjack } = require("../utils/gameState");
 
 function drawCard() {
   const cards = [
@@ -60,10 +60,10 @@ module.exports = {
     const userId = interaction.user.id;
 
     // === ゲーム状態チェック ===
-    const isPlaying = await isUserPlayingBlackjack(userId);
+    const isPlaying = await isUserPlayingAnyGame(userId);
     if (isPlaying) {
       return interaction.reply({
-        content: "❌ 既にブラックジャックをプレイ中です。ゲームを完了してからもう一度お試しください。",
+        content: "❌ 既に他のゲームをプレイ中です。進行中のゲームを完了してからもう一度お試しください。",
         ephemeral: true,
       });
     }
