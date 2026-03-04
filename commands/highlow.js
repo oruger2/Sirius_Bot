@@ -148,7 +148,7 @@ module.exports = {
         }
       } else if (userPick === "hl_low") {
         if (nextCard < openCard) {
-          delta = bet;
+          delta = Math.round(bet*0.5);
           resultText = "勝利！";
           color = "Green";
         } else {
