@@ -138,7 +138,7 @@ module.exports = {
         resultText = "同じ数字！引き分け";
       } else if (userPick === "hl_high") {
         if (nextCard > openCard) {
-          delta = bet;
+          delta = bet*0.5;
           resultText = "勝利！";
           color = "Green";
         } else {
