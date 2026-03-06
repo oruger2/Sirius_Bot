@@ -8,6 +8,30 @@ const blacklistCheck = require("./blacklist");
 
 const stopConfigPath = path.join(__dirname, "../json/config.json");
 
+function isIgnorableInteractionError(error) {
+  return error?.code === 10062 || error?.code === 40060;
+}
+
+async function safelyReplyToInteraction(interaction, payload) {
+  try {
+    if (interaction.replied || interaction.deferred) {
+      return await interaction.followUp(payload);
+    }
+
+    return await interaction.reply(payload);
+  } catch (error) {
+    if (isIgnorableInteractionError(error)) {
+      console.warn("[INTERACTION] レスポンス期限切れのため返信をスキップしました", {
+        command: interaction.commandName,
+        code: error.code,
+      });
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 function normalizeStopping(list) {
   return Array.isArray(list)
     ? list
@@ -113,14 +137,10 @@ module.exports = {
 
       const msg = "❌ コマンドの実行中に予期しないエラーが発生しました。";
 
-      if (interaction.replied || interaction.deferred) {
-        await interaction.editReply({ content: msg });
-      } else {
-        await interaction.reply({
-          content: msg,
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+      await safelyReplyToInteraction(interaction, {
+        content: msg,
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };
