@@ -32,7 +32,8 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions, // ★必須
-    GatewayIntentBits.GuildMembers           // ★ロール付与に必須
+    GatewayIntentBits.GuildMembers,          // ★ロール付与に必須
+    GatewayIntentBits.GuildVoiceStates       // ★VC読み上げ機能に必須
   ],
   partials: [
     Partials.Message,
