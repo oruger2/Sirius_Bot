@@ -35,6 +35,7 @@ module.exports = {
 
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
+
     if (subcommand === "stop") {
       const stopped = stopSession(interaction.guildId);
       return interaction.reply({
@@ -87,20 +88,20 @@ module.exports = {
       guildVoiceAdapterCreator: interaction.guild.voiceAdapterCreator,
     });
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     const session = getSession(interaction.guildId);
     try {
       await voiceLib.entersState(session.connection, voiceLib.VoiceConnectionStatus.Ready, 15_000);
     } catch {
       stopSession(interaction.guildId);
-      return interaction.editReply({
+      return interaction.reply({
         content: "❌ VCへの接続に失敗しました。時間を置いて再実行してください。",
+        flags: MessageFlags.Ephemeral,
       });
     }
 
-    return interaction.editReply({
+    return interaction.reply({
       content: `🔊 ${voiceChannel} で ${targetChannel} の読み上げを開始しました。\n停止する場合は /vc stop を実行してください。`,
+      flags: MessageFlags.Ephemeral,
     });
   },
 };
