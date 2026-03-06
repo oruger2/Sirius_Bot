@@ -46,20 +46,22 @@ module.exports = {
       });
     }
 
+    await interaction.deferReply({
+      flags: MessageFlags.Ephemeral,
+    });
+
     const voiceLib = getVoiceLib();
     if (!voiceLib) {
-      return interaction.reply({
+      return interaction.editReply({
         content:
           "❌ VC読み上げ機能を使うには `@discordjs/voice` のインストールが必要です。",
-        flags: MessageFlags.Ephemeral,
       });
     }
 
     const voiceChannel = interaction.member.voice?.channel;
     if (!voiceChannel) {
-      return interaction.reply({
+      return interaction.editReply({
         content: "❌ 先にあなたがVCへ参加してください。",
-        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -67,17 +69,15 @@ module.exports = {
     const voicePerms = voiceChannel.permissionsFor(interaction.guild.members.me);
 
     if (!voicePerms?.has([PermissionFlagsBits.Connect, PermissionFlagsBits.Speak])) {
-      return interaction.reply({
+      return interaction.editReply({
         content: "❌ BotにVCの接続/発言権限がありません。",
-        flags: MessageFlags.Ephemeral,
       });
     }
 
     const readPerms = targetChannel.permissionsFor(interaction.guild.members.me);
     if (!readPerms?.has(PermissionFlagsBits.ViewChannel)) {
-      return interaction.reply({
+      return interaction.editReply({
         content: "❌ 指定チャンネルを閲覧する権限がありません。",
-        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -93,15 +93,13 @@ module.exports = {
       await voiceLib.entersState(session.connection, voiceLib.VoiceConnectionStatus.Ready, 15_000);
     } catch {
       stopSession(interaction.guildId);
-      return interaction.reply({
+      return interaction.editReply({
         content: "❌ VCへの接続に失敗しました。時間を置いて再実行してください。",
-        flags: MessageFlags.Ephemeral,
       });
     }
 
-    return interaction.reply({
+    return interaction.editReply({
       content: `🔊 ${voiceChannel} で ${targetChannel} の読み上げを開始しました。\n停止する場合は /vc stop を実行してください。`,
-      flags: MessageFlags.Ephemeral,
     });
   },
 };
