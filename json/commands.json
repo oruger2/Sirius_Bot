@@ -23,6 +23,20 @@
     {
       "name": "status",
       "description": "Botの稼働状況・システム情報を表示します"
+    },
+    {
+      "name": "vc",
+      "description": "VC読み上げを開始・停止します",
+      "subcommands": [
+        {
+          "name": "read",
+          "description": "指定チャンネルをVCで読み上げます"
+        },
+        {
+          "name": "stop",
+          "description": "読み上げを停止します"
+        }
+      ]
     }
   ],
   "管理系": [
