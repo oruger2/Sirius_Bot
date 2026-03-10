@@ -49,7 +49,7 @@ const client = new ExtendedClient({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isTargetModule = (file: string) => file.endsWith(".js") || file.endsWith(".ts");
+const isTargetModule = (file: string) => file.endsWith(".ts");
 
 const listDirectoryIfExists = async (targetPath: string) => {
   try {
