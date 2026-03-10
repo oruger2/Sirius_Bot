@@ -1,5 +1,6 @@
 import * as fsp from "node:fs/promises";
 import * as path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
 import * as dotenv from "dotenv";
 
@@ -38,15 +39,38 @@ const client = new ExtendedClient({
   ]
 });
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const isTargetModule = (file: string) => file.endsWith(".js") || file.endsWith(".ts");
+
+const listDirectoryIfExists = async (targetPath: string) => {
+  try {
+    return await fsp.readdir(targetPath);
+  } catch (error: unknown) {
+    const isMissingDirectory =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "ENOENT";
+
+    if (isMissingDirectory) {
+      console.warn(`⚠️ ディレクトリが見つかりません: ${targetPath}`);
+      return [];
+    }
+
+    throw error;
+  }
+};
+
 async function init() {
   const commandPath = path.join(__dirname, "commands");
 
-  const commandFiles = (await fsp.readdir(commandPath))
-    .filter((file: string) => file.endsWith(".js") || file.endsWith(".ts"));
+  const commandFiles = (await listDirectoryIfExists(commandPath)).filter(isTargetModule);
 
   for (const file of commandFiles) {
     const filePath = path.join(commandPath, file);
-    const commandModule = require(filePath);
+    const commandModule = await import(pathToFileURL(filePath).href);
     const command = (commandModule?.default ?? commandModule) as CommandModule;
 
     if (!command?.data?.name || !command?.execute) {
@@ -70,8 +94,8 @@ async function init() {
 
   const eventPath = path.join(__dirname, "events");
 
-  const eventFiles = (await fsp.readdir(eventPath))
-    .filter((file: string) => (file.endsWith(".js") || file.endsWith(".ts")))
+  const eventFiles = (await listDirectoryIfExists(eventPath))
+    .filter(isTargetModule)
     .filter((file: string) => !file.startsWith("blacklist."));
 
   // Guard against modules that register listeners on import.
@@ -92,7 +116,7 @@ async function init() {
     }
 
     const filePath = path.join(eventPath, file);
-    const eventModule = require(filePath);
+    const eventModule = await import(pathToFileURL(filePath).href);
     const event = (eventModule?.default ?? eventModule) as {
       name: string;
       once?: boolean;
