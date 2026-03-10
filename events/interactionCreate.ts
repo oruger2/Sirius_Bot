@@ -28,7 +28,7 @@ const event = {
       try {
         await replyOrFollowUp(embed);
       } catch {
-        await interaction.user.send({ embeds: [embed] }).catch(() => null);
+        // Avoid DM fallback; per request, only attempt ephemeral response.
       }
     };
 
@@ -53,10 +53,7 @@ const event = {
     if (channel && "permissionsFor" in channel) {
       const permissions = channel.permissionsFor(botMember);
       if (!permissions || !permissions.has(PermissionsBitField.Flags.ViewChannel)) {
-        const embed = buildErrorEmbed(
-          "⚠️ Botがチャンネルにアクセスできません。権限を確認してください。"
-        );
-        await interaction.user.send({ embeds: [embed] }).catch(() => null);
+        await notifyUser("⚠️ Botがチャンネルにアクセスできません。権限を確認してください。");
         return;
       }
 
