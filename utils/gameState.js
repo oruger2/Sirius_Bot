@@ -9,13 +9,17 @@ const gameStatePath = path.join(__dirname, "../json/gameState.json");
 async function loadGameState() {
   try {
     const raw = await fsp.readFile(gameStatePath, "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      blackjack: parsed.blackjack ?? {},
+      highlow: parsed.highlow ?? {},
+    };
   } catch (error) {
     if (error.code === "ENOENT") {
-      return { blackjack: {} };
+      return { blackjack: {}, highlow: {} };
     }
     console.error("[GAME_STATE] gameState.json の読み込みに失敗しました", error);
-    return { blackjack: {} };
+    return { blackjack: {}, highlow: {} };
   }
 }
 
@@ -39,6 +43,26 @@ async function isUserPlayingBlackjack(userId) {
 }
 
 /**
+ * ユーザーがハイアンドローをプレイ中か確認
+ */
+async function isUserPlayingHighLow(userId) {
+  const state = await loadGameState();
+  return state.highlow?.[userId] === true;
+}
+
+/**
+ * ユーザーがゲームをプレイ中か確認
+ */
+async function isUserPlayingAnyGame(userId) {
+  const [playingBlackjack, playingHighLow] = await Promise.all([
+    isUserPlayingBlackjack(userId),
+    isUserPlayingHighLow(userId),
+  ]);
+
+  return playingBlackjack || playingHighLow;
+}
+
+/**
  * ユーザーのブラックジャック開始状態を設定
  */
 async function setUserPlayingBlackjack(userId, isPlaying) {
@@ -56,7 +80,28 @@ async function setUserPlayingBlackjack(userId, isPlaying) {
   await saveGameState(state);
 }
 
+/**
+ * ユーザーのハイアンドロー開始状態を設定
+ */
+async function setUserPlayingHighLow(userId, isPlaying) {
+  const state = await loadGameState();
+  if (!state.highlow) {
+    state.highlow = {};
+  }
+
+  if (isPlaying) {
+    state.highlow[userId] = true;
+  } else {
+    delete state.highlow[userId];
+  }
+
+  await saveGameState(state);
+}
+
 module.exports = {
   isUserPlayingBlackjack,
+  isUserPlayingHighLow,
+  isUserPlayingAnyGame,
   setUserPlayingBlackjack,
+  setUserPlayingHighLow,
 };

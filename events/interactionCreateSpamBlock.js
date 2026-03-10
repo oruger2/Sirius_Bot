@@ -2,6 +2,9 @@ const {
   MessageFlags,
   PermissionsBitField,
   ModalBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
@@ -16,7 +19,10 @@ const {
 } = require("../utils/spamBlockSettings");
 const { getGuildAutoReactionSetting } = require("../utils/autoReactionSettings");
 const { getGuildShortLinkSetting } = require("../utils/shortLinkBlockSettings");
+const { getGuildInviteLinkSetting } = require("../utils/inviteLinkBlockSettings");
 const { getGuildXpSetting } = require("../utils/xpSystem");
+const { getGuildStarboardSetting } = require("../utils/starboardSettings");
+const { getGuildBumpUpNotifierSetting } = require("../utils/bumpUpNotifierSettings");
 const settingpanel = require("../commands/settingpanel");
 
 function isAdmin(interaction) {
@@ -51,11 +57,14 @@ async function renderSettingPanel(guildId, page = 1) {
   const spamSetting = await getGuildSpamSetting(guildId);
   const autoReactionSetting = await getGuildAutoReactionSetting(guildId);
   const shortLinkSetting = await getGuildShortLinkSetting(guildId);
+  const inviteLinkSetting = await getGuildInviteLinkSetting(guildId);
   const xpSetting = await getGuildXpSetting(guildId);
+  const starboardSetting = await getGuildStarboardSetting(guildId);
+  const bumpUpNotifierSetting = await getGuildBumpUpNotifierSetting(guildId);
 
   return {
-    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting)],
-    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, page),
+    embeds: [settingpanel.buildPanel(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, bumpUpNotifierSetting)],
+    components: settingpanel.buildButtons(joinSetting, leaveSetting, spamSetting, autoReactionSetting, shortLinkSetting, xpSetting, starboardSetting, inviteLinkSetting, bumpUpNotifierSetting, page),
   };
 }
 
@@ -64,8 +73,14 @@ module.exports = {
 
   async execute(interaction) {
     const isTarget =
-      (interaction.isButton() && ["spamblock_toggle", "spamblock_open_modal"].includes(interaction.customId)) ||
-      (interaction.isModalSubmit() && interaction.customId === "spamblock_modal");
+      (interaction.isButton() && [
+        "spamblock_toggle",
+        "spamblock_open_modal",
+        "spamblock_open_advanced_modal",
+        "spamblock_clear_report_channel",
+      ].includes(interaction.customId)) ||
+      (interaction.isModalSubmit() && interaction.customId === "spamblock_modal") ||
+      (interaction.isChannelSelectMenu() && ["spamblock_select_report_channel", "spamblock_select_ignored_channels"].includes(interaction.customId));
 
     if (!isTarget) return;
     if (!interaction.inGuild()) return;
@@ -83,15 +98,63 @@ module.exports = {
     }
 
     if (interaction.isButton() && interaction.customId === "spamblock_open_modal") {
-      const modal = new ModalBuilder().setCustomId("spamblock_modal").setTitle("SpamBlock設定");
+      const reportChannelSelect = new ChannelSelectMenuBuilder()
+        .setCustomId("spamblock_select_report_channel")
+        .setPlaceholder("レポート先チャンネルを選択（任意）")
+        .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setMinValues(1)
+        .setMaxValues(1);
 
-      const reportChannelInput = new TextInputBuilder()
-        .setCustomId("report_channel_id")
-        .setLabel("レポート送信先チャンネルID（任意）")
-        .setPlaceholder("未入力でレポート送信なし")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-        .setValue(setting.reportChannelId || "");
+      if (setting.reportChannelId) {
+        reportChannelSelect.setDefaultChannels(setting.reportChannelId);
+      }
+
+      const ignoredChannelSelect = new ChannelSelectMenuBuilder()
+        .setCustomId("spamblock_select_ignored_channels")
+        .setPlaceholder("除外チャンネルを選択（複数可）")
+        .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setMinValues(0)
+        .setMaxValues(25);
+
+      if ((setting.ignoredChannelIds || []).length) {
+        ignoredChannelSelect.setDefaultChannels(...setting.ignoredChannelIds.slice(0, 25));
+      }
+
+      const buttonsRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("spamblock_open_advanced_modal")
+          .setLabel("詳細設定（判定・タイムアウト・除外ロール）")
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId("spamblock_clear_report_channel")
+          .setLabel("レポート先をクリア")
+          .setStyle(ButtonStyle.Secondary)
+      );
+
+      return interaction.reply({
+        content: "チャンネル系の設定はセレクトメニューから、判定条件や除外ロールは詳細設定から変更できます。",
+        components: [
+          new ActionRowBuilder().addComponents(reportChannelSelect),
+          new ActionRowBuilder().addComponents(ignoredChannelSelect),
+          buttonsRow,
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isButton() && interaction.customId === "spamblock_clear_report_channel") {
+      await setGuildSpamSetting(guildId, {
+        ...setting,
+        reportChannelId: "",
+      });
+      return interaction.update({
+        ...(await renderSettingPanel(guildId, 1)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isButton() && interaction.customId === "spamblock_open_advanced_modal") {
+      const modal = new ModalBuilder().setCustomId("spamblock_modal").setTitle("SpamBlock詳細設定");
 
       const detectionRuleInput = new TextInputBuilder()
         .setCustomId("detection_rule")
@@ -109,40 +172,71 @@ module.exports = {
         .setRequired(true)
         .setValue(String(setting.timeoutMinutes || 10));
 
-      const ignoredChannelsInput = new TextInputBuilder()
-        .setCustomId("ignored_channel_ids")
-        .setLabel("除外チャンネルID（カンマ区切り）")
-        .setPlaceholder("123...,456...")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-        .setValue((setting.ignoredChannelIds || []).join(","));
-
       const ignoredRolesInput = new TextInputBuilder()
         .setCustomId("ignored_role_ids")
         .setLabel("除外ロールID（カンマ区切り）")
         .setPlaceholder("123...,456...")
-        .setStyle(TextInputStyle.Short)
+        .setStyle(TextInputStyle.Paragraph)
         .setRequired(false)
         .setValue((setting.ignoredRoleIds || []).join(","));
 
       modal.addComponents(
-        new ActionRowBuilder().addComponents(reportChannelInput),
         new ActionRowBuilder().addComponents(detectionRuleInput),
         new ActionRowBuilder().addComponents(timeoutMinutesInput),
-        new ActionRowBuilder().addComponents(ignoredChannelsInput),
         new ActionRowBuilder().addComponents(ignoredRolesInput)
       );
 
       return interaction.showModal(modal);
     }
 
+    if (interaction.isChannelSelectMenu() && interaction.customId === "spamblock_select_report_channel") {
+      const [reportChannelId] = interaction.values;
+      const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
+      const channel = interaction.guild.channels.cache.get(reportChannelId);
+      if (!channel || !textLike.includes(channel.type)) {
+        return interaction.reply({
+          content: "❌ レポート送信先はテキストチャンネルを選択してください。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      const botMember = interaction.guild.members.me;
+      const channelPerms = channel.permissionsFor(botMember);
+      if (!channelPerms?.has(PermissionsBitField.Flags.SendMessages)) {
+        return interaction.reply({
+          content: "❌ そのレポート先チャンネルに送信権限がありません。",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      await setGuildSpamSetting(guildId, {
+        ...setting,
+        reportChannelId,
+      });
+
+      return interaction.update({
+        ...(await renderSettingPanel(guildId, 1)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (interaction.isChannelSelectMenu() && interaction.customId === "spamblock_select_ignored_channels") {
+      await setGuildSpamSetting(guildId, {
+        ...setting,
+        ignoredChannelIds: interaction.values,
+      });
+
+      return interaction.update({
+        ...(await renderSettingPanel(guildId, 1)),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
     if (interaction.isModalSubmit() && interaction.customId === "spamblock_modal") {
-      const reportChannelId = interaction.fields.getTextInputValue("report_channel_id").trim();
       const { detectionWindowSeconds, maxMessages } = parseDetectionRule(
         interaction.fields.getTextInputValue("detection_rule")
       );
       const timeoutMinutes = parseInteger(interaction.fields.getTextInputValue("timeout_minutes"));
-      const ignoredChannelIds = parseIdList(interaction.fields.getTextInputValue("ignored_channel_ids"));
       const ignoredRoleIds = parseIdList(interaction.fields.getTextInputValue("ignored_role_ids"));
 
       if (!detectionWindowSeconds || detectionWindowSeconds < 1 || detectionWindowSeconds > 60) {
@@ -166,37 +260,6 @@ module.exports = {
         });
       }
 
-      const textLike = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
-
-      if (reportChannelId.length > 0) {
-        const channel = interaction.guild.channels.cache.get(reportChannelId);
-        if (!channel || !textLike.includes(channel.type)) {
-          return interaction.reply({
-            content: "❌ レポート送信先はテキストチャンネルIDを入力してください。",
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        const botMember = interaction.guild.members.me;
-        const channelPerms = channel.permissionsFor(botMember);
-        if (!channelPerms?.has(PermissionsBitField.Flags.SendMessages)) {
-          return interaction.reply({
-            content: "❌ そのレポート先チャンネルに送信権限がありません。",
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-      }
-
-      for (const channelId of ignoredChannelIds) {
-        const channel = interaction.guild.channels.cache.get(channelId);
-        if (!channel || !textLike.includes(channel.type)) {
-          return interaction.reply({
-            content: "❌ 除外チャンネルIDに無効な値があります。",
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-      }
-
       for (const roleId of ignoredRoleIds) {
         if (!interaction.guild.roles.cache.has(roleId)) {
           return interaction.reply({
@@ -208,15 +271,13 @@ module.exports = {
 
       await setGuildSpamSetting(guildId, {
         ...setting,
-        reportChannelId,
         detectionWindowSeconds,
         maxMessages,
         timeoutMinutes,
-        ignoredChannelIds,
         ignoredRoleIds,
       });
 
-      return interaction.reply({
+      return interaction.update({
         ...(await renderSettingPanel(guildId, 1)),
         flags: MessageFlags.Ephemeral,
       });

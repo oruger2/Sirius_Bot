@@ -4,10 +4,6 @@ const { EmbedBuilder } = require('discord.js');
 
 const DATA_PATH = path.join(__dirname, '../json/rolepanels.json');
 
-/* ===== クールダウン ===== */
-const cooldowns = new Map(); // userId => timestamp
-const COOLDOWN_TIME = 10_000; // 10秒
-
 module.exports = {
   name: 'messageReactionAdd',
   async execute(reaction, user) {
@@ -35,17 +31,6 @@ module.exports = {
 
     if (!data[messageId]?.roles[emojiKey]) return;
 
-    /* ===== クールダウン判定 ===== */
-    const now = Date.now();
-    const last = cooldowns.get(user.id) || 0;
-
-    if (now - last < COOLDOWN_TIME) {
-      await reaction.users.remove(user.id).catch(() => {});
-      return;
-    }
-
-    cooldowns.set(user.id, now);
-
     /* ===== ロール処理 ===== */
     const roleId = data[messageId].roles[emojiKey];
     const guild = reaction.message.guild;
@@ -60,29 +45,30 @@ module.exports = {
     let actionText;
 
     try {
-      if (member.roles.cache.has(roleId)) {
-        await member.roles.remove(role);
-        actionText = '❌ ロールを削除しました';
-      } else {
-        await member.roles.add(role);
-        actionText = '✅ ロールを付与しました';
-      }
+    let actionText;
 
-      /* ===== 通知 Embed ===== */
-      const embed = new EmbedBuilder()
-        .setColor(member.roles.cache.has(roleId) ? 'Red' : 'Green')
+    if (member.roles.cache.has(roleId)) {
+        await member.roles.remove(role);
+        actionText = "❌ ロールを削除しました";
+    } else {
+        await member.roles.add(role);
+        actionText = "✅ ロールを付与しました";
+    }
+
+    const embed = new EmbedBuilder()
+        .setColor(member.roles.cache.has(roleId) ? 0xED4245 : 0x57F287)
         .setTitle(actionText)
-        .setDescription(`${user}\n**${role.name}**`)
+        .setDescription(`${member.user} に **${role.name}** を処理しました`)
         .setTimestamp();
 
-      const msg = await reaction.message.channel.send({
+    const msg = await reaction.message.channel.send({
         embeds: [embed]
-      });
+    });
 
       /* 5秒後に削除 */
       setTimeout(() => {
         msg.delete().catch(() => {});
-      }, 5000);
+      }, 3000);
 
       /* リアクション削除 */
       await reaction.users.remove(user.id).catch(() => {});

@@ -31,10 +31,19 @@ async function loadData() {
     if (err.code === 'ENOENT') return {};
     throw err;
   }
-  return JSON.parse(raw);
+
+  if (!raw.trim()) return {};
+
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
 async function saveData(data) {
+  await fsp.mkdir(path.dirname(DATA_PATH), { recursive: true });
   await fsp.writeFile(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
@@ -43,6 +52,18 @@ function getEmojiKeyFromString(emoji) {
   const match = emoji.match(/<(a?):(\w+):(\d+)>/);
   if (match) return match[3];
   return emoji;
+}
+
+function isValidEmojiInput(value) {
+  if (!value || typeof value !== 'string') return false;
+
+  const emoji = value.trim();
+  if (!emoji) return false;
+
+  const customEmojiRegex = /^<a?:\w{2,32}:\d{17,20}>$/;
+  const unicodeEmojiRegex = /^(?:\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier})?(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier})?)*)$/u;
+
+  return customEmojiRegex.test(emoji) || unicodeEmojiRegex.test(emoji);
 }
 
 /* ===== エラーEmbed ===== */
@@ -115,7 +136,7 @@ module.exports = {
           .setTitle(title)
           .setColor(COLOR_MAP[colorName])
           .setDescription(`${emoji} → <@&${role.id}>`)
-          .setFooter({ text: 'リアクションでロール付与（10秒クールダウン）' });
+          .setFooter({ text: 'リアクションでロール付与' });
 
         msg = await interaction.channel.send({ embeds: [embed] });
         await msg.react(emoji);
@@ -134,6 +155,7 @@ module.exports = {
       const emojiKey = getEmojiKeyFromString(emoji);
 
       data[msg.id] = {
+        guildId: interaction.guild.id,
         channelId: interaction.channel.id,
         roles: { [emojiKey]: role.id }
       };
@@ -156,6 +178,18 @@ module.exports = {
       const messageId = interaction.options.getString('messageid');
       const emoji = interaction.options.getString('emoji');
       const role = interaction.options.getRole('role');
+
+      if (!isValidEmojiInput(emoji)) {
+        return interaction.reply({
+          embeds: [
+            errorEmbed(
+              '絵文字指定エラー',
+              '絵文字以外は指定できません。有効な絵文字を指定してください。'
+            )
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
 
       const panel = data[messageId];
       if (!panel) {

@@ -6,17 +6,56 @@ const {
 } = require("discord.js");
 const blacklistCheck = require("./blacklist");
 
-const configPath = path.join(__dirname, "../config.json");
+const stopConfigPath = path.join(__dirname, "../json/config.json");
+
+function isIgnorableInteractionError(error) {
+  return error?.code === 10062 || error?.code === 40060;
+}
+
+async function safelyReplyToInteraction(interaction, payload) {
+  try {
+    if (interaction.replied || interaction.deferred) {
+      return await interaction.followUp(payload);
+    }
+
+    return await interaction.reply(payload);
+  } catch (error) {
+    if (isIgnorableInteractionError(error)) {
+      console.warn("[INTERACTION] レスポンス期限切れのため返信をスキップしました", {
+        command: interaction.commandName,
+        code: error.code,
+      });
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+function normalizeStopping(list) {
+  return Array.isArray(list)
+    ? list
+        .map((name) => String(name).replace(/^\//, "").trim().toLowerCase())
+        .filter(Boolean)
+    : [];
+}
 
 async function getStoppingCommands() {
   try {
-    const raw = await fsp.readFile(configPath, "utf8");
+    const raw = await fsp.readFile(stopConfigPath, "utf8");
     const config = JSON.parse(raw);
-    return Array.isArray(config.stopping)
-      ? config.stopping
-          .map((name) => String(name).replace(/^\//, "").trim().toLowerCase())
-          .filter(Boolean)
-      : [];
+    return normalizeStopping(config.stopping);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.error("[CONFIG] json/confg.json の読み込みに失敗しました", error);
+      return [];
+    }
+  }
+
+  try {
+    const raw = await fsp.readFile(legacyConfigPath, "utf8");
+    const config = JSON.parse(raw);
+    return normalizeStopping(config.stopping);
   } catch (error) {
     if (error.code !== "ENOENT") {
       console.error("[CONFIG] config.json の読み込みに失敗しました", error);
@@ -98,14 +137,10 @@ module.exports = {
 
       const msg = "❌ コマンドの実行中に予期しないエラーが発生しました。";
 
-      if (interaction.replied || interaction.deferred) {
-        await interaction.editReply({ content: msg });
-      } else {
-        await interaction.reply({
-          content: msg,
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+      await safelyReplyToInteraction(interaction, {
+        content: msg,
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };
