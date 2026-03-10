@@ -1,7 +1,14 @@
 import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
+import {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  Partials,
+  REST,
+  Routes
+} from "discord.js";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -11,7 +18,7 @@ dotenv.config();
 ====================== */
 
 type CommandModule = {
-  data: { name: string };
+  data: { name: string; toJSON: () => unknown };
   execute: (...args: any[]) => Promise<unknown> | unknown;
 };
 
@@ -164,6 +171,21 @@ async function init() {
   }
 
   await client.login(token);
+
+  const applicationId = process.env.DISCORD_CLIENT_ID ?? client.application?.id;
+
+  if (!applicationId) {
+    throw new Error("❌ DISCORD_CLIENT_ID が設定されていません");
+  }
+
+  const rest = new REST({ version: "10" }).setToken(token);
+  const slashCommands = client.commands.map((command) => command.data.toJSON());
+
+  await rest.put(Routes.applicationCommands(applicationId), {
+    body: slashCommands
+  });
+
+  console.log(`✅ コマンド登録完了: ${slashCommands.length}`);
 }
 
 init().catch((err: unknown) => {
