@@ -1,4 +1,4 @@
-import { PermissionsBitField } from "discord.js";
+import { EmbedBuilder, MessageFlags, PermissionsBitField } from "discord.js";
 import type { Interaction } from "discord.js";
 
 const event = {
@@ -8,19 +8,27 @@ const event = {
       return;
     }
 
-    const replyOrFollowUp = async (content: string) => {
+    const buildErrorEmbed = (content: string) =>
+      new EmbedBuilder()
+        .setTitle("⚠️ エラー")
+        .setDescription(content)
+        .setColor(0xed4245)
+        .setTimestamp(new Date());
+
+    const replyOrFollowUp = async (embed: EmbedBuilder) => {
       if (interaction.deferred || interaction.replied) {
-        await interaction.followUp({ content, ephemeral: true });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else {
-        await interaction.reply({ content, ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
     };
 
     const notifyUser = async (content: string) => {
+      const embed = buildErrorEmbed(content);
       try {
-        await replyOrFollowUp(content);
+        await replyOrFollowUp(embed);
       } catch {
-        await interaction.user.send({ content }).catch(() => null);
+        await interaction.user.send({ embeds: [embed] }).catch(() => null);
       }
     };
 
@@ -45,9 +53,10 @@ const event = {
     if (channel && "permissionsFor" in channel) {
       const permissions = channel.permissionsFor(botMember);
       if (!permissions || !permissions.has(PermissionsBitField.Flags.ViewChannel)) {
-        await interaction.user
-          .send({ content: "⚠️ Botがチャンネルにアクセスできません。権限を確認してください。" })
-          .catch(() => null);
+        const embed = buildErrorEmbed(
+          "⚠️ Botがチャンネルにアクセスできません。権限を確認してください。"
+        );
+        await interaction.user.send({ embeds: [embed] }).catch(() => null);
         return;
       }
 
@@ -64,7 +73,8 @@ const event = {
     const command = extendedClient.commands?.get(interaction.commandName);
 
     if (!command) {
-      await interaction.reply({ content: "⚠️ コマンドが見つかりません", ephemeral: true });
+      const embed = buildErrorEmbed("⚠️ コマンドが見つかりません");
+      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -73,16 +83,11 @@ const event = {
     } catch (error) {
       console.error(`❌ Command Error: ${interaction.commandName}`, error);
 
+      const embed = buildErrorEmbed("⚠️ コマンド実行中にエラーが発生しました");
       if (interaction.deferred || interaction.replied) {
-        await interaction.followUp({
-          content: "⚠️ コマンド実行中にエラーが発生しました",
-          ephemeral: true
-        });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else {
-        await interaction.reply({
-          content: "⚠️ コマンド実行中にエラーが発生しました",
-          ephemeral: true
-        });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
     }
   }
