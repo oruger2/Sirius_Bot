@@ -1,4 +1,4 @@
-import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
 
 const command = {
@@ -18,22 +18,89 @@ const command = {
         .setRequired(false)
     ),
   async execute(interaction: ChatInputCommandInteraction) {
+    const sendEphemeral = async (embed: EmbedBuilder) => {
+      const replyPayload = { embeds: [embed], ephemeral: true };
+      const editPayload = { embeds: [embed] };
+      const followUpPayload = { embeds: [embed], ephemeral: true };
+
+      const tryEdit = async () => {
+        try {
+          return await interaction.editReply(editPayload);
+        } catch (error) {
+          if (error instanceof Error && error.name === "InteractionNotReplied") {
+            return null;
+          }
+          throw error;
+        }
+      };
+
+      const tryReply = async () => {
+        try {
+          return await interaction.reply(replyPayload);
+        } catch (error) {
+          if ((error as { code?: number }).code === 40060) {
+            return null;
+          }
+          throw error;
+        }
+      };
+
+      const tryFollowUp = async () => {
+        try {
+          return await interaction.followUp(followUpPayload);
+        } catch {
+          return null;
+        }
+      };
+
+      if (interaction.deferred || interaction.replied) {
+        const edited = await tryEdit();
+        if (edited) {
+          return edited;
+        }
+        const replied = await tryReply();
+        if (replied) {
+          return replied;
+        }
+        await tryFollowUp();
+        return;
+      }
+
+      const replied = await tryReply();
+      if (replied) {
+        return replied;
+      }
+      const edited = await tryEdit();
+      if (edited) {
+        return edited;
+      }
+      await tryFollowUp();
+    };
+
     const replyError = async (content: string) => {
       const embed = new EmbedBuilder()
-        .setTitle("⚠️ エラー")
+        .setAuthor({
+          name: "エラー",
+          iconURL:
+            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920398836142100/image.png?ex=69b16e19&is=69b01c99&hm=4ba81f76eec3144f7140e9d1b3d261108e152e487eff8a2d609ff0ada2f25c33"
+        })
         .setDescription(content)
         .setColor(0xed4245)
         .setTimestamp(new Date());
-      if (interaction.deferred || interaction.replied) {
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
-      } else {
-        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-      }
+      await sendEphemeral(embed);
     };
 
     if (!interaction.inGuild()) {
-      await replyError("⚠️ このコマンドはサーバー内でのみ使用できます。");
+      await replyError("このコマンドはサーバー内でのみ使用できます。");
       return;
+    }
+
+    if (!interaction.deferred && !interaction.replied) {
+      try {
+        await interaction.deferReply({ ephemeral: true });
+      } catch {
+        // If defer fails, continue and attempt a normal reply in sendEphemeral.
+      }
     }
 
     const targetUser = interaction.options.getUser("user", true);
@@ -44,7 +111,7 @@ const command = {
       return;
     }
 
-    const requestor = interaction.member as GuildMember | null;
+    let requestor = interaction.member as GuildMember | null;
     const requestorPermissions = interaction.memberPermissions;
 
     if (!requestorPermissions?.has(PermissionsBitField.Flags.KickMembers)) {
@@ -81,6 +148,10 @@ const command = {
       return;
     }
 
+    if (!requestor) {
+      requestor = await guild.members.fetch(interaction.user.id).catch(() => null);
+    }
+
     const requesterRolePosition = requestor?.roles.highest.position ?? 0;
     const targetRolePosition = targetMember.roles.highest.position;
     const botRolePosition = botMember.roles.highest.position;
@@ -111,15 +182,27 @@ const command = {
     try {
       await targetMember.kick(reason);
       const embed = new EmbedBuilder()
-        .setTitle("✅ KICK完了")
+        .setAuthor({
+          name: "✅ KICK完了",
+          iconURL:
+            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+        })
         .setDescription(`✅ ${targetUser.tag} をKICKしました。\n理由: ${reasonInput ?? "なし"}`)
         .setColor(0x57f287)
         .setTimestamp(new Date());
-      await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral
-      });
+      await sendEphemeral(embed);
     } catch (error) {
+      if (requestor) {
+        const requesterRolePosition = requestor.roles.highest.position;
+        const targetRolePosition = targetMember.roles.highest.position;
+        if (
+          requesterRolePosition <= targetRolePosition &&
+          interaction.user.id !== guild.ownerId
+        ) {
+          await replyError("❌ 自分より上位または同じロールのユーザーはKICKできません。");
+          return;
+        }
+      }
       console.error("❌ KICK失敗:", {
         guildId: guild.id,
         targetUserId: targetUser.id,
