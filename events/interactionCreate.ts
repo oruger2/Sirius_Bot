@@ -11,7 +11,7 @@ const event = {
     const isUnknownInteraction = (error: unknown) =>
       (error as { code?: number }).code === 10062;
 
-    const deferredEphemeralCommands = new Set(["ban", "kick"]);
+    const deferredEphemeralCommands = new Set(["ban", "kick", "timeout"]);
     if (!interaction.deferred && !interaction.replied) {
       const shouldBeEphemeral = deferredEphemeralCommands.has(interaction.commandName);
       try {
