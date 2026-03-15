@@ -1,34 +1,27 @@
-import { EmbedBuilder, MessageFlags, PermissionsBitField } from "discord.js";
-import type { Interaction } from "discord.js";
+import { EmbedBuilder, MessageFlags, PermissionsBitField, Collection } from "discord.js";
+import type { Interaction, ChatInputCommandInteraction, Client } from "discord.js";
+
+// コマンドの構造を定義
+interface Command {
+  execute: (interaction: ChatInputCommandInteraction) => Promise<unknown> | unknown;
+}
+
+// commandsプロパティを持つようにClientを拡張
+interface ExtendedClient extends Client {
+  commands: Collection<string, Command>;
+}
 
 const event = {
   name: "interactionCreate",
   async execute(interaction: Interaction) {
+    // スラッシュコマンド以外は処理しない
     if (!interaction.isChatInputCommand()) {
       return;
     }
 
-    const isUnknownInteraction = (error: unknown) =>
-      (error as { code?: number }).code === 10062;
-
-    const deferredEphemeralCommands = new Set(["ban", "kick", "timeout"]);
-    if (!interaction.deferred && !interaction.replied) {
-      const shouldBeEphemeral = deferredEphemeralCommands.has(interaction.commandName);
-      try {
-        await interaction.deferReply({
-          flags: shouldBeEphemeral ? MessageFlags.Ephemeral : undefined
-        });
-      } catch (error) {
-        if (isUnknownInteraction(error)) {
-          return;
-        }
-        // If defer fails for other reasons, stop here to avoid follow-up unknown interaction errors.
-        return;
-      }
-    }
-
-    const buildErrorEmbed = (content: string) =>
-      new EmbedBuilder()
+    // 共通のエラーメッセージ送信関数
+    const sendError = async (content: string) => {
+      const embed = new EmbedBuilder()
         .setAuthor({
           name: "エラー",
           iconURL:
@@ -36,130 +29,94 @@ const event = {
         })
         .setDescription(content)
         .setColor(0xed4245)
-        .setTimestamp(new Date());
+        .setTimestamp();
 
-    const replyOrFollowUp = async (embed: EmbedBuilder) => {
-      const replyPayload = { embeds: [embed], flags: MessageFlags.Ephemeral };
-      const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], flags: MessageFlags.Ephemeral };
-
-      const tryEdit = async () => {
-        try {
-          await interaction.editReply(editPayload);
-          return true;
-        } catch (error) {
-          if (isUnknownInteraction(error)) {
-            return true;
-          }
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
-            return false;
-          }
-          throw error;
-        }
-      };
-
-      const tryReply = async () => {
-        try {
-          await interaction.reply(replyPayload);
-          return true;
-        } catch (error) {
-          if (isUnknownInteraction(error)) {
-            return true;
-          }
-          if ((error as { code?: number }).code === 40060) {
-            return false;
-          }
-          throw error;
-        }
-      };
-
-      const tryFollowUp = async () => {
-        try {
-          await interaction.followUp(followUpPayload);
-        } catch {
-          // Ignore follow-up failures; avoid throwing in error path.
-        }
-      };
-
-      if (interaction.deferred || interaction.replied) {
-        if (await tryEdit()) {
-          return;
-        }
-        if (await tryReply()) {
-          return;
-        }
-        await tryFollowUp();
-        return;
-      }
-
-      if (await tryReply()) {
-        return;
-      }
-      if (await tryEdit()) {
-        return;
-      }
-      await tryFollowUp();
-    };
-
-    const notifyUser = async (content: string) => {
-      const embed = buildErrorEmbed(content);
       try {
-        await replyOrFollowUp(embed);
-      } catch {
-        // Avoid DM fallback; per request, only attempt ephemeral response.
+        // すでに defer または reply されている場合は followUp を使う
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        } else {
+          await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        }
+      } catch (error) {
+        // Unknown Interaction (10062) などの場合は無視
+        const isUnknownInteraction = (err: unknown) => (err as { code?: number }).code === 10062;
+        if (!isUnknownInteraction(error)) {
+          console.error("エラーメッセージの送信に失敗しました:", error);
+        }
       }
     };
 
+    // --- Defer Reply 処理 ---
+    const deferredEphemeralCommands = new Set(["ban", "kick", "timeout"]);
+    const shouldBeEphemeral = deferredEphemeralCommands.has(interaction.commandName);
+    
+    try {
+      // 処理の最初で deferReply を行う
+      await interaction.deferReply({
+        flags: shouldBeEphemeral ? MessageFlags.Ephemeral : undefined
+      });
+    } catch (error) {
+      const isUnknownInteraction = (err: unknown) => (err as { code?: number }).code === 10062;
+      if (isUnknownInteraction(error)) return;
+      console.error("deferReplyに失敗しました:", error);
+      return;
+    }
+
+    // --- バリデーションチェック ---
     if (!interaction.inGuild()) {
-      await notifyUser("このコマンドはDMで実行されています。サーバー内で実行してください。");
+      await sendError("このコマンドはDMで実行されています。サーバー内で実行してください。");
       return;
     }
 
     const guild = interaction.guild;
     if (!guild) {
-      await notifyUser("サーバー情報の取得に失敗しました。もう一度お試しください。");
+      await sendError("サーバー情報の取得に失敗しました。もう一度お試しください。");
       return;
     }
 
-    const botMember = await guild.members.fetchMe().catch(() => null);
+    // Bot自身のメンバー情報をキャッシュから取得、なければフェッチする
+    const botMember = guild.members.me || await guild.members.fetchMe().catch(() => null);
     if (!botMember) {
-      await notifyUser("Botの権限確認に失敗しました。もう一度お試しください。");
+      await sendError("Botの権限確認に失敗しました。もう一度お試しください。");
       return;
     }
 
     const channel = interaction.channel;
-    if (channel && "permissionsFor" in channel) {
+    // チャンネルが存在し、テキストベースチャンネルであるかを確認
+    if (channel && channel.isTextBased() && !channel.isDMBased() && "permissionsFor" in channel) {
       const permissions = channel.permissionsFor(botMember);
-      if (!permissions || !permissions.has(PermissionsBitField.Flags.ViewChannel)) {
-        await notifyUser("Botがチャンネルにアクセスできません。権限を確認してください。");
+      
+      if (!permissions) {
+        await sendError("権限情報の取得に失敗しました。");
+        return;
+      }
+
+      if (!permissions.has(PermissionsBitField.Flags.ViewChannel)) {
+        await sendError("Botがチャンネルにアクセスできません。権限を確認してください。");
         return;
       }
 
       if (!permissions.has(PermissionsBitField.Flags.SendMessages)) {
-        await notifyUser("Botがチャンネルで発言できません。権限を確認してください。");
+        await sendError("Botがチャンネルで発言できません。権限を確認してください。");
         return;
       }
     }
 
-    const extendedClient = interaction.client as typeof interaction.client & {
-      commands?: Map<string, { execute: (interaction: Interaction) => Promise<unknown> | unknown }>;
-    };
-
-    const command = extendedClient.commands?.get(interaction.commandName);
+    // --- コマンドの実行 ---
+    const client = interaction.client as ExtendedClient;
+    const command = client.commands?.get(interaction.commandName);
 
     if (!command) {
-      const embed = buildErrorEmbed("コマンドが見つかりません");
-      await replyOrFollowUp(embed);
+      await sendError("コマンドが見つかりません。");
       return;
     }
 
     try {
       await command.execute(interaction);
     } catch (error) {
-      console.error(`❌ Command Error: ${interaction.commandName}`, error);
-
-      const embed = buildErrorEmbed("コマンド実行中にエラーが発生しました");
-      await replyOrFollowUp(embed);
+      console.error(`❌ Command Error [${interaction.commandName}]:`, error);
+      await sendError("コマンド実行中にエラーが発生しました。");
     }
   }
 };
