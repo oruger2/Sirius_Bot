@@ -1,28 +1,20 @@
 import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
+import type { ChatInputCommandInteraction, GuildMember, User } from "discord.js";
 
 const command = {
   data: new SlashCommandBuilder()
-    .setName("timeout")
-    .setDescription("ユーザーをタイムアウトします")
+    .setName("warn")
+    .setDescription("ユーザーに警告を送信します")
     .addUserOption((option) =>
       option
         .setName("user")
-        .setDescription("タイムアウトするユーザー")
+        .setDescription("警告するユーザー")
         .setRequired(true)
-    )
-    .addIntegerOption((option) =>
-      option
-        .setName("minutes")
-        .setDescription("タイムアウト時間(分)")
-        .setRequired(true)
-        .setMinValue(1)
-        .setMaxValue(40320)
     )
     .addStringOption((option) =>
       option
         .setName("reason")
-        .setDescription("タイムアウト理由")
+        .setDescription("警告理由")
         .setRequired(false)
     ),
   async execute(interaction: ChatInputCommandInteraction) {
@@ -115,12 +107,11 @@ const command = {
     }
 
     const targetUser = interaction.options.getUser("user", true);
-    const minutes = interaction.options.getInteger("minutes", true);
     const reasonInput = interaction.options.getString("reason")?.trim();
 
     const requestorPermissions = interaction.memberPermissions;
     if (!requestorPermissions?.has(PermissionsBitField.Flags.ModerateMembers)) {
-      await replyError("❌ あなたにはタイムアウト権限がありません。");
+      await replyError("❌ あなたには警告を行う権限がありません。");
       return;
     }
 
@@ -131,17 +122,17 @@ const command = {
     }
 
     if (!botMember.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      await replyError("❌ Botにタイムアウト権限がありません。権限を付与してください。");
+      await replyError("❌ Botに警告権限がありません。権限を付与してください。");
       return;
     }
 
     if (targetUser.id === interaction.user.id) {
-      await replyError("❌ 自分自身をタイムアウトすることはできません。");
+      await replyError("❌ 自分自身に警告することはできません。");
       return;
     }
 
     if (targetUser.id === guild.ownerId) {
-      await replyError("❌ サーバーオーナーをタイムアウトすることはできません。");
+      await replyError("❌ サーバーオーナーに警告することはできません。");
       return;
     }
 
@@ -165,59 +156,53 @@ const command = {
       requesterRolePosition <= targetRolePosition &&
       interaction.user.id !== guild.ownerId
     ) {
-      await replyError("❌ 自分より上位または同じロールのユーザーはタイムアウトできません。");
+      await replyError("❌ 自分より上位または同じロールのユーザーには警告できません。");
       return;
     }
 
     if (botRolePosition <= targetRolePosition) {
-      await replyError("❌ Botのロールが対象ユーザー以下のためタイムアウトできません。");
+      await replyError("❌ Botのロールが対象ユーザー以下のため警告できません。");
       return;
     }
 
-    if (!targetMember.moderatable) {
-      await replyError("❌ このユーザーはタイムアウトできません。権限設定を確認してください。");
-      return;
-    }
+    const reason = reasonInput ?? "なし";
+    const dmEmbed = new EmbedBuilder()
+      .setAuthor({
+        name: "⚠️ 警告通知",
+        iconURL:
+          "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+      })
+      .setDescription(
+        `サーバー「${guild.name}」から警告が届きました。\n理由: ${reason}\n実行者: ${interaction.user.tag}`
+      )
+      .setColor(0xfee75c)
+      .setTimestamp(new Date());
 
-    const reason = reasonInput
-      ? `${reasonInput} (Requested by ${interaction.user.tag})`
-      : `Requested by ${interaction.user.tag}`;
-
-    const durationMs = minutes * 60 * 1000;
-
-    try {
-      await targetMember.timeout(durationMs, reason);
-      const successEmbed = new EmbedBuilder()
-        .setAuthor({
-          name: "✅ タイムアウト完了",
-          iconURL:
-            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
-        })
-        .setDescription(
-          `✅ ${targetUser.tag} を${minutes}分タイムアウトしました。\n理由: ${reasonInput ?? "なし"}`
-        )
-        .setColor(0x57f287)
-        .setTimestamp(new Date());
-      await sendEphemeral(successEmbed);
-    } catch (error) {
-      if (requestor) {
-        const requesterRolePosition = requestor.roles.highest.position;
-        const targetRolePosition = targetMember.roles.highest.position;
-        if (
-          requesterRolePosition <= targetRolePosition &&
-          interaction.user.id !== guild.ownerId
-        ) {
-          await replyError("❌ 自分より上位または同じロールのユーザーはタイムアウトできません。");
-          return;
-        }
+    const sendDm = async (user: User) => {
+      try {
+        await user.send({ embeds: [dmEmbed] });
+        return true;
+      } catch {
+        return false;
       }
-      console.error("❌ TIMEOUT失敗:", {
-        guildId: guild.id,
-        targetUserId: targetUser.id,
-        error
-      });
-      await replyError("❌ タイムアウトに失敗しました。権限/ロール/上限設定を確認してください。");
-    }
+    };
+
+    const dmSent = await sendDm(targetUser);
+
+    const resultEmbed = new EmbedBuilder()
+      .setAuthor({
+        name: "⚠️ 警告完了",
+        iconURL:
+          "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+      })
+      .setDescription(
+        `⚠️ ${targetUser.tag} に警告しました。\n理由: ${reason}` +
+          (dmSent ? "" : "\n※ DMの送信に失敗しました。")
+      )
+      .setColor(0xfee75c)
+      .setTimestamp(new Date());
+
+    await sendEphemeral(resultEmbed);
   }
 };
 

@@ -1,23 +1,12 @@
 {
   "name": "sirius-system",
   "version": "1.0.0",
-  "description": "Discord bot for Sirius project",
   "type": "module",
-  "private": true,
   "main": "index.ts",
-  "scripts": {
-    "dev": "tsx index.ts",
-    "start": "tsx index.ts",
-    "check": "tsc --noEmit"
-  },
   "dependencies": {
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "mysql2": "^3.17.2",
     "tweetnacl": "^1.0.3"
-  },
-  "devDependencies": {
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
   }
 }

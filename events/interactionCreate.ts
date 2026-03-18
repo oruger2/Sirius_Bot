@@ -47,22 +47,6 @@ const event = {
       }
     };
 
-    // --- Defer Reply 処理 ---
-    const deferredEphemeralCommands = new Set(["ban", "kick", "timeout"]);
-    const shouldBeEphemeral = deferredEphemeralCommands.has(interaction.commandName);
-    
-    try {
-      // 処理の最初で deferReply を行う
-      await interaction.deferReply({
-        flags: shouldBeEphemeral ? MessageFlags.Ephemeral : undefined
-      });
-    } catch (error) {
-      const isUnknownInteraction = (err: unknown) => (err as { code?: number }).code === 10062;
-      if (isUnknownInteraction(error)) return;
-      console.error("deferReplyに失敗しました:", error);
-      return;
-    }
-
     // --- バリデーションチェック ---
     if (!interaction.inGuild()) {
       await sendError("このコマンドはDMで実行されています。サーバー内で実行してください。");
