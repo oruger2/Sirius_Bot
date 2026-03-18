@@ -26,7 +26,6 @@ const buildBaseEmbed = (client: Client) => {
     .addFields(
       { name: "Servers", value: `${guildCount}`, inline: true },
       { name: "Users", value: `${totalUsers}`, inline: true },
-      { name: "Ping", value: `${pingMs}ms`, inline: true },
       { name: "Shards", value: `${shardCount}`, inline: true }
     )
     .setTimestamp(new Date());
