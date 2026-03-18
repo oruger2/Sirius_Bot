@@ -90,11 +90,6 @@ const command = {
       await sendEphemeral(embed);
     };
 
-    if (!interaction.inGuild()) {
-      await replyError("このコマンドはサーバー内でのみ使用できます。");
-      return;
-    }
-
     if (!interaction.deferred && !interaction.replied) {
       try {
         await interaction.deferReply({ ephemeral: true });
