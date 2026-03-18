@@ -1,10 +1,15 @@
 import type { Client } from "discord.js";
+import { sendBotOnlineStatus } from "../utils/statusWebhook.ts";
 
 const event = {
   name: "clientReady",
   once: true,
   async execute(client: Client) {
     console.log(`✅ ${client.user?.tag} にログインしました！`);
+    await sendBotOnlineStatus(client).catch((error) => {
+      console.error("❌ Bot online webhook 送信失敗", error);
+    });
+
     const updatePresence = () => {
       if (!client.user) {
         return;
@@ -16,7 +21,6 @@ const event = {
       );
       const pingMs = Math.round(client.ws.ping);
       const shardCount = client.shard?.count ?? 1;
-      const baseActivity = process.env.PRESENCE_BASE ?? "○○";
 
       client.user.setActivity(
         `Servers:${guildCount} | Users:${totalUsers} | Ping:${pingMs}ms | Shards:${shardCount}`

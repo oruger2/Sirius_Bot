@@ -149,7 +149,7 @@ async function init() {
   for (const event of loadedEvents) {
     const handler = async (...args: any[]) => {
       try {
-        await event.execute(...args);
+        await event.execute(...args, client);
       } catch (error) {
         console.error(`❌ Event Error: ${event.name}`, error);
       }
