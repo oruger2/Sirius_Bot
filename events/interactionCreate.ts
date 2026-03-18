@@ -1,5 +1,6 @@
 import { EmbedBuilder, MessageFlags, PermissionsBitField, Collection } from "discord.js";
 import type { Interaction, ChatInputCommandInteraction, Client } from "discord.js";
+import { sendErrorWebhook } from "../utils/statusWebhook.ts";
 
 // コマンドの構造を定義
 interface Command {
@@ -100,6 +101,12 @@ const event = {
       await command.execute(interaction);
     } catch (error) {
       console.error(`❌ Command Error [${interaction.commandName}]:`, error);
+      await sendErrorWebhook({
+        title: `Command Error: /${interaction.commandName}`,
+        context: `guild=${interaction.guildId ?? "unknown"} user=${interaction.user.id}`,
+        error,
+        client: interaction.client
+      });
       await sendError("コマンド実行中にエラーが発生しました。");
     }
   }

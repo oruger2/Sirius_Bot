@@ -10,6 +10,7 @@ import {
   Routes
 } from "discord.js";
 import * as dotenv from "dotenv";
+import { sendErrorWebhook } from "./utils/statusWebhook.ts";
 
 dotenv.config();
 
@@ -44,6 +45,26 @@ const client = new ExtendedClient({
     Partials.Channel,
     Partials.Reaction
   ]
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("❌ Unhandled Rejection:", reason);
+  void sendErrorWebhook({
+    title: "Unhandled Rejection",
+    context: "process.on('unhandledRejection')",
+    error: reason,
+    client
+  });
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("❌ Uncaught Exception:", error);
+  void sendErrorWebhook({
+    title: "Uncaught Exception",
+    context: "process.on('uncaughtException')",
+    error,
+    client
+  });
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -152,6 +173,12 @@ async function init() {
         await event.execute(...args, client);
       } catch (error) {
         console.error(`❌ Event Error: ${event.name}`, error);
+        await sendErrorWebhook({
+          title: `Event Error: ${event.name}`,
+          context: `event.execute(${event.name})`,
+          error,
+          client
+        });
       }
     };
 
@@ -190,5 +217,10 @@ async function init() {
 
 init().catch((err: unknown) => {
   console.error("❌ Bot初期化失敗", err);
-  process.exit(1);
+  void sendErrorWebhook({
+    title: "Bot Initialization Failed",
+    context: "init().catch",
+    error: err,
+    client
+  });
 });
