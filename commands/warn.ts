@@ -1,4 +1,4 @@
-import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { ChatInputCommandInteraction, GuildMember, User } from "discord.js";
 
 const command = {
@@ -19,9 +19,9 @@ const command = {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
-      const replyPayload = { embeds: [embed], ephemeral: true };
+      const replyPayload = { embeds: [embed], flags: MessageFlags.Ephemeral };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], ephemeral: true };
+      const followUpPayload = { embeds: [embed], flags: MessageFlags.Ephemeral };
 
       const tryEdit = async () => {
         try {
@@ -94,7 +94,7 @@ const command = {
 
     if (!interaction.deferred && !interaction.replied) {
       try {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       } catch {
         // If defer fails, continue and attempt a normal reply in sendEphemeral.
       }

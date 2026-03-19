@@ -1,5 +1,14 @@
-import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import type { ChatInputCommandInteraction } from "discord.js";
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  SlashCommandBuilder
+} from "discord.js";
+import type { ChatInputCommandInteraction, GuildTextBasedChannel } from "discord.js";
+
+const isBulkDeletableChannel = (
+  channel: ChatInputCommandInteraction["channel"]
+): channel is GuildTextBasedChannel =>
+  Boolean(channel?.isTextBased() && "bulkDelete" in channel && "messages" in channel);
 
 const command = {
   data: new SlashCommandBuilder()
@@ -11,11 +20,12 @@ const command = {
         .setDescription("削除する数 (1〜100)")
         .setRequired(true)
     ),
+
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
-      const replyPayload = { embeds: [embed], ephemeral: true };
+      const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], ephemeral: true };
+      const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
 
       const tryEdit = async () => {
         try {
@@ -52,10 +62,12 @@ const command = {
         if (edited) {
           return edited;
         }
+
         const replied = await tryReply();
         if (replied) {
           return replied;
         }
+
         await tryFollowUp();
         return;
       }
@@ -64,29 +76,33 @@ const command = {
       if (replied) {
         return replied;
       }
+
       const edited = await tryEdit();
       if (edited) {
         return edited;
       }
+
       await tryFollowUp();
     };
 
-    const replyError = async (content: string) => {
-      const embed = new EmbedBuilder()
+    const buildErrorEmbed = (content: string) =>
+      new EmbedBuilder()
         .setAuthor({
           name: "エラー",
           iconURL:
-            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920398836142100/image.png?ex=69b16e19&is=69b01c99&hm=4ba81f76eec3144f7140e9d1b3d261108e152e487eff8a2d609ff0ada2f25c33"
+            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920398836142100/image.png"
         })
         .setDescription(content)
         .setColor(0xed4245)
         .setTimestamp(new Date());
-      await sendEphemeral(embed);
+
+    const replyError = async (content: string) => {
+      await sendEphemeral(buildErrorEmbed(content));
     };
 
     if (!interaction.deferred && !interaction.replied) {
       try {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: ["Ephemeral"] });
       } catch {
         // If defer fails, continue and attempt a normal reply in sendEphemeral.
       }
@@ -97,6 +113,11 @@ const command = {
 
     if (!channel) {
       await replyError("❌ チャンネルの取得に失敗しました。");
+      return;
+    }
+
+    if (!isBulkDeletableChannel(channel)) {
+      await replyError("❌ サーバー内のテキストチャンネルでのみ使用できます。");
       return;
     }
 
@@ -152,7 +173,7 @@ const command = {
         .setAuthor({
           name: "✅ 削除完了",
           iconURL:
-            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png"
         })
         .setDescription(`✅ ${deleted.size}件のメッセージを削除しました。`)
         .setColor(0x57f287)
