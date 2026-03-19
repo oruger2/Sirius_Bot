@@ -26,15 +26,37 @@ const command = {
       const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
       const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+      const getCodeOrName = (error: unknown) =>
+        (error as { code?: number | string; name?: string }).code ??
+        (error as { code?: number | string; name?: string }).name;
+      const getErrorMessage = (error: unknown) =>
+        error instanceof Error ? error.message : String(error ?? "");
+      const isInteractionNotReplied = (error: unknown) =>
+        getCodeOrName(error) === "InteractionNotReplied" ||
+        /interactionnotreplied/i.test(getErrorMessage(error)) ||
+        /has not been sent or deferred/i.test(getErrorMessage(error));
+      const isAlreadyAcknowledged = (error: unknown) => {
+        const code = getCodeOrName(error);
+        return (
+          code === 40060 ||
+          code === "InteractionAlreadyReplied" ||
+          /already been acknowledged|already replied/i.test(getErrorMessage(error))
+        );
+      };
+      const isUnknownInteraction = (error: unknown) =>
+        getCodeOrName(error) === 10062 || /unknown interaction/i.test(getErrorMessage(error));
+      const isIgnorableResponseError = (error: unknown) =>
+        isInteractionNotReplied(error) || isAlreadyAcknowledged(error) || isUnknownInteraction(error);
 
       const tryEdit = async () => {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (isIgnorableResponseError(error)) {
             return null;
           }
-          throw error;
+          console.error("clear: editReply failed", error);
+          return null;
         }
       };
 
@@ -42,44 +64,36 @@ const command = {
         try {
           return await interaction.reply(replyPayload);
         } catch (error) {
-          if ((error as { code?: number }).code === 40060) {
+          if (isIgnorableResponseError(error)) {
             return null;
           }
-          throw error;
+          console.error("clear: reply failed", error);
+          return null;
         }
       };
 
       const tryFollowUp = async () => {
         try {
           return await interaction.followUp(followUpPayload);
-        } catch {
+        } catch (error) {
+          if (isIgnorableResponseError(error)) {
+            return null;
+          }
+          console.error("clear: followUp failed", error);
           return null;
         }
       };
 
-      if (interaction.deferred || interaction.replied) {
-        const edited = await tryEdit();
-        if (edited) {
-          return edited;
-        }
-
-        const replied = await tryReply();
-        if (replied) {
-          return replied;
-        }
-
-        await tryFollowUp();
-        return;
+      // まず edit を試してから reply/followUp へフォールバックすると、
+      // interaction 状態が不整合なケースでも安全に応答できる。
+      const edited = await tryEdit();
+      if (edited) {
+        return edited;
       }
 
       const replied = await tryReply();
       if (replied) {
         return replied;
-      }
-
-      const edited = await tryEdit();
-      if (edited) {
-        return edited;
       }
 
       await tryFollowUp();

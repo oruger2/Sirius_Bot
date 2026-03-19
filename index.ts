@@ -47,24 +47,63 @@ const client = new ExtendedClient({
   ]
 });
 
-process.on("unhandledRejection", (reason) => {
-  console.error("❌ Unhandled Rejection:", reason);
-  void sendErrorWebhook({
-    title: "Unhandled Rejection",
-    context: "process.on('unhandledRejection')",
-    error: reason,
-    client
-  });
-});
+const getErrorCodeOrName = (error: unknown) =>
+  (error as { code?: number | string; name?: string }).code ??
+  (error as { code?: number | string; name?: string }).name;
 
-process.on("uncaughtException", (error) => {
-  console.error("❌ Uncaught Exception:", error);
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error ?? "");
+
+const isIgnorableInteractionError = (error: unknown) => {
+  const codeOrName = getErrorCodeOrName(error);
+  const message = getErrorMessage(error);
+  return (
+    codeOrName === 10062 ||
+    codeOrName === 40060 ||
+    codeOrName === "InteractionAlreadyReplied" ||
+    codeOrName === "InteractionNotReplied" ||
+    /unknown interaction/i.test(message) ||
+    /already been acknowledged|already replied/i.test(message) ||
+    /has not been sent or deferred/i.test(message)
+  );
+};
+
+const reportFatalProcessError = (title: string, context: string, error: unknown) => {
+  console.error(`❌ ${title}:`, error);
+
+  // 致命的エラー発生時のみ webhook へ通知する。
   void sendErrorWebhook({
-    title: "Uncaught Exception",
-    context: "process.on('uncaughtException')",
+    title,
+    context,
     error,
     client
   });
+};
+
+process.on("unhandledRejection", (reason) => {
+  if (isIgnorableInteractionError(reason)) {
+    return;
+  }
+
+  // process.on で補足することでプロセス終了を回避する。
+  reportFatalProcessError(
+    "Unhandled Rejection",
+    "process.on('unhandledRejection')",
+    reason
+  );
+});
+
+process.on("uncaughtException", (error) => {
+  if (isIgnorableInteractionError(error)) {
+    return;
+  }
+
+  // process.on で補足することでプロセス終了を回避する。
+  reportFatalProcessError(
+    "Uncaught Exception",
+    "process.on('uncaughtException')",
+    error
+  );
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -173,12 +212,6 @@ async function init() {
         await event.execute(...args, client);
       } catch (error) {
         console.error(`❌ Event Error: ${event.name}`, error);
-        await sendErrorWebhook({
-          title: `Event Error: ${event.name}`,
-          context: `event.execute(${event.name})`,
-          error,
-          client
-        });
       }
     };
 
@@ -216,11 +249,5 @@ async function init() {
 }
 
 init().catch((err: unknown) => {
-  console.error("❌ Bot初期化失敗", err);
-  void sendErrorWebhook({
-    title: "Bot Initialization Failed",
-    context: "init().catch",
-    error: err,
-    client
-  });
+  reportFatalProcessError("Bot Initialization Failed", "init().catch", err);
 });

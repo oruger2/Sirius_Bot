@@ -30,12 +30,30 @@ const command = {
       const replyPayload = { embeds: [embed], flags: MessageFlags.Ephemeral };
       const editPayload = { embeds: [embed] };
       const followUpPayload = { embeds: [embed], flags: MessageFlags.Ephemeral };
+      const getCodeOrName = (error: unknown) =>
+        (error as { code?: number | string; name?: string }).code ??
+        (error as { code?: number | string; name?: string }).name;
+      const getErrorMessage = (error: unknown) =>
+        error instanceof Error ? error.message : String(error ?? "");
+      const isInteractionNotReplied = (error: unknown) =>
+        getCodeOrName(error) === "InteractionNotReplied" ||
+        /has not been sent or deferred/i.test(getErrorMessage(error));
+      const isAlreadyAcknowledged = (error: unknown) => {
+        const code = getCodeOrName(error);
+        return (
+          code === 40060 ||
+          code === "InteractionAlreadyReplied" ||
+          /already been acknowledged|already replied/i.test(getErrorMessage(error))
+        );
+      };
+      const isUnknownInteraction = (error: unknown) =>
+        getCodeOrName(error) === 10062 || /unknown interaction/i.test(getErrorMessage(error));
 
       const tryEdit = async () => {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (isInteractionNotReplied(error) || isUnknownInteraction(error)) {
             return null;
           }
           throw error;
@@ -46,7 +64,7 @@ const command = {
         try {
           return await interaction.reply(replyPayload);
         } catch (error) {
-          if ((error as { code?: number }).code === 40060) {
+          if (isAlreadyAcknowledged(error) || isUnknownInteraction(error)) {
             return null;
           }
           throw error;
@@ -56,7 +74,10 @@ const command = {
       const tryFollowUp = async () => {
         try {
           return await interaction.followUp(followUpPayload);
-        } catch {
+        } catch (error) {
+          if (isInteractionNotReplied(error) || isUnknownInteraction(error)) {
+            return null;
+          }
           return null;
         }
       };
@@ -66,10 +87,6 @@ const command = {
         if (edited) {
           return edited;
         }
-        const replied = await tryReply();
-        if (replied) {
-          return replied;
-        }
         await tryFollowUp();
         return;
       }
@@ -77,10 +94,6 @@ const command = {
       const replied = await tryReply();
       if (replied) {
         return replied;
-      }
-      const edited = await tryEdit();
-      if (edited) {
-        return edited;
       }
       await tryFollowUp();
     };

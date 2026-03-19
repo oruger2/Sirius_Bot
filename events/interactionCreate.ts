@@ -1,6 +1,5 @@
 import { EmbedBuilder, MessageFlags, PermissionsBitField, Collection } from "discord.js";
 import type { Interaction, ChatInputCommandInteraction, Client } from "discord.js";
-import { sendErrorWebhook } from "../utils/statusWebhook.ts";
 
 // コマンドの構造を定義
 interface Command {
@@ -11,6 +10,27 @@ interface Command {
 interface ExtendedClient extends Client {
   commands: Collection<string, Command>;
 }
+
+const getErrorCodeOrName = (error: unknown) =>
+  (error as { code?: number | string; name?: string }).code ??
+  (error as { code?: number | string; name?: string }).name;
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error ?? "");
+
+const isIgnorableCommandError = (error: unknown) => {
+  const codeOrName = getErrorCodeOrName(error);
+  const message = getErrorMessage(error);
+  return (
+    codeOrName === 10062 || // Unknown Interaction
+    codeOrName === 40060 || // Interaction already acknowledged
+    codeOrName === "InteractionAlreadyReplied" ||
+    codeOrName === "InteractionNotReplied" ||
+    /unknown interaction/i.test(message) ||
+    /has not been sent or deferred/i.test(message) ||
+    /already been acknowledged|already replied/i.test(message)
+  );
+};
 
 const event = {
   name: "interactionCreate",
@@ -60,16 +80,13 @@ const event = {
       return;
     }
 
-    // Bot自身のメンバー情報をキャッシュから取得、なければフェッチする
-    const botMember = guild.members.me || await guild.members.fetchMe().catch(() => null);
-    if (!botMember) {
-      await sendError("Botの権限確認に失敗しました。もう一度お試しください。");
-      return;
-    }
+    // interaction の初回応答を遅らせないため、ここではネットワーク fetch を行わず
+    // キャッシュがある場合のみ Bot 権限を事前チェックする。
+    const botMember = guild.members.me;
 
     const channel = interaction.channel;
     // チャンネルが存在し、テキストベースチャンネルであるかを確認
-    if (channel && channel.isTextBased() && !channel.isDMBased() && "permissionsFor" in channel) {
+    if (botMember && channel && channel.isTextBased() && !channel.isDMBased() && "permissionsFor" in channel) {
       const permissions = channel.permissionsFor(botMember);
       
       if (!permissions) {
@@ -101,12 +118,10 @@ const event = {
       await command.execute(interaction);
     } catch (error) {
       console.error(`❌ Command Error [${interaction.commandName}]:`, error);
-      await sendErrorWebhook({
-        title: `Command Error: /${interaction.commandName}`,
-        context: `guild=${interaction.guildId ?? "unknown"} user=${interaction.user.id}`,
-        error,
-        client: interaction.client
-      });
+      if (isIgnorableCommandError(error)) {
+        return;
+      }
+
       await sendError("コマンド実行中にエラーが発生しました。");
     }
   }
