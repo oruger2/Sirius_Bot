@@ -10,7 +10,6 @@ import {
   Routes
 } from "discord.js";
 import * as dotenv from "dotenv";
-import { sendErrorWebhook } from "./utils/statusWebhook.ts";
 
 dotenv.config();
 
@@ -45,65 +44,6 @@ const client = new ExtendedClient({
     Partials.Channel,
     Partials.Reaction
   ]
-});
-
-const getErrorCodeOrName = (error: unknown) =>
-  (error as { code?: number | string; name?: string }).code ??
-  (error as { code?: number | string; name?: string }).name;
-
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : String(error ?? "");
-
-const isIgnorableInteractionError = (error: unknown) => {
-  const codeOrName = getErrorCodeOrName(error);
-  const message = getErrorMessage(error);
-  return (
-    codeOrName === 10062 ||
-    codeOrName === 40060 ||
-    codeOrName === "InteractionAlreadyReplied" ||
-    codeOrName === "InteractionNotReplied" ||
-    /unknown interaction/i.test(message) ||
-    /already been acknowledged|already replied/i.test(message) ||
-    /has not been sent or deferred/i.test(message)
-  );
-};
-
-const reportFatalProcessError = (title: string, context: string, error: unknown) => {
-  console.error(`❌ ${title}:`, error);
-
-  // 致命的エラー発生時のみ webhook へ通知する。
-  void sendErrorWebhook({
-    title,
-    context,
-    error,
-    client
-  });
-};
-
-process.on("unhandledRejection", (reason) => {
-  if (isIgnorableInteractionError(reason)) {
-    return;
-  }
-
-  // process.on で補足することでプロセス終了を回避する。
-  reportFatalProcessError(
-    "Unhandled Rejection",
-    "process.on('unhandledRejection')",
-    reason
-  );
-});
-
-process.on("uncaughtException", (error) => {
-  if (isIgnorableInteractionError(error)) {
-    return;
-  }
-
-  // process.on で補足することでプロセス終了を回避する。
-  reportFatalProcessError(
-    "Uncaught Exception",
-    "process.on('uncaughtException')",
-    error
-  );
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -249,5 +189,6 @@ async function init() {
 }
 
 init().catch((err: unknown) => {
-  reportFatalProcessError("Bot Initialization Failed", "init().catch", err);
+  console.error("❌ Bot初期化失敗", err);
+  process.exit(1);
 });

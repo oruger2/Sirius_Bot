@@ -6,14 +6,6 @@ const command = {
     .setName("ping")
     .setDescription("Botの応答速度を確認します"),
   async execute(interaction: ChatInputCommandInteraction) {
-    const getCodeOrName = (error: unknown) =>
-      (error as { code?: number | string; name?: string }).code ??
-      (error as { code?: number | string; name?: string }).name;
-    const getErrorMessage = (error: unknown) =>
-      error instanceof Error ? error.message : String(error ?? "");
-    const isUnknownInteraction = (error: unknown) =>
-      getCodeOrName(error) === 10062 || /unknown interaction/i.test(getErrorMessage(error));
-
     const startedAt = Date.now();
     const measuringEmbed = new EmbedBuilder()
       .setTitle("🏓 計測中...")
@@ -21,16 +13,10 @@ const command = {
       .setColor(0x57f287)
       .setTimestamp(new Date());
 
-    try {
-      if (!interaction.deferred && !interaction.replied) {
-        await interaction.deferReply();
-      }
+    if (interaction.deferred) {
       await interaction.editReply({ embeds: [measuringEmbed] });
-    } catch (error) {
-      if (isUnknownInteraction(error)) {
-        return;
-      }
-      throw error;
+    } else {
+      await interaction.reply({ embeds: [measuringEmbed] });
     }
 
     const repliedAt = Date.now();
@@ -50,14 +36,7 @@ const command = {
       .setColor(0x57f287)
       .setTimestamp(new Date());
 
-    try {
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      if (isUnknownInteraction(error)) {
-        return;
-      }
-      throw error;
-    }
+    await interaction.editReply({ embeds: [embed] });
   }
 };
 
