@@ -19,9 +19,9 @@ const command = {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
-      const replyPayload = { embeds: [embed], ephemeral: true };
+      const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], ephemeral: true };
+      const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
 
       const tryEdit = async () => {
         try {
@@ -92,7 +92,7 @@ const command = {
 
     if (!interaction.deferred && !interaction.replied) {
       try {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: ["Ephemeral"] as const });
       } catch {
         // If defer fails, continue and attempt a normal reply in sendEphemeral.
       }
