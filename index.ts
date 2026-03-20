@@ -10,8 +10,10 @@ import {
   Routes
 } from "discord.js";
 import * as dotenv from "dotenv";
+import { initErrorReporting } from "./utils/errorWebhook.ts";
 
 dotenv.config();
+initErrorReporting();
 
 /* ======================
    コマンド型
@@ -164,6 +166,10 @@ async function init() {
 
   console.log(`✅ イベント読み込み: ${loadedEvents.length}`);
 
+  client.on("error", (error) => {
+    console.error("❌ Client error", error);
+  });
+
   const token = process.env.DISCORD_BOT_TOKEN;
 
   if (!token) {
@@ -190,5 +196,4 @@ async function init() {
 
 init().catch((err: unknown) => {
   console.error("❌ Bot初期化失敗", err);
-  process.exit(1);
 });
