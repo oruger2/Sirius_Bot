@@ -4,7 +4,6 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  MessageFlags
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 
@@ -72,7 +71,7 @@ const command = {
 
     if (!interaction.deferred && !interaction.replied) {
       try {
-        await interaction.deferReply(); // ← flags削除
+        await interaction.deferReply();
       } catch {}
     }
 
