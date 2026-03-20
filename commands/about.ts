@@ -83,7 +83,7 @@ const command = {
       })
       .setDescription(
         "このBotはサーバー管理・経済・AIなど様々な機能を提供します。\n\n" +
-        "**Version**: 2.5.0\n" +
+        "**Version**: 2.8.3\n" +
         "**developer**: Oruger-0730\n" +
         "**使用言語**: TypeScript\n\n" +
         "新機能の追加やバグの修正は随時行っています。ご意見がある場合はサポートサーバーまでお越しください。"
