@@ -1,7 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 
-// OpenRouterのレスポンス型
 type OpenRouterResponse = {
   choices: {
     message: {
@@ -19,14 +18,42 @@ const command = {
         .setName("prompt")
         .setDescription("質問内容")
         .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("personality")
+        .setDescription("AIの性格")
+        .setRequired(false)
+        .addChoices(
+          { name: "普通", value: "normal" },
+          { name: "丁寧", value: "polite" },
+          { name: "ツンデレ", value: "tsundere" },
+          { name: "フレンドリー", value: "friendly" },
+          { name: "関西弁", value: "kansai" }
+        )
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const prompt = interaction.options.getString("prompt", true);
+    const personality = interaction.options.getString("personality") || "normal";
 
     if (!interaction.deferred && !interaction.replied) {
       await interaction.deferReply();
     }
+
+    // ✅ 現在時刻
+    const now = new Date().toLocaleString("ja-JP", {
+      timeZone: "Asia/Tokyo"
+    });
+
+    // ✅ 性格ごとの設定
+    const personalityMap: Record<string, string> = {
+      normal: "あなたは普通のAIです。簡潔に答えてください。",
+      polite: "あなたは丁寧なAIです。敬語で優しく答えてください。",
+      tsundere: "あなたはツンデレです。素直じゃないが時々優しく答えてください。",
+      friendly: "あなたはフレンドリーなAIです。カジュアルに話してください。",
+      kansai: "あなたは関西弁で話すAIです。自然な関西弁で答えてください。"
+    };
 
     try {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -36,11 +63,18 @@ const command = {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "deepseek/deepseek-chat", // ←おすすめ
+          model: "deepseek/deepseek-chat",
           messages: [
             {
               role: "system",
-              content: "あなたは親切で簡潔に答えるAIです。"
+              content: `現在の日時は ${now} です。
+この情報を必ず正しく使用してください。
+不明なことは「わかりません」と答えてください。
+嘘の情報を作らないでください。`
+            },
+            {
+              role: "system",
+              content: personalityMap[personality]
             },
             {
               role: "user",
@@ -68,6 +102,9 @@ const command = {
         })
         .setDescription(reply.slice(0, 4000))
         .setColor(0x5865f2)
+        .setFooter({
+          text: `性格: ${personality}`
+        })
         .setTimestamp();
 
       await interaction.editReply({
