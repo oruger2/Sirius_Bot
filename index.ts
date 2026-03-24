@@ -14,76 +14,17 @@ import { initErrorReporting } from "./utils/errorWebhook.ts";
 import express from "express";
 import type { Request, Response } from "express";
 
-const app = express();
-
-app.get('/api/guilds', (req: Request, res: Response) => {
-  const guildIds = client.guilds.cache.map(guild => guild.id);
-  res.json(guildIds);
-});
-
-app.get('/api/shards', async (req: Request, res: Response) => {
-  try {
-    if (!client.shard) {
-      return res.status(500).json({ error: "Sharding is not enabled" });
-    }
-
-    const shardData = await client.shard.broadcastEval(c => {
-      return {
-        id: c.shard?.ids[0], 
-        status: c.ws.status,
-        ping: c.ws.ping,
-        guildCount: c.guilds.cache.size,
-        guildIds: c.guilds.cache.map(g => g.id)
-      };
-    });
-
-    res.json(shardData);
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-    res.status(500).json({ error: errorMessage });
-  }
-});
-
-app.get('/api/shards/:id', async (req: Request<{ id: string }>, res: Response) => {
-  const targetId = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(targetId)) {
-    return res.status(400).json({ error: "Invalid shard id" });
-  }
-  
-  try {
-    if (!client.shard) {
-      return res.status(500).json({ error: "Sharding is not enabled" });
-    }
-
-    const results = await client.shard.broadcastEval((c, { targetId }) => {
-      if (c.shard?.ids.includes(targetId)) {
-        return {
-          id: targetId,
-          ping: c.ws.ping,
-          guilds: c.guilds.cache.map(g => g.id)
-        };
-      }
-      return null;
-    }, { context: { targetId } });
-  
-    const data = results.find(r => r !== null);
-    
-    if (!data) {
-      return res.status(404).json({ error: "Shard not found" });
-    }
-    
-    res.json(data);
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-    res.status(500).json({ error: errorMessage });
-  }
-});
-
-app.listen(3000, () => {
-  console.log('API started');
-});
-
 dotenv.config();
+
+const app = express();
+const token = process.env.DISCORD_BOT_TOKEN;
+
+if (!token) {
+  throw new Error("❌ DISCORD_BOT_TOKEN が設定されていません");
+}
+
+const rest = new REST({ version: "10" }).setToken(token);
+
 initErrorReporting();
 
 /* ======================
@@ -118,6 +59,12 @@ const client = new ExtendedClient({
     Partials.Reaction
   ]
 });
+
+const applicationId = process.env.DISCORD_CLIENT_ID ?? "";
+
+if (!applicationId) {
+  throw new Error("❌ DISCORD_CLIENT_ID が設定されていません");
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -236,26 +183,94 @@ async function init() {
   }
 
   console.log(`✅ イベント読み込み: ${loadedEvents.length}`);
+app.get('/api/guilds', (req: Request, res: Response) => {
+  const guildIds = client.guilds.cache.map(guild => guild.id);
+  res.json(guildIds);
+});
+
+app.get('/api/shards', async (req: Request, res: Response) => {
+  try {
+    if (!client.shard) {
+      return res.status(500).json({ error: "Sharding is not enabled" });
+    }
+
+    const shardData = await client.shard.broadcastEval(c => {
+      return {
+        id: c.shard?.ids[0], 
+        status: c.ws.status,
+        ping: c.ws.ping,
+        guildCount: c.guilds.cache.size,
+        guildIds: c.guilds.cache.map(g => g.id)
+      };
+    });
+
+    res.json(shardData);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+app.get('/api/shards/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const targetId = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(targetId)) {
+    return res.status(400).json({ error: "Invalid shard id" });
+  }
+  
+  try {
+    if (!client.shard) {
+      return res.status(500).json({ error: "Sharding is not enabled" });
+    }
+
+    const results = await client.shard.broadcastEval((c, { targetId }) => {
+      if (c.shard?.ids.includes(targetId)) {
+        return {
+          id: targetId,
+          ping: c.ws.ping,
+          guilds: c.guilds.cache.map(g => g.id)
+        };
+      }
+      return null;
+    }, { context: { targetId } });
+  
+    const data = results.find(r => r !== null);
+    
+    if (!data) {
+      return res.status(404).json({ error: "Shard not found" });
+    }
+    
+    res.json(data);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+app.get('/api/commands', async (req, res) => {
+    try {
+        // 1. Discordから登録済みコマンドをGET（内部的なバケツリレー）
+        const commands = await rest.get(
+            Routes.applicationCommands(applicationId)
+        );
+
+        res.status(200).json(commands);
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch commands from Discord' });
+    }
+});
+
+app.listen(3000, () => {
+  console.log('API started');
+});
 
   client.on("error", (error) => {
     console.error("❌ Client error", error);
   });
 
-  const token = process.env.DISCORD_BOT_TOKEN;
-
-  if (!token) {
-    throw new Error("❌ DISCORD_BOT_TOKEN が設定されていません");
-  }
-
   await client.login(token);
 
-  const applicationId = process.env.DISCORD_CLIENT_ID ?? client.application?.id;
-
-  if (!applicationId) {
-    throw new Error("❌ DISCORD_CLIENT_ID が設定されていません");
-  }
-
-  const rest = new REST({ version: "10" }).setToken(token);
   const slashCommands = client.commands.map((command) => command.data.toJSON());
 
   await rest.put(Routes.applicationCommands(applicationId), {
