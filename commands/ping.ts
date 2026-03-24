@@ -1,5 +1,6 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
+import { SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -8,7 +9,10 @@ const command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const startedAt = Date.now();
     const measuringEmbed = new EmbedBuilder()
-      .setTitle("🏓 計測中...")
+      .setAuthor({
+        name: "🏓 計測中...",
+        iconURL: SUCCESS_ICON_URL
+      })
       .setDescription("レイテンシを計測しています。")
       .setColor(0x57f287)
       .setTimestamp(new Date());
@@ -26,8 +30,7 @@ const command = {
     const embed = new EmbedBuilder()
       .setAuthor({
         name: "🏓Pong!",
-        iconURL:
-          "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+        iconURL: SUCCESS_ICON_URL
       })
       .addFields(
         { name: "WebSocket Ping", value: `${websocketLatencyMs}ms`, inline: true },

@@ -6,6 +6,7 @@ import {
   ButtonStyle,
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
+import { SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -78,7 +79,7 @@ const command = {
     const embed = new EmbedBuilder()
       .setAuthor({
         name: "Botについて",
-        iconURL: interaction.client.user?.displayAvatarURL()
+        iconURL: SUCCESS_ICON_URL
       })
       .setDescription(
         "このBotはサーバー管理・経済・AIなど様々な機能を提供します。\n\n" +

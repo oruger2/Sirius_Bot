@@ -4,6 +4,7 @@ import {
   SlashCommandBuilder
 } from "discord.js";
 import type { ChatInputCommandInteraction, GuildTextBasedChannel } from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
 
 const isBulkDeletableChannel = (
   channel: ChatInputCommandInteraction["channel"]
@@ -85,8 +86,7 @@ const command = {
       new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL:
-            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920398836142100/image.png"
+          iconURL: ERROR_ICON_URL
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -168,8 +168,7 @@ const command = {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "✅ 削除完了",
-          iconURL:
-            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png"
+          iconURL: SUCCESS_ICON_URL
         })
         .setDescription(`✅ ${deleted.size}件のメッセージを削除しました。`)
         .setColor(0x57f287)

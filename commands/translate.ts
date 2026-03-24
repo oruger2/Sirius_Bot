@@ -3,6 +3,7 @@ import {
   EmbedBuilder
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
 
 // 言語マップ
 const LANG_MAP: Record<string, string> = {
@@ -54,8 +55,16 @@ export default {
     try {
       // 同じ言語チェック
       if (sourceLang === targetLang) {
+        const errorEmbed = new EmbedBuilder()
+          .setAuthor({
+            name: "エラー",
+            iconURL: ERROR_ICON_URL
+          })
+          .setDescription("❌ 同じ言語には翻訳できません")
+          .setColor(0xed4245)
+          .setTimestamp();
         return await interaction.reply({
-          content: "❌ 同じ言語には翻訳できません",
+          embeds: [errorEmbed],
           ephemeral: true
         });
       }
@@ -83,7 +92,7 @@ export default {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "翻訳結果",
-          iconURL: interaction.client.user?.displayAvatarURL()
+          iconURL: SUCCESS_ICON_URL
         })
         .addFields(
           {
@@ -108,8 +117,16 @@ export default {
 
       // ❗ 必ずreply
       if (!interaction.replied) {
+        const errorEmbed = new EmbedBuilder()
+          .setAuthor({
+            name: "エラー",
+            iconURL: ERROR_ICON_URL
+          })
+          .setDescription("❌ 翻訳に失敗しました")
+          .setColor(0xed4245)
+          .setTimestamp();
         await interaction.reply({
-          content: "❌ 翻訳に失敗しました",
+          embeds: [errorEmbed],
           ephemeral: true
         });
       }

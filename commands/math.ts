@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
 
 type AIResponse = {
   choices: {
@@ -77,7 +78,7 @@ ${now}
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "数学AI 解答",
-          iconURL: interaction.client.user?.displayAvatarURL()
+          iconURL: SUCCESS_ICON_URL
         })
         .setDescription(answer.slice(0, 4000))
         .setColor(0x5865f2)
@@ -89,6 +90,10 @@ ${now}
       console.error("数学AIエラー:", error);
 
       const embed = new EmbedBuilder()
+        .setAuthor({
+          name: "エラー",
+          iconURL: ERROR_ICON_URL
+        })
         .setColor(0xed4245)
         .setDescription("❌ 解答に失敗しました");
 
