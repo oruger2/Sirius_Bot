@@ -135,16 +135,6 @@ const command = {
       return;
     }
 
-    if (targetUser.id === interaction.user.id) {
-      await replyError("❌ 自分自身をタイムアウトすることはできません。");
-      return;
-    }
-
-    if (targetUser.id === guild.ownerId) {
-      await replyError("❌ サーバーオーナーをタイムアウトすることはできません。");
-      return;
-    }
-
     const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
     if (!targetMember) {
       await replyError("❌ 対象ユーザーがサーバーにいません。");
@@ -162,6 +152,7 @@ const command = {
 
     if (
       requestor &&
+      targetUser.id !== interaction.user.id &&
       requesterRolePosition <= targetRolePosition &&
       interaction.user.id !== guild.ownerId
     ) {
@@ -171,11 +162,6 @@ const command = {
 
     if (botRolePosition <= targetRolePosition) {
       await replyError("❌ Botのロールが対象ユーザー以下のためタイムアウトできません。");
-      return;
-    }
-
-    if (!targetMember.moderatable) {
-      await replyError("❌ このユーザーはタイムアウトできません。権限設定を確認してください。");
       return;
     }
 

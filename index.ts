@@ -11,6 +11,77 @@ import {
 } from "discord.js";
 import * as dotenv from "dotenv";
 import { initErrorReporting } from "./utils/errorWebhook.ts";
+import express from "express";
+import type { Request, Response } from "express";
+
+const app = express();
+
+app.get('/api/guilds', (req: Request, res: Response) => {
+  const guildIds = client.guilds.cache.map(guild => guild.id);
+  res.json(guildIds);
+});
+
+app.get('/api/shards', async (req: Request, res: Response) => {
+  try {
+    if (!client.shard) {
+      return res.status(500).json({ error: "Sharding is not enabled" });
+    }
+
+    const shardData = await client.shard.broadcastEval(c => {
+      return {
+        id: c.shard?.ids[0], 
+        status: c.ws.status,
+        ping: c.ws.ping,
+        guildCount: c.guilds.cache.size,
+        guildIds: c.guilds.cache.map(g => g.id)
+      };
+    });
+
+    res.json(shardData);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+app.get('/api/shards/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const targetId = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(targetId)) {
+    return res.status(400).json({ error: "Invalid shard id" });
+  }
+  
+  try {
+    if (!client.shard) {
+      return res.status(500).json({ error: "Sharding is not enabled" });
+    }
+
+    const results = await client.shard.broadcastEval((c, { targetId }) => {
+      if (c.shard?.ids.includes(targetId)) {
+        return {
+          id: targetId,
+          ping: c.ws.ping,
+          guilds: c.guilds.cache.map(g => g.id)
+        };
+      }
+      return null;
+    }, { context: { targetId } });
+  
+    const data = results.find(r => r !== null);
+    
+    if (!data) {
+      return res.status(404).json({ error: "Shard not found" });
+    }
+    
+    res.json(data);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('API started');
+});
 
 dotenv.config();
 initErrorReporting();
