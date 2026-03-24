@@ -13,22 +13,6 @@ import * as dotenv from "dotenv";
 import { initErrorReporting } from "./utils/errorWebhook.ts";
 import express from "express";
 import type { Request, Response } from "express";
-import os from "os";
-
-function getLocalIP() {
-  const interfaces = os.networkInterfaces();
-
-  for (const name of Object.keys(interfaces)) {
-    for (const net of interfaces[name] || []) {
-      if (net.family === "IPv4" && !net.internal) {
-        return net.address;
-      }
-    }
-  }
-  return "IP取得失敗";
-}
-
-console.log("🌐 Server IP:", getLocalIP());
 
 dotenv.config();
 
@@ -277,7 +261,7 @@ app.get('/api/commands', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
+app.listen(20419, () => {
   console.log('API started');
 });
 

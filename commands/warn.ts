@@ -1,5 +1,6 @@
 import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 import type { ChatInputCommandInteraction, GuildMember, User } from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -81,8 +82,7 @@ const command = {
       new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL:
-            "https://cdn.discordapp.com/attachments/1477252358621630484/1480920398836142100/image.png?ex=69b16e19&is=69b01c99&hm=4ba81f76eec3144f7140e9d1b3d261108e152e487eff8a2d609ff0ada2f25c33"
+          iconURL: ERROR_ICON_URL
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -169,8 +169,7 @@ const command = {
     const dmEmbed = new EmbedBuilder()
       .setAuthor({
         name: "⚠️ 警告通知",
-        iconURL:
-          "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+        iconURL: SUCCESS_ICON_URL
       })
       .setDescription(
         `サーバー「${guild.name}」から警告が届きました。\n理由: ${reason}\n実行者: ${interaction.user.tag}`
@@ -192,8 +191,7 @@ const command = {
     const resultEmbed = new EmbedBuilder()
       .setAuthor({
         name: "⚠️ 警告完了",
-        iconURL:
-          "https://cdn.discordapp.com/attachments/1477252358621630484/1480920036628627606/image.png?ex=69b16dc2&is=69b01c42&hm=b19997b57ee8665a02efdf9299d0bf5acc44e49a5585712bc43d85b66da76193"
+        iconURL: SUCCESS_ICON_URL
       })
       .setDescription(
         `⚠️ ${targetUser.tag} に警告しました。\n理由: ${reason}` +
