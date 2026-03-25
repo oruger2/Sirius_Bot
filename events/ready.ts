@@ -5,10 +5,13 @@ const event = {
   name: "clientReady",
   once: true,
   async execute(client: Client) {
+    const shardId = client.shard?.ids[0] ?? 0;
     console.log(`✅ ${client.user?.tag} にログインしました！`);
-    await sendBotOnlineStatus(client).catch((error) => {
-      console.error("❌ Bot online webhook 送信失敗", error);
-    });
+    if (shardId === 0) {
+      await sendBotOnlineStatus(client).catch((error) => {
+        console.error("❌ Bot online webhook 送信失敗", error);
+      });
+    }
 
     const updatePresence = () => {
       if (!client.user) {
