@@ -22,6 +22,8 @@ const __dirname = dirname(__filename);
 // ===== パス =====
 const blacklistPath = path.join(__dirname, "../json/blacklist.json");
 const stopConfigPath = path.join(__dirname, "../json/config.json");
+const handlingInteractionIds = new Set<string>();
+const INTERACTION_LOCK_TTL_MS = 15_000;
 
 // ===== 型 =====
 interface Command {
@@ -80,6 +82,27 @@ export default {
       await sendError("❌ サーバー取得失敗");
       return;
     }
+
+    const client = interaction.client as ExtendedClient;
+    const currentShardId = client.shard?.ids[0];
+
+    if (
+      typeof guild.shardId === "number" &&
+      typeof currentShardId === "number" &&
+      guild.shardId !== currentShardId
+    ) {
+      return;
+    }
+
+    if (handlingInteractionIds.has(interaction.id)) {
+      return;
+    }
+
+    handlingInteractionIds.add(interaction.id);
+    const dedupeTimer = setTimeout(() => {
+      handlingInteractionIds.delete(interaction.id);
+    }, INTERACTION_LOCK_TTL_MS);
+    dedupeTimer.unref?.();
 
     // ===== Bot権限チェック =====
     const botMember =
@@ -142,7 +165,6 @@ export default {
     }
 
     // ===== コマンド取得 =====
-    const client = interaction.client as ExtendedClient;
     const command = client.commands.get(commandName);
 
     if (!command) {
