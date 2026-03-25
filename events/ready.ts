@@ -5,16 +5,11 @@ const event = {
   name: "clientReady",
   once: true,
   async execute(client: Client) {
-    const shardId = client.shard?.ids[0] ?? 0;
+    const shardId = client.shard?.ids?.[0] ?? 0;
 
     console.log(
-      `✅ ${client.user?.tag} にログインしました！ (Shard ${Number(shardId)})`
+      `✅ ${client.user?.tag} にログインしました！ (Shard ${shardId})`
     );
-
-    // ======================
-    // shard0以外は何もしない
-    // ======================
-    if (shardId !== 0) return;
 
     // ======================
     // 全シャード起動待ち
@@ -31,39 +26,45 @@ const event = {
           );
 
           // 0 = READY
-          ready = statuses.every((status) => status === 0);
+          ready = statuses.every((s) => s === 0);
         } catch {
-          // 起動途中エラーは無視
           ready = false;
         }
 
         if (!ready) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((r) => setTimeout(r, 2000));
         }
       }
     };
 
-    // 👇 引数なしで呼ぶ（ここ重要）
     await waitForShardsReady();
-
     console.log("✅ 全シャード起動完了");
 
     // ======================
-    // Webhook通知
+    // Webhook（shard0のみ）
     // ======================
-    await sendBotOnlineStatus(client).catch((error) => {
-      console.error("❌ Webhook送信失敗", error);
-    });
+    if (shardId === 0) {
+      setTimeout(async () => {
+        try {
+          await sendBotOnlineStatus(client);
+        } catch (e) {
+          console.error("❌ Webhook送信失敗", e);
+        }
+      }, 5000);
+    }
 
     // ======================
-    // Presence更新関数
+    // Presence更新
     // ======================
-    const updatePresence = async (): Promise<void> => {
+    const updatePresence = async () => {
       if (!client.user) return;
 
       try {
-        let guildCount = 0;
-        let totalUsers = 0;
+        let guildCount = client.guilds.cache.size;
+        let totalUsers = client.guilds.cache.reduce(
+          (sum, g) => sum + (g.memberCount ?? 0),
+          0
+        );
 
         if (client.shard) {
           const results = await client.shard.broadcastEval((c) => ({
@@ -71,36 +72,35 @@ const event = {
             users: c.guilds.cache.reduce(
               (sum, g) => sum + (g.memberCount ?? 0),
               0
-            )
+            ),
           }));
 
-          guildCount = results.reduce((sum, r) => sum + r.guilds, 0);
-          totalUsers = results.reduce((sum, r) => sum + r.users, 0);
-        } else {
-          guildCount = client.guilds.cache.size;
-          totalUsers = client.guilds.cache.reduce(
-            (sum, g) => sum + (g.memberCount ?? 0),
-            0
-          );
+          guildCount = results.reduce((a, b) => a + b.guilds, 0);
+          totalUsers = results.reduce((a, b) => a + b.users, 0);
         }
 
-        const pingMs = Math.round(client.ws.ping);
+        const ping = Math.round(client.ws.ping);
         const shardCount = client.shard?.count ?? 1;
 
-        await client.user.setActivity(
-          `Servers:${guildCount} | Users:${totalUsers} | Ping:${pingMs}ms | Shards:${shardCount}`
-        );
-      } catch (error) {
-        console.error("❌ Presence更新失敗", error);
+        await client.user.setPresence({
+          activities: [
+            {
+              name: `Servers:${guildCount} | Users:${totalUsers} | Ping:${ping}ms | Shards:${shardCount}`,
+              type: 0,
+            },
+          ],
+          status: "online",
+        });
+      } catch (e) {
+        console.error("❌ Presence更新失敗", e);
       }
     };
 
-    // ======================
-    // 初回 + 定期更新
-    // ======================
-    await updatePresence();
-    setInterval(updatePresence, 30000); // 30秒
-  }
+    setTimeout(async () => {
+      await updatePresence();
+      setInterval(updatePresence, 30000);
+    }, 10000);
+  },
 };
 
 export default event;
