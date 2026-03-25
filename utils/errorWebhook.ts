@@ -2,7 +2,7 @@ import { EmbedBuilder, WebhookClient } from "discord.js";
 import * as util from "node:util";
 
 const ERROR_WEBHOOK_URL =
-  "https://discord.com/api/webhooks/1484502314910879815/KL_aZeTH9BZOwK66cnRHSNGqrlTVbza8koiCBmgJLNEzo9rh4E-q95-jvxwieqiPAYfp";
+  "https://discord.com/api/webhooks/1486329783020158986/9GGPt_RRN-oDuHx-c9Rz7J203F6v8pAmNzyUOKcYazlwMl92OQgchhdofjm2-JlSlkI5";
 
 const errorWebhook = new WebhookClient({ url: ERROR_WEBHOOK_URL });
 
