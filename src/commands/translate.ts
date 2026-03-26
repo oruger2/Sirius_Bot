@@ -1,9 +1,6 @@
-import {
-  SlashCommandBuilder,
-  EmbedBuilder
-} from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 // 言語マップ
 const LANG_MAP: Record<string, string> = {
@@ -11,7 +8,7 @@ const LANG_MAP: Record<string, string> = {
   英語: "en",
   中国語: "zh",
   韓国語: "ko",
-  アラビア語: "ar"
+  アラビア語: "ar",
 };
 
 // 🔍 自動言語判定
@@ -27,13 +24,12 @@ export default {
   data: new SlashCommandBuilder()
     .setName("translate")
     .setDescription("テキストを翻訳します")
-    .addStringOption(option =>
-      option.setName("text")
-        .setDescription("翻訳する文章")
-        .setRequired(true)
+    .addStringOption((option) =>
+      option.setName("text").setDescription("翻訳する文章").setRequired(true),
     )
-    .addStringOption(option =>
-      option.setName("to")
+    .addStringOption((option) =>
+      option
+        .setName("to")
         .setDescription("翻訳先言語")
         .setRequired(true)
         .addChoices(
@@ -41,8 +37,8 @@ export default {
           { name: "英語", value: "英語" },
           { name: "中国語", value: "中国語" },
           { name: "韓国語", value: "韓国語" },
-          { name: "アラビア語", value: "アラビア語" }
-        )
+          { name: "アラビア語", value: "アラビア語" },
+        ),
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -58,14 +54,14 @@ export default {
         const errorEmbed = new EmbedBuilder()
           .setAuthor({
             name: "エラー",
-            iconURL: ERROR_ICON_URL
+            iconURL: ERROR_ICON_URL,
           })
           .setDescription("❌ 同じ言語には翻訳できません")
           .setColor(0xed4245)
           .setTimestamp();
         return await interaction.reply({
           embeds: [errorEmbed],
-          ephemeral: true
+          ephemeral: true,
         });
       }
 
@@ -76,7 +72,7 @@ export default {
           "&langpair=" +
           sourceLang +
           "|" +
-          targetLang
+          targetLang,
       );
 
       if (!res.ok) {
@@ -92,26 +88,25 @@ export default {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "翻訳結果",
-          iconURL: SUCCESS_ICON_URL
+          iconURL: SUCCESS_ICON_URL,
         })
         .addFields(
           {
             name: "入力",
-            value: `\`\`\`\n${text}\n\`\`\``
+            value: `\`\`\`\n${text}\n\`\`\``,
           },
           {
             name: "翻訳",
-            value: `\`\`\`\n${translated}\n\`\`\``
-          }
+            value: `\`\`\`\n${translated}\n\`\`\``,
+          },
         )
         .setColor(0x00bfff)
         .setTimestamp();
 
       // ✅ replyのみ使用（安全）
       await interaction.reply({
-        embeds: [embed]
+        embeds: [embed],
       });
-
     } catch (error) {
       console.error("Translate Error:", error);
 
@@ -120,16 +115,16 @@ export default {
         const errorEmbed = new EmbedBuilder()
           .setAuthor({
             name: "エラー",
-            iconURL: ERROR_ICON_URL
+            iconURL: ERROR_ICON_URL,
           })
           .setDescription("❌ 翻訳に失敗しました")
           .setColor(0xed4245)
           .setTimestamp();
         await interaction.reply({
           embeds: [errorEmbed],
-          ephemeral: true
+          ephemeral: true,
         });
       }
     }
-  }
+  },
 };

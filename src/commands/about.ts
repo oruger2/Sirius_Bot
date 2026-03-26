@@ -6,7 +6,7 @@ import {
   ButtonStyle,
 } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import { SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -14,7 +14,6 @@ const command = {
     .setDescription("Botの情報を表示します"),
 
   async execute(interaction: ChatInputCommandInteraction) {
-
     const sendEphemeral = async (embed: EmbedBuilder, components?: any[]) => {
       const replyPayload = { embeds: [embed], components };
       const editPayload = { embeds: [embed], components };
@@ -24,7 +23,10 @@ const command = {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (
+            error instanceof Error &&
+            error.name === "InteractionNotReplied"
+          ) {
             return null;
           }
           throw error;
@@ -79,31 +81,31 @@ const command = {
     const embed = new EmbedBuilder()
       .setAuthor({
         name: "Botについて",
-        iconURL: SUCCESS_ICON_URL
+        iconURL: SUCCESS_ICON_URL,
       })
       .setDescription(
         "このBotはサーバー管理・経済・AIなど様々な機能を提供します。\n\n" +
-        "**Version**: 2.8.3\n" +
-        "**developer**: Oruger-0730\n" +
-        "**使用言語**: TypeScript\n\n" +
-        "新機能の追加やバグの修正は随時行っています。ご意見がある場合はサポートサーバーまでお越しください。"
+          "**Version**: 2.8.3\n" +
+          "**developer**: Oruger-0730\n" +
+          "**使用言語**: TypeScript\n\n" +
+          "新機能の追加やバグの修正は随時行っています。ご意見がある場合はサポートサーバーまでお越しください。",
       )
       .setColor(0x5865f2)
       .setTimestamp(new Date());
-    
+
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setLabel("サポートサーバー")
         .setStyle(ButtonStyle.Link)
-        .setURL("https://discord.gg/trysmYTmNr"), 
+        .setURL("https://discord.gg/trysmYTmNr"),
       new ButtonBuilder()
         .setLabel("公式ホームページ")
         .setStyle(ButtonStyle.Link)
-        .setURL("https://siriusbot-homepage.onrender.com/") 
+        .setURL("https://siriusbot-homepage.onrender.com/"),
     );
 
     await sendEphemeral(embed, [row]);
-  }
+  },
 };
 
 export default command;

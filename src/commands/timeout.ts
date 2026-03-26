@@ -1,6 +1,10 @@
-import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  SlashCommandBuilder,
+} from "discord.js";
 import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -10,7 +14,7 @@ const command = {
       option
         .setName("user")
         .setDescription("タイムアウトするユーザー")
-        .setRequired(true)
+        .setRequired(true),
     )
     .addIntegerOption((option) =>
       option
@@ -18,25 +22,31 @@ const command = {
         .setDescription("タイムアウト時間(分)")
         .setRequired(true)
         .setMinValue(1)
-        .setMaxValue(40320)
+        .setMaxValue(40320),
     )
     .addStringOption((option) =>
       option
         .setName("reason")
         .setDescription("タイムアウト理由")
-        .setRequired(false)
+        .setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
       const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+      const followUpPayload = {
+        embeds: [embed],
+        flags: ["Ephemeral"] as const,
+      };
 
       const tryEdit = async () => {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (
+            error instanceof Error &&
+            error.name === "InteractionNotReplied"
+          ) {
             return null;
           }
           throw error;
@@ -90,7 +100,7 @@ const command = {
       new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL: ERROR_ICON_URL
+          iconURL: ERROR_ICON_URL,
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -110,7 +120,9 @@ const command = {
 
     const guild = interaction.guild;
     if (!guild) {
-      await replyError("❌ サーバー情報の取得に失敗しました。もう一度お試しください。");
+      await replyError(
+        "❌ サーバー情報の取得に失敗しました。もう一度お試しください。",
+      );
       return;
     }
 
@@ -126,16 +138,22 @@ const command = {
 
     const botMember = await guild.members.fetchMe().catch(() => null);
     if (!botMember) {
-      await replyError("❌ Botの権限確認に失敗しました。もう一度お試しください。");
+      await replyError(
+        "❌ Botの権限確認に失敗しました。もう一度お試しください。",
+      );
       return;
     }
 
     if (!botMember.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      await replyError("❌ Botにタイムアウト権限がありません。権限を付与してください。");
+      await replyError(
+        "❌ Botにタイムアウト権限がありません。権限を付与してください。",
+      );
       return;
     }
 
-    const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
+    const targetMember = await guild.members
+      .fetch(targetUser.id)
+      .catch(() => null);
     if (!targetMember) {
       await replyError("❌ 対象ユーザーがサーバーにいません。");
       return;
@@ -143,7 +161,9 @@ const command = {
 
     let requestor = interaction.member as GuildMember | null;
     if (!requestor) {
-      requestor = await guild.members.fetch(interaction.user.id).catch(() => null);
+      requestor = await guild.members
+        .fetch(interaction.user.id)
+        .catch(() => null);
     }
 
     const requesterRolePosition = requestor?.roles.highest.position ?? 0;
@@ -156,12 +176,16 @@ const command = {
       requesterRolePosition <= targetRolePosition &&
       interaction.user.id !== guild.ownerId
     ) {
-      await replyError("❌ 自分より上位または同じロールのユーザーはタイムアウトできません。");
+      await replyError(
+        "❌ 自分より上位または同じロールのユーザーはタイムアウトできません。",
+      );
       return;
     }
 
     if (botRolePosition <= targetRolePosition) {
-      await replyError("❌ Botのロールが対象ユーザー以下のためタイムアウトできません。");
+      await replyError(
+        "❌ Botのロールが対象ユーザー以下のためタイムアウトできません。",
+      );
       return;
     }
 
@@ -176,10 +200,10 @@ const command = {
       const successEmbed = new EmbedBuilder()
         .setAuthor({
           name: "✅ タイムアウト完了",
-          iconURL: SUCCESS_ICON_URL
+          iconURL: SUCCESS_ICON_URL,
         })
         .setDescription(
-          `✅ ${targetUser.tag} を${minutes}分タイムアウトしました。\n理由: ${reasonInput ?? "なし"}`
+          `✅ ${targetUser.tag} を${minutes}分タイムアウトしました。\n理由: ${reasonInput ?? "なし"}`,
         )
         .setColor(0x57f287)
         .setTimestamp(new Date());
@@ -192,18 +216,22 @@ const command = {
           requesterRolePosition <= targetRolePosition &&
           interaction.user.id !== guild.ownerId
         ) {
-          await replyError("❌ 自分より上位または同じロールのユーザーはタイムアウトできません。");
+          await replyError(
+            "❌ 自分より上位または同じロールのユーザーはタイムアウトできません。",
+          );
           return;
         }
       }
       console.error("❌ TIMEOUT失敗:", {
         guildId: guild.id,
         targetUserId: targetUser.id,
-        error
+        error,
       });
-      await replyError("❌ タイムアウトに失敗しました。権限/ロール/上限設定を確認してください。");
+      await replyError(
+        "❌ タイムアウトに失敗しました。権限/ロール/上限設定を確認してください。",
+      );
     }
-  }
+  },
 };
 
 export default command;

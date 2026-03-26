@@ -2,10 +2,10 @@ import {
   ChannelType,
   EmbedBuilder,
   PermissionsBitField,
-  SlashCommandBuilder
+  SlashCommandBuilder,
 } from "discord.js";
 import type { ChatInputCommandInteraction, Guild } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 type ViewableChannelCounts = {
   text: number;
@@ -21,12 +21,14 @@ const buildViewableChannelCounts = (guild: Guild): ViewableChannelCounts => {
     voice: 0,
     announcement: 0,
     forum: 0,
-    stage: 0
+    stage: 0,
   };
 
   const everyoneRole = guild.roles.everyone;
   const channels = guild.channels.cache.filter((channel) =>
-    channel.permissionsFor(everyoneRole)?.has(PermissionsBitField.Flags.ViewChannel)
+    channel
+      .permissionsFor(everyoneRole)
+      ?.has(PermissionsBitField.Flags.ViewChannel),
   );
 
   for (const channel of channels.values()) {
@@ -67,7 +69,7 @@ const command = {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL: ERROR_ICON_URL
+          iconURL: ERROR_ICON_URL,
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -91,16 +93,18 @@ const command = {
     const members = await guild.members.fetch().catch(() => null);
 
     const totalMembers = members?.size ?? guild.memberCount ?? 0;
-    const botCount = members ? members.filter((member) => member.user.bot).size : 0;
+    const botCount = members
+      ? members.filter((member) => member.user.bot).size
+      : 0;
     const userCount = Math.max(0, totalMembers - botCount);
 
     const createdAt = guild.createdAt;
     const daysAgo = Math.max(
       0,
-      Math.floor((Date.now() - createdAt.getTime()) / (24 * 60 * 60 * 1000))
+      Math.floor((Date.now() - createdAt.getTime()) / (24 * 60 * 60 * 1000)),
     );
     const createdAtText = createdAt.toLocaleString("ja-JP", {
-      timeZone: "Asia/Tokyo"
+      timeZone: "Asia/Tokyo",
     });
 
     const viewableCounts = buildViewableChannelCounts(guild);
@@ -114,7 +118,7 @@ const command = {
     const embed = new EmbedBuilder()
       .setAuthor({
         name: "サーバー情報",
-        iconURL: SUCCESS_ICON_URL
+        iconURL: SUCCESS_ICON_URL,
       })
       .addFields(
         { name: "サーバー名", value: guild.name, inline: false },
@@ -124,17 +128,17 @@ const command = {
           value: owner
             ? `${owner.user.tag} (<@${owner.id}>)`
             : `<@${guild.ownerId}>`,
-          inline: false
+          inline: false,
         },
         {
           name: "メンバー数",
           value: `ユーザー: ${userCount}\nBOT: ${botCount}\n合計: ${totalMembers}`,
-          inline: false
+          inline: false,
         },
         {
           name: "作成日時",
           value: `${createdAtText} (${daysAgo}日前)`,
-          inline: false
+          inline: false,
         },
         {
           name: "チャンネル数 (everyoneが見れる)",
@@ -144,18 +148,18 @@ const command = {
             `アナウンス: ${viewableCounts.announcement}\n` +
             `フォーラム: ${viewableCounts.forum}\n` +
             `ステージ: ${viewableCounts.stage}`,
-          inline: false
+          inline: false,
         },
         {
           name: "ブースト",
           value: `ブースト数: ${boostCount}\nレベル: ${boostLevel}`,
-          inline: false
+          inline: false,
         },
         {
           name: "シャード",
           value: `#${shardId}`,
-          inline: false
-        }
+          inline: false,
+        },
       )
       .setColor(0x5865f2)
       .setTimestamp(new Date());
@@ -166,7 +170,7 @@ const command = {
     }
 
     await interaction.editReply({ embeds: [embed] });
-  }
+  },
 };
 
 export default command;
