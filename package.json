@@ -6,9 +6,8 @@
   "private": true,
   "main": "index.ts",
   "scripts": {
-    "dev": "tsx index.ts",
-    "start": "tsx index.ts",
-    "check": "tsc --noEmit"
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts"
   },
   "dependencies": {
     "discord.js": "^14.25.1",
