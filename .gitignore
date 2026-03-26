@@ -141,6 +141,10 @@ vite.config.ts.timestamp-*
 # Less log files
 .lesshst
 
+# Secret files
+.env
+.env.*
+!.env.example
 
 start.sh
 json/
