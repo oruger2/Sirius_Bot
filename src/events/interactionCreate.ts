@@ -1,3 +1,6 @@
+import fsp from "node:fs/promises";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import type {
   ChatInputCommandInteraction,
   Client,
@@ -9,9 +12,6 @@ import {
   MessageFlags,
   PermissionsBitField,
 } from "discord.js";
-import fsp from "node:fs/promises";
-import path, { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 // ===== ESM対応 =====
 const __filename = fileURLToPath(import.meta.url);
@@ -64,10 +64,8 @@ export default {
             flags: MessageFlags.Ephemeral,
           });
         }
-      } catch (err: any) {
-        if (err?.code !== 10062) {
-          console.error("sendError失敗:", err);
-        }
+      } catch (err) {
+        console.error("sendError失敗:", err);
       }
     };
 
