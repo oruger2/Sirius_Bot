@@ -1,11 +1,9 @@
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
-
-import path from "path";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import fsp from "fs/promises";
+import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons.ts";
 
 // ✅ ESM用 __dirname
 const __filename = fileURLToPath(import.meta.url);
