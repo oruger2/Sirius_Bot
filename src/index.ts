@@ -11,7 +11,7 @@ import {
   ShardingManager,
 } from "discord.js";
 import * as dotenv from "dotenv";
-import { initErrorReporting } from "./src/utils/errorWebhook.ts";
+import { initErrorReporting } from "@/utils/errorWebhook";
 import express from "express";
 import type { Request, Response } from "express";
 

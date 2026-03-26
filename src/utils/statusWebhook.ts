@@ -15,7 +15,7 @@ const buildBaseEmbed = (client: Client) => {
   const guildCount = client.guilds.cache.size;
   const totalUsers = client.guilds.cache.reduce(
     (sum, guild) => sum + (guild.memberCount ?? 0),
-    0
+    0,
   );
   const pingMs = Math.round(client.ws.ping);
   const shardCount = client.shard?.count ?? 1;
@@ -24,13 +24,13 @@ const buildBaseEmbed = (client: Client) => {
     .setColor(0x57f287)
     .setAuthor({
       name: client.user?.tag ?? "Sirius Bot",
-      iconURL: client.user?.displayAvatarURL()
+      iconURL: client.user?.displayAvatarURL(),
     })
     .addFields(
       { name: "Servers", value: `${guildCount}`, inline: true },
       { name: "Users", value: `${totalUsers}`, inline: true },
       { name: "Shards", value: `${shardCount}`, inline: true },
-      { name: "Ping", value: `${pingMs}ms`, inline: true }
+      { name: "Ping", value: `${pingMs}ms`, inline: true },
     )
     .setTimestamp(new Date());
 };
@@ -43,7 +43,10 @@ export const sendBotOnlineStatus = async (client: Client) => {
   await statusWebhook.send({ embeds: [embed] });
 };
 
-export const sendShardOnlineStatus = async (client: Client, shardId: number) => {
+export const sendShardOnlineStatus = async (
+  client: Client,
+  shardId: number,
+) => {
   const embed = buildBaseEmbed(client)
     .setTitle("Shard Online")
     .setDescription(`Shard \`${shardId}\` がオンラインになりました。`)
@@ -55,12 +58,12 @@ export const sendShardOnlineStatus = async (client: Client, shardId: number) => 
 export const sendShardDistributionStatus = async (
   client: Client,
   reportingShardId: number,
-  distribution: ShardGuildDistribution[]
+  distribution: ShardGuildDistribution[],
 ) => {
   const sortedDistribution = [...distribution].sort((a, b) => a.id - b.id);
   const totalGuilds = sortedDistribution.reduce(
     (sum, shard) => sum + shard.guildCount,
-    0
+    0,
   );
 
   const distributionFields =
@@ -68,18 +71,18 @@ export const sendShardDistributionStatus = async (
       ? sortedDistribution.map((shard) => ({
           name: `Shard #${shard.id}`,
           value: `${shard.guildCount} servers`,
-          inline: true
+          inline: true,
         }))
       : [{ name: "Shard Distribution", value: "No data", inline: false }];
 
   const embed = buildBaseEmbed(client)
     .setTitle("Shard Distribution")
     .setDescription(
-      `Shard \`${reportingShardId}\` から、現在のサーバー分担状況を通知します。`
+      `Shard \`${reportingShardId}\` から、現在のサーバー分担状況を通知します。`,
     )
     .addFields(
       { name: "Total Servers", value: `${totalGuilds}`, inline: true },
-      ...distributionFields
+      ...distributionFields,
     );
 
   await statusWebhook.send({ embeds: [embed] });
