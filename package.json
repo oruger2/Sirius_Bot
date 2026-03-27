@@ -7,7 +7,7 @@
 	"main": "index.ts",
 	"scripts": {
 		"dev": "npx tsx src/index.ts",
-		"start": "node dist/index.js",
+		"start": "tsx scr/index.ts",
 		"build": "npx tsc src/index.ts --outdir dist",
 		"lint": "biome check . --fix",
 		"format": "biome format . --write"
