@@ -1,5 +1,5 @@
 import type { Client } from "discord.js";
-import { sendBotOnlineStatus } from "../utils/statusWebhook.ts";
+import { sendBotOnlineStatus } from "@/utils/statusWebhook";
 
 const event = {
   name: "clientReady",
@@ -8,7 +8,7 @@ const event = {
     const shardId = client.shard?.ids?.[0] ?? 0;
 
     console.log(
-      `✅ ${client.user?.tag} にログインしました！ (Shard ${shardId})`
+      `✅ ${client.user?.tag} にログインしました！ (Shard ${shardId})`,
     );
 
     // ======================
@@ -21,9 +21,7 @@ const event = {
 
       while (!ready) {
         try {
-          const statuses = await client.shard.broadcastEval(
-            (c) => c.ws.status
-          );
+          const statuses = await client.shard.broadcastEval((c) => c.ws.status);
 
           // 0 = READY
           ready = statuses.every((s) => s === 0);
@@ -63,7 +61,7 @@ const event = {
         let guildCount = client.guilds.cache.size;
         let totalUsers = client.guilds.cache.reduce(
           (sum, g) => sum + (g.memberCount ?? 0),
-          0
+          0,
         );
 
         if (client.shard) {
@@ -71,7 +69,7 @@ const event = {
             guilds: c.guilds.cache.size,
             users: c.guilds.cache.reduce(
               (sum, g) => sum + (g.memberCount ?? 0),
-              0
+              0,
             ),
           }));
 

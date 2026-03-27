@@ -8,10 +8,10 @@ import {
   Partials,
   REST,
   Routes,
-  ShardingManager
+  ShardingManager,
 } from "discord.js";
 import * as dotenv from "dotenv";
-import { initErrorReporting } from "./utils/errorWebhook.ts";
+import { initErrorReporting } from "@/utils/errorWebhook";
 import express from "express";
 import type { Request, Response } from "express";
 
@@ -118,9 +118,9 @@ const createClient = () =>
       GatewayIntentBits.MessageContent,
       GatewayIntentBits.GuildMessageReactions,
       GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.GuildVoiceStates
+      GatewayIntentBits.GuildVoiceStates,
     ],
-    partials: [Partials.Message, Partials.Channel, Partials.Reaction]
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction],
   });
 
 const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
@@ -135,12 +135,13 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
       }
 
       const guildIdsByShard = await client.shard.broadcastEval((c) =>
-        c.guilds.cache.map((guild) => guild.id)
+        c.guilds.cache.map((guild) => guild.id),
       );
 
       return res.json(guildIdsByShard.flat());
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
       return res.status(500).json({ error: errorMessage });
     }
   });
@@ -156,8 +157,8 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
             status: client.ws.status,
             ping: client.ws.ping,
             guildCount: client.guilds.cache.size,
-            guildIds: client.guilds.cache.map((g) => g.id)
-          }
+            guildIds: client.guilds.cache.map((g) => g.id),
+          },
         ]);
       }
 
@@ -167,70 +168,77 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
           status: c.ws.status,
           ping: c.ws.ping,
           guildCount: c.guilds.cache.size,
-          guildIds: c.guilds.cache.map((g) => g.id)
+          guildIds: c.guilds.cache.map((g) => g.id),
         };
       });
 
       const sorted = shardData.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
       return res.json(sorted);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
       return res.status(500).json({ error: errorMessage });
     }
   });
 
-  app.get("/api/shards/:id", async (req: Request<{ id: string }>, res: Response) => {
-    const targetId = Number.parseInt(req.params.id, 10);
-    if (Number.isNaN(targetId)) {
-      return res.status(400).json({ error: "Invalid shard id" });
-    }
+  app.get(
+    "/api/shards/:id",
+    async (req: Request<{ id: string }>, res: Response) => {
+      const targetId = Number.parseInt(req.params.id, 10);
+      if (Number.isNaN(targetId)) {
+        return res.status(400).json({ error: "Invalid shard id" });
+      }
 
-    try {
-      if (!client.shard) {
-        if (targetId !== 0) {
+      try {
+        if (!client.shard) {
+          if (targetId !== 0) {
+            return res.status(404).json({ error: "Shard not found" });
+          }
+
+          return res.json({
+            id: 0,
+            ping: client.ws.ping,
+            guilds: client.guilds.cache.map((g) => g.id),
+          });
+        }
+
+        const results = await client.shard.broadcastEval(
+          (c, { shardTargetId }) => {
+            if (c.shard?.ids.includes(shardTargetId)) {
+              return {
+                id: shardTargetId,
+                ping: c.ws.ping,
+                guilds: c.guilds.cache.map((g) => g.id),
+              };
+            }
+
+            return null;
+          },
+          { context: { shardTargetId: targetId } },
+        );
+
+        const data = results.find((result) => result !== null);
+
+        if (!data) {
           return res.status(404).json({ error: "Shard not found" });
         }
 
-        return res.json({
-          id: 0,
-          ping: client.ws.ping,
-          guilds: client.guilds.cache.map((g) => g.id)
-        });
+        return res.json(data);
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
+        return res.status(500).json({ error: errorMessage });
       }
-
-      const results = await client.shard.broadcastEval(
-        (c, { shardTargetId }) => {
-          if (c.shard?.ids.includes(shardTargetId)) {
-            return {
-              id: shardTargetId,
-              ping: c.ws.ping,
-              guilds: c.guilds.cache.map((g) => g.id)
-            };
-          }
-
-          return null;
-        },
-        { context: { shardTargetId: targetId } }
-      );
-
-      const data = results.find((result) => result !== null);
-
-      if (!data) {
-        return res.status(404).json({ error: "Shard not found" });
-      }
-
-      return res.json(data);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-      return res.status(500).json({ error: errorMessage });
-    }
-  });
+    },
+  );
 
   app.get("/api/commands", async (req: Request, res: Response) => {
     void req;
 
     try {
-      const commands = await rest.get(Routes.applicationCommands(applicationId));
+      const commands = await rest.get(
+        Routes.applicationCommands(applicationId),
+      );
       return res.status(200).json(commands);
     } catch (error) {
       console.error("Fetch error:", error);
@@ -247,7 +255,9 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
 
 async function loadCommands(client: ExtendedClient) {
   const commandPath = path.join(__dirname, "commands");
-  const commandFiles = (await listDirectoryIfExists(commandPath)).filter(isTargetModule);
+  const commandFiles = (await listDirectoryIfExists(commandPath)).filter(
+    isTargetModule,
+  );
 
   for (const file of commandFiles) {
     const filePath = path.join(commandPath, file);
@@ -347,13 +357,17 @@ async function runShardProcess() {
   await client.login(token);
 
   if (primaryShard) {
-    const slashCommands = client.commands.map((command) => command.data.toJSON());
+    const slashCommands = client.commands.map((command) =>
+      command.data.toJSON(),
+    );
 
     await rest.put(Routes.applicationCommands(applicationId), {
-      body: slashCommands
+      body: slashCommands,
     });
 
-    console.log(`✅ [Shard ${shardId}] コマンド登録完了: ${slashCommands.length}`);
+    console.log(
+      `✅ [Shard ${shardId}] コマンド登録完了: ${slashCommands.length}`,
+    );
   } else {
     console.log(`ℹ️ [Shard ${shardId}] コマンド登録をスキップ`);
   }
@@ -365,7 +379,7 @@ async function runManagerProcess() {
     totalShards: TOTAL_SHARDS,
     shardList: [...SHARD_LIST],
     respawn: true,
-    execArgv: process.execArgv
+    execArgv: process.execArgv,
   });
 
   manager.on("shardCreate", (shard) => {

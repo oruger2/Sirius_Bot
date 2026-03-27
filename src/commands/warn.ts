@@ -1,6 +1,14 @@
-import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
-import type { ChatInputCommandInteraction, GuildMember, User } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  SlashCommandBuilder,
+} from "discord.js";
+import type {
+  ChatInputCommandInteraction,
+  GuildMember,
+  User,
+} from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -10,25 +18,28 @@ const command = {
       option
         .setName("user")
         .setDescription("警告するユーザー")
-        .setRequired(true)
+        .setRequired(true),
     )
     .addStringOption((option) =>
-      option
-        .setName("reason")
-        .setDescription("警告理由")
-        .setRequired(false)
+      option.setName("reason").setDescription("警告理由").setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
       const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+      const followUpPayload = {
+        embeds: [embed],
+        flags: ["Ephemeral"] as const,
+      };
 
       const tryEdit = async () => {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (
+            error instanceof Error &&
+            error.name === "InteractionNotReplied"
+          ) {
             return null;
           }
           throw error;
@@ -82,7 +93,7 @@ const command = {
       new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL: ERROR_ICON_URL
+          iconURL: ERROR_ICON_URL,
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -102,7 +113,9 @@ const command = {
 
     const guild = interaction.guild;
     if (!guild) {
-      await replyError("❌ サーバー情報の取得に失敗しました。もう一度お試しください。");
+      await replyError(
+        "❌ サーバー情報の取得に失敗しました。もう一度お試しください。",
+      );
       return;
     }
 
@@ -117,12 +130,16 @@ const command = {
 
     const botMember = await guild.members.fetchMe().catch(() => null);
     if (!botMember) {
-      await replyError("❌ Botの権限確認に失敗しました。もう一度お試しください。");
+      await replyError(
+        "❌ Botの権限確認に失敗しました。もう一度お試しください。",
+      );
       return;
     }
 
     if (!botMember.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      await replyError("❌ Botに警告権限がありません。権限を付与してください。");
+      await replyError(
+        "❌ Botに警告権限がありません。権限を付与してください。",
+      );
       return;
     }
 
@@ -136,7 +153,9 @@ const command = {
       return;
     }
 
-    const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
+    const targetMember = await guild.members
+      .fetch(targetUser.id)
+      .catch(() => null);
     if (!targetMember) {
       await replyError("❌ 対象ユーザーがサーバーにいません。");
       return;
@@ -144,7 +163,9 @@ const command = {
 
     let requestor = interaction.member as GuildMember | null;
     if (!requestor) {
-      requestor = await guild.members.fetch(interaction.user.id).catch(() => null);
+      requestor = await guild.members
+        .fetch(interaction.user.id)
+        .catch(() => null);
     }
 
     const requesterRolePosition = requestor?.roles.highest.position ?? 0;
@@ -156,12 +177,16 @@ const command = {
       requesterRolePosition <= targetRolePosition &&
       interaction.user.id !== guild.ownerId
     ) {
-      await replyError("❌ 自分より上位または同じロールのユーザーには警告できません。");
+      await replyError(
+        "❌ 自分より上位または同じロールのユーザーには警告できません。",
+      );
       return;
     }
 
     if (botRolePosition <= targetRolePosition) {
-      await replyError("❌ Botのロールが対象ユーザー以下のため警告できません。");
+      await replyError(
+        "❌ Botのロールが対象ユーザー以下のため警告できません。",
+      );
       return;
     }
 
@@ -169,10 +194,10 @@ const command = {
     const dmEmbed = new EmbedBuilder()
       .setAuthor({
         name: "⚠️ 警告通知",
-        iconURL: SUCCESS_ICON_URL
+        iconURL: SUCCESS_ICON_URL,
       })
       .setDescription(
-        `サーバー「${guild.name}」から警告が届きました。\n理由: ${reason}\n実行者: ${interaction.user.tag}`
+        `サーバー「${guild.name}」から警告が届きました。\n理由: ${reason}\n実行者: ${interaction.user.tag}`,
       )
       .setColor(0xfee75c)
       .setTimestamp(new Date());
@@ -191,17 +216,17 @@ const command = {
     const resultEmbed = new EmbedBuilder()
       .setAuthor({
         name: "⚠️ 警告完了",
-        iconURL: SUCCESS_ICON_URL
+        iconURL: SUCCESS_ICON_URL,
       })
       .setDescription(
         `⚠️ ${targetUser.tag} に警告しました。\n理由: ${reason}` +
-          (dmSent ? "" : "\n※ DMの送信に失敗しました。")
+          (dmSent ? "" : "\n※ DMの送信に失敗しました。"),
       )
       .setColor(0xfee75c)
       .setTimestamp(new Date());
 
     await sendEphemeral(resultEmbed);
-  }
+  },
 };
 
 export default command;

@@ -1,8 +1,8 @@
 import type { Client } from "discord.js";
 import {
   sendShardDistributionStatus,
-  sendShardOnlineStatus
-} from "../utils/statusWebhook.ts";
+  sendShardOnlineStatus,
+} from "@/utils/statusWebhook";
 import { setTimeout as sleep } from "node:timers/promises";
 
 type ShardGuildDistribution = {
@@ -26,7 +26,7 @@ const isShardingInProcessError = (error: unknown) => {
 };
 
 const fetchShardDistribution = async (
-  client: Client
+  client: Client,
 ): Promise<ShardGuildDistribution[]> => {
   if (!client.shard) {
     return [{ id: 0, guildCount: client.guilds.cache.size }];
@@ -36,13 +36,14 @@ const fetchShardDistribution = async (
     try {
       const distribution = await client.shard.broadcastEval((c) => ({
         id: c.shard?.ids[0] ?? 0,
-        guildCount: c.guilds.cache.size
+        guildCount: c.guilds.cache.size,
       }));
 
       return distribution
         .filter(
           (shard): shard is ShardGuildDistribution =>
-            typeof shard?.id === "number" && typeof shard?.guildCount === "number"
+            typeof shard?.id === "number" &&
+            typeof shard?.guildCount === "number",
         )
         .sort((a, b) => a.id - b.id);
     } catch (error: unknown) {
@@ -62,7 +63,11 @@ const fetchShardDistribution = async (
 
 const event = {
   name: "shardReady",
-  async execute(shardId: number, unavailableGuilds: Set<string> | undefined, client: Client) {
+  async execute(
+    shardId: number,
+    unavailableGuilds: Set<string> | undefined,
+    client: Client,
+  ) {
     void unavailableGuilds;
 
     await sendShardOnlineStatus(client, shardId).catch((error) => {
@@ -78,10 +83,15 @@ const event = {
       return;
     }
 
-    await sendShardDistributionStatus(client, shardId, distribution).catch((error) => {
-      console.error(`❌ Shard ${shardId} distribution webhook 送信失敗`, error);
-    });
-  }
+    await sendShardDistributionStatus(client, shardId, distribution).catch(
+      (error) => {
+        console.error(
+          `❌ Shard ${shardId} distribution webhook 送信失敗`,
+          error,
+        );
+      },
+    );
+  },
 };
 
 export default event;

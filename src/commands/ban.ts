@@ -1,6 +1,10 @@
-import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from "discord.js";
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  SlashCommandBuilder,
+} from "discord.js";
 import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -10,25 +14,28 @@ const command = {
       option
         .setName("user")
         .setDescription("BANするユーザー")
-        .setRequired(true)
+        .setRequired(true),
     )
     .addStringOption((option) =>
-      option
-        .setName("reason")
-        .setDescription("BAN理由")
-        .setRequired(false)
+      option.setName("reason").setDescription("BAN理由").setRequired(false),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
       const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+      const followUpPayload = {
+        embeds: [embed],
+        flags: ["Ephemeral"] as const,
+      };
 
       const tryEdit = async () => {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (
+            error instanceof Error &&
+            error.name === "InteractionNotReplied"
+          ) {
             return null;
           }
           throw error;
@@ -82,7 +89,7 @@ const command = {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL: ERROR_ICON_URL
+          iconURL: ERROR_ICON_URL,
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -102,7 +109,9 @@ const command = {
     const reasonInput = interaction.options.getString("reason")?.trim();
     const guild = interaction.guild;
     if (!guild) {
-      await replyError("❌ サーバー情報の取得に失敗しました。もう一度お試しください。");
+      await replyError(
+        "❌ サーバー情報の取得に失敗しました。もう一度お試しください。",
+      );
       return;
     }
 
@@ -117,7 +126,9 @@ const command = {
     const botMember = await guild.members.fetchMe().catch(() => null);
 
     if (!botMember) {
-      await replyError("❌ Botの権限確認に失敗しました。もう一度お試しください。");
+      await replyError(
+        "❌ Botの権限確認に失敗しました。もう一度お試しください。",
+      );
       return;
     }
 
@@ -136,10 +147,14 @@ const command = {
       return;
     }
 
-    const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
+    const targetMember = await guild.members
+      .fetch(targetUser.id)
+      .catch(() => null);
 
     if (!requestor) {
-      requestor = await guild.members.fetch(interaction.user.id).catch(() => null);
+      requestor = await guild.members
+        .fetch(interaction.user.id)
+        .catch(() => null);
     }
 
     if (targetMember) {
@@ -152,17 +167,23 @@ const command = {
         requesterRolePosition <= targetRolePosition &&
         interaction.user.id !== guild.ownerId
       ) {
-        await replyError("❌ 自分より上位または同じロールのユーザーはBANできません。");
+        await replyError(
+          "❌ 自分より上位または同じロールのユーザーはBANできません。",
+        );
         return;
       }
 
       if (botRolePosition <= targetRolePosition) {
-        await replyError("❌ Botのロールが対象ユーザー以下のためBANできません。");
+        await replyError(
+          "❌ Botのロールが対象ユーザー以下のためBANできません。",
+        );
         return;
       }
 
       if (!targetMember.bannable) {
-        await replyError("❌ このユーザーはBANできません。権限設定を確認してください。");
+        await replyError(
+          "❌ このユーザーはBANできません。権限設定を確認してください。",
+        );
         return;
       }
     }
@@ -176,9 +197,11 @@ const command = {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "✅ BAN完了",
-          iconURL: SUCCESS_ICON_URL
+          iconURL: SUCCESS_ICON_URL,
         })
-        .setDescription(`\`\`\`${targetUser.tag}\`\`\`をBANしました。\n理由: ${reasonInput ?? "なし"}`)
+        .setDescription(
+          `\`\`\`${targetUser.tag}\`\`\`をBANしました。\n理由: ${reasonInput ?? "なし"}`,
+        )
         .setColor(0x57f287)
         .setTimestamp(new Date());
       await sendEphemeral(embed);
@@ -190,18 +213,22 @@ const command = {
           requesterRolePosition <= targetRolePosition &&
           interaction.user.id !== guild.ownerId
         ) {
-          await replyError("❌ 自分より上位または同じロールのユーザーはBANできません。");
+          await replyError(
+            "❌ 自分より上位または同じロールのユーザーはBANできません。",
+          );
           return;
         }
       }
       console.error("❌ BAN失敗:", {
         guildId: guild.id,
         targetUserId: targetUser.id,
-        error
+        error,
       });
-      await replyError("❌ BANに失敗しました。権限/ロール/上限設定を確認してください。");
+      await replyError(
+        "❌ BANに失敗しました。権限/ロール/上限設定を確認してください。",
+      );
     }
-  }
+  },
 };
 
 export default command;

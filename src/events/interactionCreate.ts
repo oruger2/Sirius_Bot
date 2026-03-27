@@ -27,7 +27,9 @@ const INTERACTION_LOCK_TTL_MS = 15_000;
 
 // ===== 型 =====
 interface Command {
-  execute: (interaction: ChatInputCommandInteraction) => Promise<unknown> | unknown;
+  execute: (
+    interaction: ChatInputCommandInteraction,
+  ) => Promise<unknown> | unknown;
 }
 
 interface ExtendedClient extends Client {

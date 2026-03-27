@@ -1,15 +1,20 @@
 import {
   EmbedBuilder,
   PermissionsBitField,
-  SlashCommandBuilder
+  SlashCommandBuilder,
 } from "discord.js";
-import type { ChatInputCommandInteraction, GuildTextBasedChannel } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import type {
+  ChatInputCommandInteraction,
+  GuildTextBasedChannel,
+} from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const isBulkDeletableChannel = (
-  channel: ChatInputCommandInteraction["channel"]
+  channel: ChatInputCommandInteraction["channel"],
 ): channel is GuildTextBasedChannel =>
-  Boolean(channel?.isTextBased() && "bulkDelete" in channel && "messages" in channel);
+  Boolean(
+    channel?.isTextBased() && "bulkDelete" in channel && "messages" in channel,
+  );
 
 const command = {
   data: new SlashCommandBuilder()
@@ -19,20 +24,26 @@ const command = {
       option
         .setName("amount")
         .setDescription("削除する数 (1〜100)")
-        .setRequired(true)
+        .setRequired(true),
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const sendEphemeral = async (embed: EmbedBuilder) => {
       const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
       const editPayload = { embeds: [embed] };
-      const followUpPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+      const followUpPayload = {
+        embeds: [embed],
+        flags: ["Ephemeral"] as const,
+      };
 
       const tryEdit = async () => {
         try {
           return await interaction.editReply(editPayload);
         } catch (error) {
-          if (error instanceof Error && error.name === "InteractionNotReplied") {
+          if (
+            error instanceof Error &&
+            error.name === "InteractionNotReplied"
+          ) {
             return null;
           }
           throw error;
@@ -86,7 +97,7 @@ const command = {
       new EmbedBuilder()
         .setAuthor({
           name: "エラー",
-          iconURL: ERROR_ICON_URL
+          iconURL: ERROR_ICON_URL,
         })
         .setDescription(content)
         .setColor(0xed4245)
@@ -117,7 +128,11 @@ const command = {
       return;
     }
 
-    if (!interaction.memberPermissions?.has(PermissionsBitField.Flags.ManageMessages)) {
+    if (
+      !interaction.memberPermissions?.has(
+        PermissionsBitField.Flags.ManageMessages,
+      )
+    ) {
       await replyError("❌ あなたにはメッセージ管理権限がありません。");
       return;
     }
@@ -155,7 +170,7 @@ const command = {
 
       const now = Date.now();
       const deletable = messages.filter(
-        (m) => now - m.createdTimestamp < 14 * 24 * 60 * 60 * 1000
+        (m) => now - m.createdTimestamp < 14 * 24 * 60 * 60 * 1000,
       );
 
       if (deletable.size === 0) {
@@ -168,7 +183,7 @@ const command = {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: "✅ 削除完了",
-          iconURL: SUCCESS_ICON_URL
+          iconURL: SUCCESS_ICON_URL,
         })
         .setDescription(`✅ ${deleted.size}件のメッセージを削除しました。`)
         .setColor(0x57f287)
@@ -179,7 +194,7 @@ const command = {
       console.error("❌ CLEAR失敗:", error);
       await replyError("❌ 削除に失敗しました。");
     }
-  }
+  },
 };
 
 export default command;

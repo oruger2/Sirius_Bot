@@ -1,10 +1,6 @@
-import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  MessageFlags,
-} from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "../utils/embedIcons.ts";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 import path from "path";
 import fsp from "fs/promises";
@@ -28,7 +24,7 @@ export default {
     .addSubcommand((sub) =>
       sub
         .setName("server")
-        .setDescription("ボットが参加中のサーバーを表示します")
+        .setDescription("ボットが参加中のサーバーを表示します"),
     )
 
     .addSubcommand((sub) =>
@@ -39,8 +35,8 @@ export default {
           opt
             .setName("server_id")
             .setDescription("サーバーID")
-            .setRequired(true)
-        )
+            .setRequired(true),
+        ),
     )
 
     .addSubcommand((sub) =>
@@ -51,8 +47,8 @@ export default {
           opt
             .setName("server_id")
             .setDescription("サーバーID")
-            .setRequired(true)
-        )
+            .setRequired(true),
+        ),
     )
 
     .addSubcommand((sub) =>
@@ -63,8 +59,8 @@ export default {
           opt
             .setName("user")
             .setDescription("管理者として追加するユーザー")
-            .setRequired(true)
-        )
+            .setRequired(true),
+        ),
     )
 
     .addSubcommand((sub) =>
@@ -75,8 +71,8 @@ export default {
           opt
             .setName("command")
             .setDescription("停止するコマンド名（例: money または /money）")
-            .setRequired(true)
-        )
+            .setRequired(true),
+        ),
     )
 
     .addSubcommand((sub) =>
@@ -90,15 +86,15 @@ export default {
             .setRequired(true)
             .addChoices(
               { name: "ユーザー", value: "user" },
-              { name: "サーバー", value: "server" }
-            )
+              { name: "サーバー", value: "server" },
+            ),
         )
         .addStringOption((opt) =>
           opt
             .setName("id")
             .setDescription("ユーザーID または サーバーID")
-            .setRequired(true)
-        )
+            .setRequired(true),
+        ),
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -130,7 +126,7 @@ export default {
             .setColor(0xed4245)
             .setAuthor({
               name: "❌ 権限エラー",
-              iconURL: ERROR_ICON_URL
+              iconURL: ERROR_ICON_URL,
             })
             .setDescription("このコマンドは **Bot管理者専用** です。"),
         ],
@@ -152,7 +148,7 @@ export default {
             .setColor(0x5865f2)
             .setAuthor({
               name: "📊 参加中サーバー一覧",
-              iconURL: SUCCESS_ICON_URL
+              iconURL: SUCCESS_ICON_URL,
             })
             .setDescription(servers || "なし"),
         ],
@@ -172,7 +168,7 @@ export default {
               .setColor(0xed4245)
               .setAuthor({
                 name: "エラー",
-                iconURL: ERROR_ICON_URL
+                iconURL: ERROR_ICON_URL,
               })
               .setDescription("❌ サーバーが見つかりません"),
           ],
@@ -188,7 +184,7 @@ export default {
             .setColor(0xffa500)
             .setAuthor({
               name: "🚪 退出完了",
-              iconURL: SUCCESS_ICON_URL
+              iconURL: SUCCESS_ICON_URL,
             })
             .setDescription(`🚪 ${guild.name} から退出しました`),
         ],
@@ -208,7 +204,7 @@ export default {
               .setColor(0xed4245)
               .setAuthor({
                 name: "エラー",
-                iconURL: ERROR_ICON_URL
+                iconURL: ERROR_ICON_URL,
               })
               .setDescription("❌ 見つかりません"),
           ],
@@ -219,7 +215,7 @@ export default {
       const channel = guild.channels.cache.find(
         (c) =>
           c.isTextBased() &&
-          c.permissionsFor(guild.members.me!)?.has("CreateInstantInvite")
+          c.permissionsFor(guild.members.me!)?.has("CreateInstantInvite"),
       );
 
       if (!channel || !("createInvite" in channel)) {
@@ -229,7 +225,7 @@ export default {
               .setColor(0xed4245)
               .setAuthor({
                 name: "エラー",
-                iconURL: ERROR_ICON_URL
+                iconURL: ERROR_ICON_URL,
               })
               .setDescription("❌ 招待作れない"),
           ],
@@ -245,7 +241,7 @@ export default {
             .setColor(0x57f287)
             .setAuthor({
               name: "🔗 招待リンク",
-              iconURL: SUCCESS_ICON_URL
+              iconURL: SUCCESS_ICON_URL,
             })
             .setDescription(invite.url),
         ],
@@ -264,7 +260,7 @@ export default {
               .setColor(0xfee75c)
               .setAuthor({
                 name: "⚠️ 既に登録済み",
-                iconURL: SUCCESS_ICON_URL
+                iconURL: SUCCESS_ICON_URL,
               })
               .setDescription("⚠️ 既に登録済み"),
           ],
@@ -281,7 +277,7 @@ export default {
             .setColor(0x57f287)
             .setAuthor({
               name: "✅ 追加完了",
-              iconURL: SUCCESS_ICON_URL
+              iconURL: SUCCESS_ICON_URL,
             })
             .setDescription(`✅ ${user.tag} を追加`),
         ],
@@ -307,7 +303,7 @@ export default {
               .setColor(0xfee75c)
               .setAuthor({
                 name: "⚠️ 既に停止中",
-                iconURL: SUCCESS_ICON_URL
+                iconURL: SUCCESS_ICON_URL,
               })
               .setDescription("⚠️ 既に停止中"),
           ],
@@ -324,7 +320,7 @@ export default {
             .setColor(0xffa500)
             .setAuthor({
               name: "⛔ 停止完了",
-              iconURL: SUCCESS_ICON_URL
+              iconURL: SUCCESS_ICON_URL,
             })
             .setDescription(`⛔ /${cmd} を停止`),
         ],
@@ -345,7 +341,7 @@ export default {
                 .setColor(0xfee75c)
                 .setAuthor({
                   name: "⚠️ 既に登録済み",
-                  iconURL: SUCCESS_ICON_URL
+                  iconURL: SUCCESS_ICON_URL,
                 })
                 .setDescription("⚠️ 既に登録済み"),
             ],
@@ -363,7 +359,7 @@ export default {
                 .setColor(0xfee75c)
                 .setAuthor({
                   name: "⚠️ 既に登録済み",
-                  iconURL: SUCCESS_ICON_URL
+                  iconURL: SUCCESS_ICON_URL,
                 })
                 .setDescription("⚠️ 既に登録済み"),
             ],
@@ -381,7 +377,7 @@ export default {
             .setColor(0x8b0000)
             .setAuthor({
               name: "🚫 ブラックリスト追加",
-              iconURL: SUCCESS_ICON_URL
+              iconURL: SUCCESS_ICON_URL,
             })
             .setDescription("🚫 ブラックリスト追加"),
         ],
