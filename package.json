@@ -6,9 +6,9 @@
 	"private": true,
 	"main": "index.ts",
 	"scripts": {
-		"dev": "bun run --watch src/index.ts",
-		"start": "bun run src/index.ts",
-		"build": "bun build src/index.ts --outdir dist --minify",
+		"dev": "npx tsx src/index.ts",
+		"start": "node dist/index.js",
+		"build": "npx tsc src/index.ts --outdir dist",
 		"lint": "biome check . --fix",
 		"format": "biome format . --write"
 	},
