@@ -2,5 +2,9 @@
 	"eslint.enable": false,
 	"prettier.enable": false,
 	"biome.enabled": true,
-	"biome.configurationPath": "./biome.json"
+	"biome.configurationPath": "./biome.json",
+	"json.format.enable": false,
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	}
 }
