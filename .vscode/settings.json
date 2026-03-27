@@ -1,0 +1,6 @@
+{
+	"eslint.enable": false,
+	"prettier.enable": false,
+	"biome.enabled": true,
+	"biome.configurationPath": "./biome.json"
+}
