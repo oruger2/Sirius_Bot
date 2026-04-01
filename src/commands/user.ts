@@ -69,11 +69,11 @@ const command = {
         ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
         : "不明";
 
-    const roles: string =
-      member.roles.cache
-        .filter((role) => role.id !== guild?.id)
-        .map((role) => `<@&${role.id}>`)
-        .join(", ") || "なし";
+		const roles: string =
+			member.roles.cache
+				.filter((role) => role.id !== guild?.id)
+				.map((role) => `<@&${role.id}>`)
+				.join(", ") || "なし";
 
     const embed = new EmbedBuilder()
       .setAuthor({
