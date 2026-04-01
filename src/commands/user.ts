@@ -1,36 +1,42 @@
 import {
-	type ChatInputCommandInteraction,
-	EmbedBuilder,
-	type GuildMember,
-	SlashCommandBuilder,
+  EmbedBuilder,
+  SlashCommandBuilder,
+  type ChatInputCommandInteraction,
+  type Guild,
+  type GuildMember,
+  type User
 } from "discord.js";
 
 import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
-	data: new SlashCommandBuilder()
-		.setName("user")
-		.setDescription("ユーザー情報を表示")
-		.addUserOption((option) =>
-			option
-				.setName("target")
-				.setDescription("対象ユーザー")
-				.setRequired(false),
-		),
+  data: new SlashCommandBuilder()
+    .setName("user")
+    .setDescription("ユーザー情報を表示")
+    .addUserOption((option) =>
+      option
+        .setName("target")
+        .setDescription("対象ユーザー")
+        .setRequired(false)
+    ),
 
-	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-		const targetUser =
-			interaction.options.getUser("target") ?? interaction.user;
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+    const targetUser: User =
+      interaction.options.getUser("target") ?? interaction.user;
 
-    const guild = interaction.guild;
+    const guild: Guild | null = interaction.guild;
 
     let member: GuildMember | null = null;
 
-    if (guild) {
-      member = await guild.members.fetch(targetUser.id).catch(() => null);
+    if (guild !== null) {
+      try {
+        member = await guild.members.fetch(targetUser.id);
+      } catch {
+        member = null;
+      }
     }
 
-    const userType: string = targetUser.bot
+    const userType: "🤖 Bot" | "👤 ユーザー" = targetUser.bot
       ? "🤖 Bot"
       : "👤 ユーザー";
 
@@ -41,7 +47,7 @@ const command = {
     // ======================
     // サーバー外ユーザー
     // ======================
-    if (!member) {
+    if (member === null) {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: `${targetUser.bot ? "🤖" : "👤"} ユーザー情報`,
@@ -69,11 +75,12 @@ const command = {
         ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
         : "不明";
 
-		const roles: string =
-			member.roles.cache
-				.filter((role) => role.id !== guild?.id)
-				.map((role) => `<@&${role.id}>`)
-				.join(", ") || "なし";
+    const rolesArray: string[] = member.roles.cache
+      .filter((role) => guild === null || role.id !== guild.id)
+      .map((role) => `<@&${role.id}>`);
+
+    const roles: string =
+      rolesArray.length > 0 ? rolesArray.join(", ") : "なし";
 
     const embed = new EmbedBuilder()
       .setAuthor({
