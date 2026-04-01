@@ -1,10 +1,8 @@
 import {
+  EmbedBuilder,
   SlashCommandBuilder,
-  EmbedBuilder
-} from "discord.js";
-import type {
-  ChatInputCommandInteraction,
-  GuildMember
+  type ChatInputCommandInteraction,
+  type GuildMember
 } from "discord.js";
 
 import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
@@ -13,14 +11,14 @@ const command = {
   data: new SlashCommandBuilder()
     .setName("user")
     .setDescription("ユーザー情報を表示")
-    .addUserOption(option =>
+    .addUserOption((option) =>
       option
         .setName("target")
         .setDescription("対象ユーザー")
         .setRequired(false)
     ),
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const targetUser =
       interaction.options.getUser("target") ?? interaction.user;
 
@@ -29,16 +27,14 @@ const command = {
     let member: GuildMember | null = null;
 
     if (guild) {
-      member = await guild.members
-        .fetch(targetUser.id)
-        .catch(() => null);
+      member = await guild.members.fetch(targetUser.id).catch(() => null);
     }
 
-    const userType = targetUser.bot
+    const userType: string = targetUser.bot
       ? "🤖 Bot"
       : "👤 ユーザー";
 
-    const createdAt = `<t:${Math.floor(
+    const createdAt: string = `<t:${Math.floor(
       targetUser.createdTimestamp / 1000
     )}:F>`;
 
@@ -68,14 +64,15 @@ const command = {
     // ======================
     // サーバー内ユーザー
     // ======================
-    const joinedAt = member.joinedTimestamp
-      ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
-      : "不明";
+    const joinedAt: string =
+      member.joinedTimestamp !== null
+        ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
+        : "不明";
 
-    const roles =
+    const roles: string =
       member.roles.cache
-        .filter(r => r.id !== guild!.id)
-        .map(r => `<@&${r.id}>`)
+        .filter((role) => role.id !== guild?.id)
+        .map((role) => `<@&${role.id}>`)
         .join(", ") || "なし";
 
     const embed = new EmbedBuilder()
@@ -87,7 +84,11 @@ const command = {
       .setColor(targetUser.bot ? 0x00b0f4 : 0x57f287)
       .addFields(
         { name: "ユーザー名", value: targetUser.username, inline: true },
-        { name: "表示名", value: targetUser.globalName ?? "なし", inline: true },
+        {
+          name: "表示名",
+          value: targetUser.globalName ?? "なし",
+          inline: true
+        },
         { name: "ユーザーID", value: targetUser.id },
         { name: "タイプ", value: userType, inline: true },
         { name: "アカウント作成日", value: createdAt },
