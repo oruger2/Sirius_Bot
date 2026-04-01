@@ -8,15 +8,15 @@ import {
 import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
-  data: new SlashCommandBuilder()
-    .setName("user")
-    .setDescription("ユーザー情報を表示")
-    .addUserOption((option) =>
-      option
-        .setName("target")
-        .setDescription("対象ユーザー")
-        .setRequired(false)
-    ),
+	data: new SlashCommandBuilder()
+		.setName("user")
+		.setDescription("ユーザー情報を表示")
+		.addUserOption((option) =>
+			option
+				.setName("target")
+				.setDescription("対象ユーザー")
+				.setRequired(false),
+		),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const targetUser =
