@@ -1,8 +1,8 @@
 import {
-  EmbedBuilder,
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  type GuildMember
+	type ChatInputCommandInteraction,
+	EmbedBuilder,
+	type GuildMember,
+	SlashCommandBuilder,
 } from "discord.js";
 
 import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
