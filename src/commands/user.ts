@@ -18,9 +18,9 @@ const command = {
 				.setRequired(false),
 		),
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const targetUser =
-      interaction.options.getUser("target") ?? interaction.user;
+	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+		const targetUser =
+			interaction.options.getUser("target") ?? interaction.user;
 
     const guild = interaction.guild;
 
