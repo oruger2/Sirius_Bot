@@ -6,7 +6,7 @@
 	"private": true,
 	"main": "index.ts",
 	"scripts": {
-		"dev": "npx tsx --tsconfig ./tsconfig.json src/index.ts"
+		"dev": "npx tsx --tsconfig ./tsconfig.json src/index.ts",
 		"start": "tsx scr/index.ts",
 		"build": "npx tsc src/index.ts --outdir dist",
 		"lint": "biome check . --fix",
