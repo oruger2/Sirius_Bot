@@ -1319,7 +1319,9 @@ export class WolfGameSession {
 				.filter((player) => {
 					if (this.effectiveTeamOf(player) === "fox") return true;
 					if (player.role !== "freaks") return false;
-					return (this.freaksAffiliations.get(player.id) ?? "third") === "third";
+					return (
+						(this.freaksAffiliations.get(player.id) ?? "third") === "third"
+					);
 				})
 				.map((player) => player.id);
 		}
