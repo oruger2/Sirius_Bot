@@ -1,5 +1,5 @@
-export { default } from "./wolfgame/index";
+export { default } from "./command";
 export {
 	handleWolfGameButtonInteraction,
 	handleWolfGameModalInteraction,
-} from "./wolfgame/index";
+} from "./interactions";
