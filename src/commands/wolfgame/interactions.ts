@@ -11,6 +11,7 @@ import {
 	MIN_PLAYERS,
 	parseMinuteInput,
 	parseWholeNumber,
+	ROLE_INFO,
 	resolveRoleConfig,
 	roleConfigForPlayerCount,
 } from "./constants";
