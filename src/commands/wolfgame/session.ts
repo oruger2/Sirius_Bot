@@ -23,7 +23,8 @@ import {
 	pickRandom,
 	resolveRoleConfig,
 	roleArrayFromConfig,
-	shuffle,
+	roleConfigForPlayerCount,
+	sleep,
 	sleep,
 	validateResolvedRoleConfig,
 } from "./constants";
