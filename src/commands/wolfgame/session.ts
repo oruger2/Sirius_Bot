@@ -836,8 +836,7 @@ export class WolfGameSession {
 			await this.resolveNightOutcome();
 			if (main) {
 				await main.send({
-					content:
-						"初日の夜は襲撃なしで朝へ進みます。",
+					content: "初日の夜は襲撃なしで朝へ進みます。",
 				});
 			}
 			return;
