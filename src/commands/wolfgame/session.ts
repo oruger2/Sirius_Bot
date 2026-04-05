@@ -536,7 +536,9 @@ export class WolfGameSession {
 			!resolveRoleConfig(this.participantCount(), this.settings.roleOverrides)
 		) {
 			const resolved = roleConfigForPlayerCount(this.participantCount());
-			for (const [role, override] of Object.entries(this.settings.roleOverrides)) {
+			for (const [role, override] of Object.entries(
+				this.settings.roleOverrides,
+			)) {
 				if (typeof override !== "number") continue;
 				resolved[role as Role] = override;
 			}
