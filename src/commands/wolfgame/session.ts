@@ -737,19 +737,18 @@ export class WolfGameSession {
 
 		try {
 			const message = await main.messages.fetch(messageId);
-			const disabledRows = message.components
-				.flatMap((row) => {
-					if (row.type !== ComponentType.ActionRow) return [];
-					const nextRow = new ActionRowBuilder<ButtonBuilder>();
-					for (const component of row.components) {
-						if (component.type !== ComponentType.Button) continue;
-						nextRow.addComponents(
-							ButtonBuilder.from(component).setDisabled(true),
-						);
-					}
-					if (nextRow.components.length === 0) return [];
-					return [nextRow];
-				});
+			const disabledRows = message.components.flatMap((row) => {
+				if (row.type !== ComponentType.ActionRow) return [];
+				const nextRow = new ActionRowBuilder<ButtonBuilder>();
+				for (const component of row.components) {
+					if (component.type !== ComponentType.Button) continue;
+					nextRow.addComponents(
+						ButtonBuilder.from(component).setDisabled(true),
+					);
+				}
+				if (nextRow.components.length === 0) return [];
+				return [nextRow];
+			});
 
 			if (disabledRows.length === 0) return;
 			await message.edit({ components: disabledRows });
