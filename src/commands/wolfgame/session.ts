@@ -10,6 +10,7 @@ import {
 	PermissionFlagsBits,
 } from "discord.js";
 import {
+	chunk,
 	DEFAULT_DISCUSSION_MS,
 	DEFAULT_VOTE_MS,
 	INACTIVITY_MS,
