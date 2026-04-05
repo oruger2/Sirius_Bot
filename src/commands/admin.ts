@@ -1,8 +1,12 @@
 import fsp from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ChatInputCommandInteraction } from "discord.js";
-import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import {
+	type ChatInputCommandInteraction,
+	EmbedBuilder,
+	MessageFlags,
+	SlashCommandBuilder,
+} from "discord.js";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 // ✅ ESM用 __dirname
@@ -13,6 +17,8 @@ const __dirname = dirname(__filename);
 const adminPath = path.join(__dirname, "../json/admin.json");
 const blacklistPath = path.join(__dirname, "../json/blacklist.json");
 const stopConfigPath = path.join(__dirname, "../json/config.json");
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+	typeof error === "object" && error !== null && "code" in error;
 
 export default {
 	data: new SlashCommandBuilder()
@@ -102,16 +108,16 @@ export default {
 		// ===== ファイル読み込み =====
 		try {
 			admin = JSON.parse(await fsp.readFile(adminPath, "utf8"));
-		} catch (err: any) {
-			if (err.code === "ENOENT") {
+		} catch (err: unknown) {
+			if (isErrnoException(err) && err.code === "ENOENT") {
 				admin = { users: [] };
 			} else throw err;
 		}
 
 		try {
 			blacklist = JSON.parse(await fsp.readFile(blacklistPath, "utf8"));
-		} catch (err: any) {
-			if (err.code === "ENOENT") {
+		} catch (err: unknown) {
+			if (isErrnoException(err) && err.code === "ENOENT") {
 				blacklist = { users: [], servers: [] };
 			} else throw err;
 		}
@@ -209,11 +215,26 @@ export default {
 					flags: MessageFlags.Ephemeral,
 				});
 			}
+			const botMember = guild.members.me;
+			if (!botMember) {
+				return interaction.reply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({
+								name: "エラー",
+								iconURL: ERROR_ICON_URL,
+							})
+							.setDescription("❌ Botメンバー情報を取得できません"),
+					],
+					flags: MessageFlags.Ephemeral,
+				});
+			}
 
 			const channel = guild.channels.cache.find(
 				(c) =>
 					c.isTextBased() &&
-					c.permissionsFor(guild.members.me!)?.has("CreateInstantInvite"),
+					c.permissionsFor(botMember)?.has("CreateInstantInvite"),
 			);
 
 			if (!channel || !("createInvite" in channel)) {

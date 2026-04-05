@@ -11,8 +11,7 @@ import {
 	ShardingManager,
 } from "discord.js";
 import * as dotenv from "dotenv";
-import type { Request, Response } from "express";
-import express from "express";
+import express, { type Request, type Response } from "express";
 import { initErrorReporting } from "@/utils/errorWebhook";
 
 dotenv.config();
@@ -40,13 +39,13 @@ const API_PORT = Number.parseInt(process.env.API_PORT ?? "20419", 10);
 
 type CommandModule = {
 	data: { name: string; toJSON: () => unknown };
-	execute: (...args: any[]) => Promise<unknown> | unknown;
+	execute: (...args: unknown[]) => Promise<unknown> | unknown;
 };
 
 type EventModule = {
 	name: string;
 	once?: boolean;
-	execute: (...args: any[]) => Promise<unknown> | unknown;
+	execute: (...args: unknown[]) => Promise<unknown> | unknown;
 };
 
 /* ======================
@@ -319,7 +318,7 @@ async function loadEvents(client: ExtendedClient) {
 	}
 
 	for (const event of loadedEvents) {
-		const handler = async (...args: any[]) => {
+		const handler = async (...args: unknown[]) => {
 			try {
 				await event.execute(...args, client);
 			} catch (error) {

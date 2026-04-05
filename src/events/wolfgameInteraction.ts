@@ -1,9 +1,9 @@
-import type {
-	ButtonInteraction,
-	Interaction,
-	ModalSubmitInteraction,
+import {
+	type ButtonInteraction,
+	type Interaction,
+	MessageFlags,
+	type ModalSubmitInteraction,
 } from "discord.js";
-import { MessageFlags } from "discord.js";
 import {
 	handleWolfGameButtonInteraction,
 	handleWolfGameModalInteraction,

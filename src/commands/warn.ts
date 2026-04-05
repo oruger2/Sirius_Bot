@@ -1,12 +1,10 @@
-import type {
-	ChatInputCommandInteraction,
-	GuildMember,
-	User,
-} from "discord.js";
 import {
+	type ChatInputCommandInteraction,
 	EmbedBuilder,
+	type GuildMember,
 	PermissionsBitField,
 	SlashCommandBuilder,
+	type User,
 } from "discord.js";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 

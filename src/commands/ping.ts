@@ -1,5 +1,8 @@
-import type { ChatInputCommandInteraction } from "discord.js";
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import {
+	type ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder,
+} from "discord.js";
 import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {

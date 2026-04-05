@@ -1,8 +1,9 @@
-import type { ButtonInteraction, ModalSubmitInteraction } from "discord.js";
 import {
 	ActionRowBuilder,
+	type ButtonInteraction,
 	MessageFlags,
 	ModalBuilder,
+	type ModalSubmitInteraction,
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
@@ -14,6 +15,7 @@ import {
 	ROLE_INFO,
 	resolveRoleConfig,
 	roleConfigForPlayerCount,
+	validateResolvedRoleConfig,
 } from "./constants";
 import { sessionsByGameId } from "./registry";
 import type { WolfGameSession } from "./session";

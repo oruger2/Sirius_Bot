@@ -1,5 +1,8 @@
-import type { ChatInputCommandInteraction } from "discord.js";
-import { MessageFlags, SlashCommandBuilder } from "discord.js";
+import {
+	type ChatInputCommandInteraction,
+	MessageFlags,
+	SlashCommandBuilder,
+} from "discord.js";
 import { sessionsByGameId, sessionsByGuild } from "./registry";
 import { WolfGameSession } from "./session";
 

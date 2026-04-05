@@ -1,11 +1,13 @@
-import type { ButtonInteraction, Client, Guild } from "discord.js";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
+	type ButtonInteraction,
 	ButtonStyle,
 	ChannelType,
+	type Client,
 	ComponentType,
 	EmbedBuilder,
+	type Guild,
 	MessageFlags,
 	PermissionFlagsBits,
 } from "discord.js";
@@ -21,10 +23,11 @@ import {
 	makeId,
 	NIGHT_ACTION_MS,
 	pickRandom,
+	ROLE_INFO,
 	resolveRoleConfig,
 	roleArrayFromConfig,
 	roleConfigForPlayerCount,
-	sleep,
+	shuffle,
 	sleep,
 	validateResolvedRoleConfig,
 } from "./constants";

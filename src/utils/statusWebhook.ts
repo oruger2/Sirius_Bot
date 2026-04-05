@@ -1,5 +1,4 @@
-import type { Client } from "discord.js";
-import { EmbedBuilder, WebhookClient } from "discord.js";
+import { type Client, EmbedBuilder, WebhookClient } from "discord.js";
 
 const STATUS_WEBHOOK_URL =
 	"https://discord.com/api/webhooks/1479439479319040194/nPgCxVd2mlIcRrSGeO1EVHcsx-ZpdbZn_coUxz1NqMWAHc86PJ5RDh_mjiIkRqEUYaGb";

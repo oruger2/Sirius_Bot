@@ -1,14 +1,12 @@
 import fsp from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import type {
-	ChatInputCommandInteraction,
-	Client,
-	Interaction,
-} from "discord.js";
 import {
+	type ChatInputCommandInteraction,
+	type Client,
 	type Collection,
 	EmbedBuilder,
+	type Interaction,
 	MessageFlags,
 	PermissionsBitField,
 } from "discord.js";
