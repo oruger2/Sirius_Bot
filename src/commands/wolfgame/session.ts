@@ -591,7 +591,8 @@ export class WolfGameSession {
 		const alive =
 			role === "werewolf"
 				? this.alivePlayers().filter(
-						(player) => player.role === "werewolf" || player.role === "wolf_cat",
+						(player) =>
+							player.role === "werewolf" || player.role === "wolf_cat",
 					)
 				: this.aliveByRole(role);
 		if (alive.length === 0) return null;
