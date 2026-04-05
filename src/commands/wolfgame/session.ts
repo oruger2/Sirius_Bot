@@ -22,7 +22,6 @@ import {
 	NIGHT_ACTION_MS,
 	pickRandom,
 	resolveRoleConfig,
-	roleConfigForPlayerCount,
 	roleArrayFromConfig,
 	shuffle,
 	sleep,
