@@ -11,7 +11,8 @@ export default {
 
 		const inMainChannel = message.channelId === session.mainChannelId;
 		const inMainThread =
-			message.channel.isThread() && message.channel.parentId === session.mainChannelId;
+			message.channel.isThread() &&
+			message.channel.parentId === session.mainChannelId;
 		if (!inMainChannel && !inMainThread) return;
 
 		const player = session.players.get(message.author.id);
