@@ -1,4 +1,3 @@
-export { default } from "./wolfgame/index";
 export {
 	handleWolfGameButtonInteraction,
 	handleWolfGameModalInteraction,
