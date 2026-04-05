@@ -19,6 +19,7 @@ import {
 	MAX_PLAYERS,
 	MIN_PLAYERS,
 	makeId,
+	NIGHT_ACTION_MS,
 	pickRandom,
 	resolveRoleConfig,
 	roleConfigForPlayerCount,
