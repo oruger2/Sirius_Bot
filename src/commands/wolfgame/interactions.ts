@@ -9,8 +9,6 @@ import {
 import {
 	MAX_PLAYERS,
 	MIN_PLAYERS,
-	ROLE_INFO,
-	validateResolvedRoleConfig,
 	parseMinuteInput,
 	parseWholeNumber,
 	resolveRoleConfig,
