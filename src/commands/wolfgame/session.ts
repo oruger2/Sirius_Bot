@@ -1240,7 +1240,8 @@ export class WolfGameSession {
 				});
 			} else {
 				await main.send({
-					content: "🐾 猫又の道連れ対象がいなかったため、追加の死亡者は出ませんでした。",
+					content:
+						"🐾 猫又の道連れ対象がいなかったため、追加の死亡者は出ませんでした。",
 				});
 			}
 		}
