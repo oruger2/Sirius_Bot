@@ -16,7 +16,7 @@ import {
 	roleConfigForPlayerCount,
 } from "./constants";
 import { sessionsByGameId } from "./registry";
-import { WolfGameSession } from "./session";
+import type { WolfGameSession } from "./session";
 import type { ConfigurableRole, FreaksAffiliation, Role } from "./types";
 
 const handleRecruitButton = async (
