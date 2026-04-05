@@ -1,8 +1,8 @@
-import type { ChatInputCommandInteraction } from "discord.js";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
+	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -14,7 +14,12 @@ const command = {
 		.setDescription("Botの情報を表示します"),
 
 	async execute(interaction: ChatInputCommandInteraction) {
-		const sendEphemeral = async (embed: EmbedBuilder, components?: any[]) => {
+		const sendEphemeral = async (
+			embed: EmbedBuilder,
+			components?: Parameters<
+				ChatInputCommandInteraction["reply"]
+			>[0]["components"],
+		) => {
 			const replyPayload = { embeds: [embed], components };
 			const editPayload = { embeds: [embed], components };
 			const followUpPayload = { embeds: [embed], components };

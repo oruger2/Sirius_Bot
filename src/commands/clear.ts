@@ -1,9 +1,7 @@
-import type {
-	ChatInputCommandInteraction,
-	GuildTextBasedChannel,
-} from "discord.js";
 import {
+	type ChatInputCommandInteraction,
 	EmbedBuilder,
+	type GuildTextBasedChannel,
 	PermissionsBitField,
 	SlashCommandBuilder,
 } from "discord.js";
