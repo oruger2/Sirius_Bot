@@ -584,7 +584,10 @@ export const handleWolfGameModalInteraction = async (
 		const nextOverrides = { ...session.settings.roleOverrides };
 		for (const [role, rawValue] of Object.entries(roleValues)) {
 			const typedRole = role as ConfigurableRole;
-			const parsed = parseWholeNumber(rawValue ?? "", ROLE_INFO[typedRole].name);
+			const parsed = parseWholeNumber(
+				rawValue ?? "",
+				ROLE_INFO[typedRole].name,
+			);
 			if (!parsed.ok) {
 				await interaction.reply({
 					content: parsed.message,
