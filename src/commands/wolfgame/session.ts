@@ -408,7 +408,9 @@ export class WolfGameSession {
 
 	async dmRoleNotifications(guild: Guild) {
 		const werewolves = this.alivePlayers()
-			.filter((player) => player.role === "werewolf" || player.role === "wolf_cat")
+			.filter(
+				(player) => player.role === "werewolf" || player.role === "wolf_cat",
+			)
 			.map((player) => player.id);
 
 		for (const player of this.players.values()) {
