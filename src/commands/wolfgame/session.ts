@@ -912,7 +912,8 @@ export class WolfGameSession {
 			try {
 				const user = await this.client.users.fetch(actorId);
 				await user.send({
-					content: "フリークスの夜アクションです。今夜の所属陣営を選択してください。",
+					content:
+						"フリークスの夜アクションです。今夜の所属陣営を選択してください。",
 					components: this.buildFreaksAffiliationButtons(),
 				});
 			} catch {
