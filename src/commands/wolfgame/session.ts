@@ -818,7 +818,10 @@ export class WolfGameSession {
 				}
 			}
 
-			if (this.pendingNightRoles.size > 0 || this.pendingFreaksActors.size > 0) {
+			if (
+				this.pendingNightRoles.size > 0 ||
+				this.pendingFreaksActors.size > 0
+			) {
 				await new Promise<void>((resolve) => {
 					this.nightResolver = resolve;
 					this.phaseTimer = setTimeout(() => {
