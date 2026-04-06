@@ -798,7 +798,9 @@ export class WolfGameSession {
 		}
 
 		if (this.round === 0) {
-			const freaksActors = this.aliveByRole("freaks").map((player) => player.id);
+			const freaksActors = this.aliveByRole("freaks").map(
+				(player) => player.id,
+			);
 			for (const actorId of freaksActors) {
 				this.pendingFreaksActors.add(actorId);
 				try {
