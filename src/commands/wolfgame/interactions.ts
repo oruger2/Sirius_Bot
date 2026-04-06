@@ -305,7 +305,7 @@ const processNightAction = (
 	}
 
 	const rep = session.nightRepresentatives.get(role);
-	if (rep && rep !== actorId) {
+	if (role !== "freaks" && rep && rep !== actorId) {
 		return {
 			ok: false,
 			content: `この役職のアクションは代表者 <@${rep}> のみ実行できます。`,
@@ -317,12 +317,15 @@ const processNightAction = (
 		if (!["village", "werewolf", "third"].includes(targetTeam)) {
 			return { ok: false, content: "所属陣営の指定が無効です。" };
 		}
-		session.nightActions.freaks = targetTeam;
 		session.freaksAffiliations.set(actorId, targetTeam);
-		session.pendingNightRoles.delete(role);
+		session.pendingFreaksActors.delete(actorId);
 		session.bumpActivity();
 
-		if (session.pendingNightRoles.size === 0 && session.nightResolver) {
+		if (
+			session.pendingNightRoles.size === 0 &&
+			session.pendingFreaksActors.size === 0 &&
+			session.nightResolver
+		) {
 			session.nightResolver();
 		}
 
@@ -377,7 +380,11 @@ const processNightAction = (
 	session.pendingNightRoles.delete(role);
 	session.bumpActivity();
 
-	if (session.pendingNightRoles.size === 0 && session.nightResolver) {
+	if (
+		session.pendingNightRoles.size === 0 &&
+		session.pendingFreaksActors.size === 0 &&
+		session.nightResolver
+	) {
 		session.nightResolver();
 	}
 

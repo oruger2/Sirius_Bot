@@ -65,6 +65,7 @@ export class WolfGameSession {
 
 	nightActions: NightActions = {};
 	pendingNightRoles = new Set<Role>();
+	pendingFreaksActors = new Set<string>();
 	nightRepresentatives = new Map<Role, string>();
 	votes = new Map<string, string>();
 	pendingVoters = new Set<string>();
@@ -777,7 +778,6 @@ export class WolfGameSession {
 		) {
 			required.push("medium");
 		}
-		if (alive.some((p) => p.role === "freaks")) required.push("freaks");
 		return required;
 	}
 
@@ -785,6 +785,7 @@ export class WolfGameSession {
 		this.phase = "night";
 		this.nightActions = {};
 		this.pendingNightRoles.clear();
+		this.pendingFreaksActors.clear();
 		this.nightRepresentatives.clear();
 		this.bumpActivity();
 		await this.setMainTalkPermission(false);
@@ -797,30 +798,25 @@ export class WolfGameSession {
 		}
 
 		if (this.round === 0) {
-			const hasAliveFreaks = this.alivePlayers().some(
-				(player) => player.role === "freaks",
-			);
-			if (hasAliveFreaks) {
-				const rep = this.resolveRoleRepresentative("freaks");
-				if (rep) {
-					this.pendingNightRoles.add("freaks");
-					try {
-						const user = await this.client.users.fetch(rep);
-						await user.send({
-							content:
-								"初日夜のフリークス陣営選択です。今夜の所属陣営を選択してください。",
-							components: this.buildFreaksAffiliationButtons(),
-						});
-					} catch {
-						this.pendingNightRoles.delete("freaks");
-						await this.postSourceMessage(
-							`<@${rep}> にフリークスの夜アクションDMを送れなかったため、初日夜の陣営選択をスキップしました。`,
-						);
-					}
+			const freaksActors = this.aliveByRole("freaks").map((player) => player.id);
+			for (const actorId of freaksActors) {
+				this.pendingFreaksActors.add(actorId);
+				try {
+					const user = await this.client.users.fetch(actorId);
+					await user.send({
+						content:
+							"初日夜のフリークス陣営選択です。今夜の所属陣営を選択してください。",
+						components: this.buildFreaksAffiliationButtons(),
+					});
+				} catch {
+					this.pendingFreaksActors.delete(actorId);
+					await this.postSourceMessage(
+						`<@${actorId}> にフリークスの夜アクションDMを送れなかったため、そのプレイヤーの初日夜の陣営選択をスキップしました。`,
+					);
 				}
 			}
 
-			if (this.pendingNightRoles.size > 0) {
+			if (this.pendingNightRoles.size > 0 || this.pendingFreaksActors.size > 0) {
 				await new Promise<void>((resolve) => {
 					this.nightResolver = resolve;
 					this.phaseTimer = setTimeout(() => {
@@ -857,37 +853,30 @@ export class WolfGameSession {
 				continue;
 			}
 
-			let rows: ActionRowBuilder<ButtonBuilder>[] = [];
-			if (role === "freaks") {
-				rows = this.buildFreaksAffiliationButtons();
-			} else {
-				let targets =
-					role === "medium"
-						? this.deadUninspectedPlayers()
-						: this.alivePlayers();
-				if (role === "werewolf") {
-					targets = targets.filter(
-						(p) => p.role !== "werewolf" && p.role !== "wolf_cat",
-					);
-				}
-				if (role === "seer") {
-					targets = targets.filter((p) => p.id !== rep);
-				}
-				if (role === "knight") {
-					targets = targets.filter((p) => p.id !== rep);
-				}
-
-				if (targets.length === 0) {
-					this.pendingNightRoles.delete(role);
-					continue;
-				}
-
-				rows = this.buildTargetButtons(
-					`wolf:act:${this.gameId}:${role}`,
-					targets,
-					"",
+			let targets =
+				role === "medium" ? this.deadUninspectedPlayers() : this.alivePlayers();
+			if (role === "werewolf") {
+				targets = targets.filter(
+					(p) => p.role !== "werewolf" && p.role !== "wolf_cat",
 				);
 			}
+			if (role === "seer") {
+				targets = targets.filter((p) => p.id !== rep);
+			}
+			if (role === "knight") {
+				targets = targets.filter((p) => p.id !== rep);
+			}
+
+			if (targets.length === 0) {
+				this.pendingNightRoles.delete(role);
+				continue;
+			}
+
+			const rows = this.buildTargetButtons(
+				`wolf:act:${this.gameId}:${role}`,
+				targets,
+				"",
+			);
 
 			const aliveMembers =
 				role === "werewolf"
@@ -900,18 +889,10 @@ export class WolfGameSession {
 				aliveMembers.length > 1 ? `\nこの役職の代表者: <@${rep}>` : "";
 			try {
 				const user = await this.client.users.fetch(rep);
-				await user.send(
-					role === "freaks"
-						? {
-								content:
-									"フリークスの夜アクションです。今夜の所属陣営を選択してください。",
-								components: rows,
-							}
-						: {
-								content: `${ROLE_INFO[role].name}の夜アクションです。対象を選択してください。${multiNotice}`,
-								components: rows,
-							},
-				);
+				await user.send({
+					content: `${ROLE_INFO[role].name}の夜アクションです。対象を選択してください。${multiNotice}`,
+					components: rows,
+				});
 			} catch {
 				this.pendingNightRoles.delete(role);
 				await this.postSourceMessage(
@@ -920,7 +901,24 @@ export class WolfGameSession {
 			}
 		}
 
-		if (this.pendingNightRoles.size > 0) {
+		const freaksActors = this.aliveByRole("freaks").map((player) => player.id);
+		for (const actorId of freaksActors) {
+			this.pendingFreaksActors.add(actorId);
+			try {
+				const user = await this.client.users.fetch(actorId);
+				await user.send({
+					content: "フリークスの夜アクションです。今夜の所属陣営を選択してください。",
+					components: this.buildFreaksAffiliationButtons(),
+				});
+			} catch {
+				this.pendingFreaksActors.delete(actorId);
+				await this.postSourceMessage(
+					`<@${actorId}> に夜アクションDMを送れなかったため、フリークスのアクションをスキップしました。`,
+				);
+			}
+		}
+
+		if (this.pendingNightRoles.size > 0 || this.pendingFreaksActors.size > 0) {
 			await new Promise<void>((resolve) => {
 				this.nightResolver = resolve;
 				this.phaseTimer = setTimeout(() => {
@@ -953,15 +951,6 @@ export class WolfGameSession {
 				);
 			if (role === "seer") targets = targets.filter((p) => p.id !== rep);
 			if (role === "knight") targets = targets.filter((p) => p.id !== rep);
-			if (role === "freaks") {
-				const teams: FreaksAffiliation[] = ["village", "werewolf", "third"];
-				const selected = pickRandom(teams);
-				if (!selected) continue;
-				this.nightActions.freaks = selected;
-				this.pendingNightRoles.delete(role);
-				this.freaksAffiliations.set(rep, selected);
-				continue;
-			}
 
 			const selected = pickRandom(targets);
 			if (!selected) continue;
@@ -973,6 +962,14 @@ export class WolfGameSession {
 
 			this.pendingNightRoles.delete(role);
 		}
+
+		for (const actorId of [...this.pendingFreaksActors]) {
+			const teams: FreaksAffiliation[] = ["village", "werewolf", "third"];
+			const selected = pickRandom(teams);
+			if (!selected) continue;
+			this.freaksAffiliations.set(actorId, selected);
+			this.pendingFreaksActors.delete(actorId);
+		}
 	}
 
 	async resolveNightOutcome() {
@@ -982,7 +979,6 @@ export class WolfGameSession {
 		const guardTargetId = this.nightActions.knight;
 		const seerTargetId = this.nightActions.seer;
 		const mediumTargetId = this.nightActions.medium;
-		const freaksTeam = this.nightActions.freaks;
 		const knightActorId = this.nightRepresentatives.get("knight");
 
 		if (seerTargetId) {
@@ -1035,13 +1031,6 @@ export class WolfGameSession {
 						// ignore
 					}
 				}
-			}
-		}
-
-		if (freaksTeam) {
-			const freaksRep = this.nightRepresentatives.get("freaks");
-			if (freaksRep) {
-				this.freaksAffiliations.set(freaksRep, freaksTeam);
 			}
 		}
 
