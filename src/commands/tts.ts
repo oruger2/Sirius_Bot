@@ -1,6 +1,6 @@
 import {
-	type ChatInputCommandInteraction,
 	ChannelType,
+	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	MessageFlags,
 	PermissionsBitField,
@@ -27,14 +27,20 @@ const command = {
 					opt
 						.setName("text_channel")
 						.setDescription("読み上げ元テキストチャンネル")
-						.addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+						.addChannelTypes(
+							ChannelType.GuildText,
+							ChannelType.GuildAnnouncement,
+						)
 						.setRequired(true),
 				)
 				.addChannelOption((opt) =>
 					opt
 						.setName("voice_channel")
 						.setDescription("読み上げ先ボイスチャンネル")
-						.addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice)
+						.addChannelTypes(
+							ChannelType.GuildVoice,
+							ChannelType.GuildStageVoice,
+						)
 						.setRequired(true),
 				),
 		)
@@ -71,7 +77,10 @@ const command = {
 
 		if (sub === "set") {
 			const textChannel = interaction.options.getChannel("text_channel", true);
-			const voiceChannel = interaction.options.getChannel("voice_channel", true);
+			const voiceChannel = interaction.options.getChannel(
+				"voice_channel",
+				true,
+			);
 
 			// Botの権限チェック
 			const botMember = interaction.guild?.members.me;
@@ -86,19 +95,28 @@ const command = {
 						new EmbedBuilder()
 							.setColor(0xed4245)
 							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-							.setDescription(`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`),
+							.setDescription(
+								`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`,
+							),
 					],
 				});
 				return;
 			}
 
-			if (!voicePerms.has([PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak])) {
+			if (
+				!voicePerms.has([
+					PermissionsBitField.Flags.Connect,
+					PermissionsBitField.Flags.Speak,
+				])
+			) {
 				await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
 							.setColor(0xed4245)
 							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-							.setDescription(`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`),
+							.setDescription(
+								`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
+							),
 					],
 				});
 				return;
