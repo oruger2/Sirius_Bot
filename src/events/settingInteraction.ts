@@ -1,7 +1,7 @@
-import {
-  type ButtonInteraction,
-  type Interaction,
-  type ModalSubmitInteraction,
+import type {
+	ButtonInteraction,
+	Interaction,
+	ModalSubmitInteraction,
 } from "discord.js";
 import {
   handleSettingButtonInteraction,
