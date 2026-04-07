@@ -20,7 +20,7 @@ export default {
 			return;
 		}
 
-    if (!interaction.isModalSubmit()) return;
+		if (!interaction.isModalSubmit()) return;
 
     try {
       await handleSettingModalInteraction(interaction);
