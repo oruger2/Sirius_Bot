@@ -1,6 +1,6 @@
 import {
-	ChannelType,
 	type ChatInputCommandInteraction,
+	ChannelType,
 	EmbedBuilder,
 	MessageFlags,
 	PermissionsBitField,
@@ -27,20 +27,14 @@ const command = {
 					opt
 						.setName("text_channel")
 						.setDescription("読み上げ元テキストチャンネル")
-						.addChannelTypes(
-							ChannelType.GuildText,
-							ChannelType.GuildAnnouncement,
-						)
+						.addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
 						.setRequired(true),
 				)
 				.addChannelOption((opt) =>
 					opt
 						.setName("voice_channel")
 						.setDescription("読み上げ先ボイスチャンネル")
-						.addChannelTypes(
-							ChannelType.GuildVoice,
-							ChannelType.GuildStageVoice,
-						)
+						.addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice)
 						.setRequired(true),
 				),
 		)
@@ -68,15 +62,16 @@ const command = {
 			return;
 		}
 
+		if (!interaction.deferred && !interaction.replied) {
+			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		}
+
 		const guildId = interaction.guildId!;
 		const sub = interaction.options.getSubcommand();
 
 		if (sub === "set") {
 			const textChannel = interaction.options.getChannel("text_channel", true);
-			const voiceChannel = interaction.options.getChannel(
-				"voice_channel",
-				true,
-			);
+			const voiceChannel = interaction.options.getChannel("voice_channel", true);
 
 			// Botの権限チェック
 			const botMember = interaction.guild?.members.me;
@@ -86,36 +81,25 @@ const command = {
 			const voicePerms = botMember.permissionsIn(voiceChannel.id);
 
 			if (!textPerms.has(PermissionsBitField.Flags.ViewChannel)) {
-				await interaction.reply({
+				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
 							.setColor(0xed4245)
 							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-							.setDescription(
-								`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`,
-							),
+							.setDescription(`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`),
 					],
-					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
 
-			if (
-				!voicePerms.has([
-					PermissionsBitField.Flags.Connect,
-					PermissionsBitField.Flags.Speak,
-				])
-			) {
+			if (!voicePerms.has([PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak])) {
 				await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
 							.setColor(0xed4245)
 							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-							.setDescription(
-								`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
-							),
+							.setDescription(`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`),
 					],
-					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
@@ -125,7 +109,7 @@ const command = {
 				voiceChannelId: voiceChannel.id,
 			});
 
-			await interaction.reply({
+			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor(0x57f287)
@@ -137,7 +121,6 @@ const command = {
 							`読み上げ元: <#${textChannel.id}>\n読み上げ先VC: <#${voiceChannel.id}>\n\nこの設定は一時的です。Bot再起動またはVC無人で自動解除されます。`,
 						),
 				],
-				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -146,7 +129,7 @@ const command = {
 			clearGuildTtsSession(guildId);
 			disconnectGuildSpeech(guildId);
 
-			await interaction.reply({
+			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor(0xffa500)
@@ -156,7 +139,6 @@ const command = {
 						})
 						.setDescription("読み上げを停止し、設定を解除しました。"),
 				],
-				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -164,7 +146,7 @@ const command = {
 		if (sub === "status") {
 			const config = getGuildTtsSession(guildId);
 			if (!config) {
-				await interaction.reply({
+				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
 							.setColor(0xed4245)
@@ -174,12 +156,11 @@ const command = {
 							})
 							.setDescription("`/tts set` で一時読み上げを開始してください。"),
 					],
-					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
 
-			await interaction.reply({
+			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor(0x5865f2)
@@ -191,7 +172,6 @@ const command = {
 							`読み上げ元: <#${config.textChannelId}>\n読み上げ先VC: <#${config.voiceChannelId}>`,
 						),
 				],
-				flags: MessageFlags.Ephemeral,
 			});
 		}
 	},
