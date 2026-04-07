@@ -4,8 +4,8 @@ import type {
 	ModalSubmitInteraction,
 } from "discord.js";
 import {
-  handleSettingButtonInteraction,
-  handleSettingModalInteraction,
+	handleSettingButtonInteraction,
+	handleSettingModalInteraction,
 } from "@/commands/setting";
 
 export default {
