@@ -16,9 +16,7 @@ const command = {
 	async execute(interaction: ChatInputCommandInteraction) {
 		const sendEphemeral = async (
 			embed: EmbedBuilder,
-			components?: Parameters<
-				ChatInputCommandInteraction["reply"]
-			>[0]["components"],
+			components?: ActionRowBuilder<ButtonBuilder>[],
 		) => {
 			const replyPayload = { embeds: [embed], components };
 			const editPayload = { embeds: [embed], components };
@@ -90,7 +88,7 @@ const command = {
 			})
 			.setDescription(
 				"このBotはサーバー管理・経済・AIなど様々な機能を提供します。\n\n" +
-					"**Version**: 2.8.3\n" +
+					"**Version**: 2.16.0\n" +
 					"**developer**: Oruger-0730\n" +
 					"**使用言語**: TypeScript\n\n" +
 					"新機能の追加やバグの修正は随時行っています。ご意見がある場合はサポートサーバーまでお越しください。",
@@ -106,10 +104,10 @@ const command = {
 			new ButtonBuilder()
 				.setLabel("公式ホームページ")
 				.setStyle(ButtonStyle.Link)
-				.setURL("https://siriusbot-homepage.onrender.com/"),
+				.setURL("https://siriusbot.f5.si/"),
 		);
 
-		await sendEphemeral(embed, [row]);
+		await sendEphemeral(embed, [row] as const);
 	},
 };
 
