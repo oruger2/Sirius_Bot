@@ -22,10 +22,10 @@ export default {
 
 		if (!interaction.isModalSubmit()) return;
 
-    try {
-      await handleSettingModalInteraction(interaction);
-    } catch (error) {
-      console.error("setting modal handler error:", error);
-    }
-  },
+		try {
+			await handleSettingModalInteraction(interaction);
+		} catch (error) {
+			console.error("setting modal handler error:", error);
+		}
+	},
 };
