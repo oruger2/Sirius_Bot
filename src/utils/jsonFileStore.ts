@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import fsp from "node:fs/promises";
+import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 
 const JSON_DATA_DIR_CANDIDATES = [
@@ -26,7 +26,7 @@ const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
 const toFilePath = (fileName: string) => path.join(JSON_DATA_DIR, fileName);
 
 export const ensureJsonDataDir = async () => {
-	await fsp.mkdir(JSON_DATA_DIR, { recursive: true });
+	await fsPromises.mkdir(JSON_DATA_DIR, { recursive: true });
 };
 
 export const readJsonData = async <T>(
@@ -36,7 +36,7 @@ export const readJsonData = async <T>(
 	const filePath = toFilePath(fileName);
 
 	try {
-		const raw = await fsp.readFile(filePath, "utf8");
+		const raw = await fsPromises.readFile(filePath, "utf8");
 		return JSON.parse(raw) as T;
 	} catch (error: unknown) {
 		if (isErrnoException(error) && error.code === "ENOENT") {
@@ -56,5 +56,8 @@ export const readJsonData = async <T>(
 
 export const writeJsonData = async (fileName: string, data: unknown) => {
 	await ensureJsonDataDir();
-	await fsp.writeFile(toFilePath(fileName), JSON.stringify(data, null, 2));
+	await fsPromises.writeFile(
+		toFilePath(fileName),
+		JSON.stringify(data, null, 2),
+	);
 };

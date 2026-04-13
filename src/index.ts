@@ -1,4 +1,4 @@
-import * as fsp from "node:fs/promises";
+import * as fsPromises from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -64,7 +64,7 @@ const isTargetModule = (file: string) => file.endsWith(".ts");
 
 const listDirectoryIfExists = async (targetPath: string) => {
 	try {
-		return await fsp.readdir(targetPath);
+		return await fsPromises.readdir(targetPath);
 	} catch (error: unknown) {
 		const isMissingDirectory =
 			typeof error === "object" &&
