@@ -72,7 +72,21 @@ const command = {
 			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		}
 
-		const guildId = interaction.guildId!;
+		const guildId = interaction.guildId;
+		if (!guildId) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor(0xed4245)
+						.setAuthor({
+							name: "エラー",
+							iconURL: ERROR_ICON_URL,
+						})
+						.setDescription("❌ サーバーIDを取得できませんでした。"),
+				],
+			});
+			return;
+		}
 		const sub = interaction.options.getSubcommand();
 
 		if (sub === "set") {

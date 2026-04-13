@@ -1,4 +1,4 @@
-import * as fsp from "node:fs/promises";
+import * as fsPromises from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -13,6 +13,7 @@ import {
 import * as dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
 import { initErrorReporting } from "@/utils/errorWebhook";
+import { ensureJsonDataDir } from "@/utils/jsonFileStore";
 
 dotenv.config();
 initErrorReporting();
@@ -63,7 +64,7 @@ const isTargetModule = (file: string) => file.endsWith(".ts");
 
 const listDirectoryIfExists = async (targetPath: string) => {
 	try {
-		return await fsp.readdir(targetPath);
+		return await fsPromises.readdir(targetPath);
 	} catch (error: unknown) {
 		const isMissingDirectory =
 			typeof error === "object" &&
@@ -342,6 +343,7 @@ async function runShardProcess() {
 	const shardId = parseCurrentShardId();
 	const primaryShard = shardId === 0;
 
+	await ensureJsonDataDir();
 	await loadCommands(client);
 	await loadEvents(client);
 

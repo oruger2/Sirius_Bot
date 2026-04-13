@@ -1,6 +1,3 @@
-import fsp from "node:fs/promises";
-import path, { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
 	type ChatInputCommandInteraction,
 	type Client,
@@ -10,14 +7,8 @@ import {
 	MessageFlags,
 	PermissionsBitField,
 } from "discord.js";
+import { readJsonData } from "@/utils/jsonFileStore";
 
-// ===== ESM対応 =====
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// ===== パス =====
-const blacklistPath = path.join(__dirname, "../json/blacklist.json");
-const stopConfigPath = path.join(__dirname, "../json/config.json");
 const handlingInteractionIds = new Set<string>();
 const INTERACTION_LOCK_TTL_MS = 15_000;
 
@@ -130,11 +121,10 @@ export default {
 		}
 
 		// ===== ブラックリスト読み込み =====
-		let blacklist = { users: [] as string[], servers: [] as string[] };
-
-		try {
-			blacklist = JSON.parse(await fsp.readFile(blacklistPath, "utf8"));
-		} catch {}
+		const blacklist = await readJsonData("blacklist.json", {
+			users: [] as string[],
+			servers: [] as string[],
+		});
 
 		if (blacklist.users.includes(interaction.user.id)) {
 			await sendError("🚫 あなたはBotの利用を禁止されています。");
@@ -146,11 +136,9 @@ export default {
 		}
 
 		// ===== 停止コマンド =====
-		let config = { stopping: [] as string[] };
-
-		try {
-			config = JSON.parse(await fsp.readFile(stopConfigPath, "utf8"));
-		} catch {}
+		const config = await readJsonData("config.json", {
+			stopping: [] as string[],
+		});
 
 		const commandName = interaction.commandName.toLowerCase();
 
