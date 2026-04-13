@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import fsp from "node:fs/promises";
+import fsp from "node:fs/promises";
 import path from "node:path";
 
 const JSON_DATA_DIR_CANDIDATES = [
