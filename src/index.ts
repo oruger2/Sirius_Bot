@@ -13,6 +13,7 @@ import {
 import * as dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
 import { initErrorReporting } from "@/utils/errorWebhook";
+import { ensureJsonDataDir } from "@/utils/jsonFileStore";
 
 dotenv.config();
 initErrorReporting();
@@ -342,6 +343,7 @@ async function runShardProcess() {
 	const shardId = parseCurrentShardId();
 	const primaryShard = shardId === 0;
 
+	await ensureJsonDataDir();
 	await loadCommands(client);
 	await loadEvents(client);
 

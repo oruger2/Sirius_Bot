@@ -1,6 +1,3 @@
-import fsp from "node:fs/promises";
-import path, { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -8,17 +5,7 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
-
-// ✅ ESM用 __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// パス
-const adminPath = path.join(__dirname, "../json/admin.json");
-const blacklistPath = path.join(__dirname, "../json/blacklist.json");
-const stopConfigPath = path.join(__dirname, "../json/config.json");
-const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
-	typeof error === "object" && error !== null && "code" in error;
+import { readJsonData, writeJsonData } from "@/utils/jsonFileStore";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -70,11 +57,11 @@ export default {
 		.addSubcommand((sub) =>
 			sub
 				.setName("stop")
-				.setDescription("指定コマンドを停止中リストへ追加します")
+				.setDescription("指定コマンドを停止/再開します")
 				.addStringOption((opt) =>
 					opt
 						.setName("command")
-						.setDescription("停止するコマンド名（例: money または /money）")
+						.setDescription("対象コマンド名（例: money または /money）")
 						.setRequired(true),
 				),
 		)
@@ -102,25 +89,12 @@ export default {
 		),
 
 	async execute(interaction: ChatInputCommandInteraction) {
-		let admin: { users: string[] };
-		let blacklist: { users: string[]; servers: string[] };
-
 		// ===== ファイル読み込み =====
-		try {
-			admin = JSON.parse(await fsp.readFile(adminPath, "utf8"));
-		} catch (err: unknown) {
-			if (isErrnoException(err) && err.code === "ENOENT") {
-				admin = { users: [] };
-			} else throw err;
-		}
-
-		try {
-			blacklist = JSON.parse(await fsp.readFile(blacklistPath, "utf8"));
-		} catch (err: unknown) {
-			if (isErrnoException(err) && err.code === "ENOENT") {
-				blacklist = { users: [], servers: [] };
-			} else throw err;
-		}
+		const admin = await readJsonData("admin.json", { users: [] as string[] });
+		const blacklist = await readJsonData("blacklist.json", {
+			users: [] as string[],
+			servers: [] as string[],
+		});
 
 		// ===== 管理者チェック =====
 		if (!admin.users.includes(interaction.user.id)) {
@@ -288,7 +262,7 @@ export default {
 			}
 
 			admin.users.push(user.id);
-			await fsp.writeFile(adminPath, JSON.stringify(admin, null, 2));
+			await writeJsonData("admin.json", admin);
 
 			return interaction.reply({
 				embeds: [
@@ -308,30 +282,51 @@ export default {
 		if (sub === "stop") {
 			const input = interaction.options.getString("command", true);
 			const cmd = input.replace(/^\//, "").toLowerCase();
+			const commandRegistry = (
+				interaction.client as { commands?: { has: (name: string) => boolean } }
+			).commands;
 
-			let config = { stopping: [] as string[] };
-
-			try {
-				config = JSON.parse(await fsp.readFile(stopConfigPath, "utf8"));
-			} catch {}
-
-			if (config.stopping.includes(cmd)) {
+			if (!commandRegistry?.has(cmd)) {
 				return interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setColor(0xfee75c)
+							.setColor(0xed4245)
 							.setAuthor({
-								name: "⚠️ 既に停止中",
+								name: "エラー",
+								iconURL: ERROR_ICON_URL,
+							})
+							.setDescription(`❌ /${cmd} というコマンドはありません`),
+					],
+					flags: MessageFlags.Ephemeral,
+				});
+			}
+
+			let config = { stopping: [] as string[] };
+
+			config = await readJsonData("config.json", config);
+
+			const stopIndex = config.stopping.indexOf(cmd);
+
+			if (stopIndex !== -1) {
+				config.stopping.splice(stopIndex, 1);
+				await writeJsonData("config.json", config);
+
+				return interaction.reply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0x57f287)
+							.setAuthor({
+								name: "✅ 再開完了",
 								iconURL: SUCCESS_ICON_URL,
 							})
-							.setDescription("⚠️ 既に停止中"),
+							.setDescription(`✅ /${cmd} を再開しました`),
 					],
 					flags: MessageFlags.Ephemeral,
 				});
 			}
 
 			config.stopping.push(cmd);
-			await fsp.writeFile(stopConfigPath, JSON.stringify(config, null, 2));
+			await writeJsonData("config.json", config);
 
 			return interaction.reply({
 				embeds: [
@@ -388,7 +383,7 @@ export default {
 				blacklist.servers.push(id);
 			}
 
-			await fsp.writeFile(blacklistPath, JSON.stringify(blacklist, null, 2));
+			await writeJsonData("blacklist.json", blacklist);
 
 			return interaction.reply({
 				embeds: [
