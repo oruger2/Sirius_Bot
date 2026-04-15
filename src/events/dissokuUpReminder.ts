@@ -10,7 +10,7 @@ function isUpMessage(message: Messsage) {
   if (!message.author.bot || message.author.id !== DISBOARD_BOT_ID) return;
   if (!message.interactionMetadata) return;
   const txt = convertToCombinedText(message.interactionMetadata);
-  return txt.includes('command: `/up`') && txt.includes('` をアップしたよ!');
+  return txt.includes('/up') && txt.includes('をアップしたよ!');
 }
 
 export default {

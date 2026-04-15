@@ -10,7 +10,7 @@ function isUpMessage(message: Messsage) {
   if (!message.author.bot || message.author.id !== DICOALL_BOT_ID) return false;
   if (!message.interactionMetadata) return false;
   const txt = convertToCombinedText(message);
-  return txt.includes('サーバーがリストの最上段に更新されました！') && txt.includes('サーバーリストのトップに正常に表示されています。');
+  return (txt.includes('サーバーがリストの最上段に更新されました！') && txt.includes('サーバーリストのトップに正常に表示されています。')) || (txt.includes('UP was successful.') && txt.includes('The server is displayed at the top.'));
 }
 
 export default {
