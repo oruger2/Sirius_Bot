@@ -7,6 +7,242 @@ import {
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 import { readJsonData, writeJsonData } from "@/utils/jsonFileStore";
 
+type GuildListEntry = {
+	id: string;
+	name: string;
+	shardId: number;
+};
+
+type LeaveResult =
+	| {
+			id: string;
+			name: string;
+			shardId: number;
+			success: true;
+	  }
+	| {
+			id: string;
+			name: string;
+			shardId: number;
+			success: false;
+			error: string;
+	  };
+
+type InviteResult =
+	| {
+			id: string;
+			name: string;
+			shardId: number;
+			success: true;
+			url: string;
+	  }
+	| {
+			id: string;
+			name: string;
+			shardId: number;
+			success: false;
+			error: string;
+	  };
+
+const getAllGuilds = async (
+	interaction: ChatInputCommandInteraction,
+): Promise<GuildListEntry[]> => {
+	if (!interaction.client.shard) {
+		return interaction.client.guilds.cache.map((guild) => ({
+			id: guild.id,
+			name: guild.name,
+			shardId: guild.shardId,
+		}));
+	}
+
+	const results = await interaction.client.shard.broadcastEval((client) => {
+		const shardId = client.shard?.ids[0] ?? 0;
+		return client.guilds.cache.map((guild) => ({
+			id: guild.id,
+			name: guild.name,
+			shardId,
+		}));
+	});
+
+	return results.flat();
+};
+
+const leaveGuildAcrossShards = async (
+	interaction: ChatInputCommandInteraction,
+	guildId: string,
+): Promise<LeaveResult | null> => {
+	if (!interaction.client.shard) {
+		const guild = interaction.client.guilds.cache.get(guildId);
+		if (!guild) return null;
+
+		try {
+			await guild.leave();
+			return {
+				id: guild.id,
+				name: guild.name,
+				shardId: guild.shardId,
+				success: true,
+			};
+		} catch (error: unknown) {
+			return {
+				id: guild.id,
+				name: guild.name,
+				shardId: guild.shardId,
+				success: false,
+				error: error instanceof Error ? error.message : "Unknown error",
+			};
+		}
+	}
+
+	const results = await interaction.client.shard.broadcastEval(
+		async (client, { targetGuildId }) => {
+			const guild = client.guilds.cache.get(targetGuildId);
+			if (!guild) return null;
+
+			const shardId = client.shard?.ids[0] ?? 0;
+
+			try {
+				await guild.leave();
+				return {
+					id: guild.id,
+					name: guild.name,
+					shardId,
+					success: true as const,
+				};
+			} catch (error: unknown) {
+				return {
+					id: guild.id,
+					name: guild.name,
+					shardId,
+					success: false as const,
+					error: error instanceof Error ? error.message : "Unknown error",
+				};
+			}
+		},
+		{ context: { targetGuildId: guildId } },
+	);
+
+	return (
+		results.find((result): result is LeaveResult => result !== null) ?? null
+	);
+};
+
+const createGuildInviteAcrossShards = async (
+	interaction: ChatInputCommandInteraction,
+	guildId: string,
+): Promise<InviteResult | null> => {
+	if (!interaction.client.shard) {
+		const guild = interaction.client.guilds.cache.get(guildId);
+		if (!guild) return null;
+
+		const botMember = guild.members.me;
+		if (!botMember) {
+			return {
+				id: guild.id,
+				name: guild.name,
+				shardId: guild.shardId,
+				success: false,
+				error: "Botメンバー情報を取得できません",
+			};
+		}
+
+		const channel = guild.channels.cache.find(
+			(c) =>
+				c.isTextBased() &&
+				c.permissionsFor(botMember)?.has("CreateInstantInvite"),
+		);
+
+		if (!channel || !("createInvite" in channel)) {
+			return {
+				id: guild.id,
+				name: guild.name,
+				shardId: guild.shardId,
+				success: false,
+				error: "招待リンクを作成できるチャンネルがありません",
+			};
+		}
+
+		try {
+			const invite = await channel.createInvite({ maxAge: 0 });
+			return {
+				id: guild.id,
+				name: guild.name,
+				shardId: guild.shardId,
+				success: true,
+				url: invite.url,
+			};
+		} catch (error: unknown) {
+			return {
+				id: guild.id,
+				name: guild.name,
+				shardId: guild.shardId,
+				success: false,
+				error: error instanceof Error ? error.message : "Unknown error",
+			};
+		}
+	}
+
+	const results = await interaction.client.shard.broadcastEval(
+		async (client, { targetGuildId }) => {
+			const guild = client.guilds.cache.get(targetGuildId);
+			if (!guild) return null;
+
+			const shardId = client.shard?.ids[0] ?? 0;
+			const botMember = guild.members.me;
+
+			if (!botMember) {
+				return {
+					id: guild.id,
+					name: guild.name,
+					shardId,
+					success: false as const,
+					error: "Botメンバー情報を取得できません",
+				};
+			}
+
+			const channel = guild.channels.cache.find(
+				(c) =>
+					c.isTextBased() &&
+					c.permissionsFor(botMember)?.has("CreateInstantInvite"),
+			);
+
+			if (!channel || !("createInvite" in channel)) {
+				return {
+					id: guild.id,
+					name: guild.name,
+					shardId,
+					success: false as const,
+					error: "招待リンクを作成できるチャンネルがありません",
+				};
+			}
+
+			try {
+				const invite = await channel.createInvite({ maxAge: 0 });
+				return {
+					id: guild.id,
+					name: guild.name,
+					shardId,
+					success: true as const,
+					url: invite.url,
+				};
+			} catch (error: unknown) {
+				return {
+					id: guild.id,
+					name: guild.name,
+					shardId,
+					success: false as const,
+					error: error instanceof Error ? error.message : "Unknown error",
+				};
+			}
+		},
+		{ context: { targetGuildId: guildId } },
+	);
+
+	return (
+		results.find((result): result is InviteResult => result !== null) ?? null
+	);
+};
+
 export default {
 	data: new SlashCommandBuilder()
 		.setName("admin")
@@ -116,8 +352,10 @@ export default {
 
 		// ===== server =====
 		if (sub === "server") {
-			const servers = interaction.client.guilds.cache
-				.map((g) => `• ${g.name} (${g.id})`)
+			const guilds = await getAllGuilds(interaction);
+			const servers = guilds
+				.sort((a, b) => a.shardId - b.shardId || a.name.localeCompare(b.name))
+				.map((g) => `• [S${g.shardId}] ${g.name} (${g.id})`)
 				.join("\n");
 
 			return interaction.reply({
@@ -137,9 +375,9 @@ export default {
 		// ===== leave =====
 		if (sub === "leave") {
 			const id = interaction.options.getString("server_id", true);
-			const guild = interaction.client.guilds.cache.get(id);
+			const result = await leaveGuildAcrossShards(interaction, id);
 
-			if (!guild) {
+			if (!result) {
 				return interaction.reply({
 					embeds: [
 						new EmbedBuilder()
@@ -154,7 +392,20 @@ export default {
 				});
 			}
 
-			await guild.leave();
+			if (!result.success) {
+				return interaction.reply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({
+								name: "エラー",
+								iconURL: ERROR_ICON_URL,
+							})
+							.setDescription(`❌ 退出に失敗しました: ${result.error}`),
+					],
+					flags: MessageFlags.Ephemeral,
+				});
+			}
 
 			return interaction.reply({
 				embeds: [
@@ -164,7 +415,9 @@ export default {
 							name: "🚪 退出完了",
 							iconURL: SUCCESS_ICON_URL,
 						})
-						.setDescription(`🚪 ${guild.name} から退出しました`),
+						.setDescription(
+							`🚪 ${result.name} から退出しました\nShard: #${result.shardId}`,
+						),
 				],
 				flags: MessageFlags.Ephemeral,
 			});
@@ -173,9 +426,9 @@ export default {
 		// ===== invite =====
 		if (sub === "invite") {
 			const id = interaction.options.getString("server_id", true);
-			const guild = interaction.client.guilds.cache.get(id);
+			const result = await createGuildInviteAcrossShards(interaction, id);
 
-			if (!guild) {
+			if (!result) {
 				return interaction.reply({
 					embeds: [
 						new EmbedBuilder()
@@ -189,8 +442,8 @@ export default {
 					flags: MessageFlags.Ephemeral,
 				});
 			}
-			const botMember = guild.members.me;
-			if (!botMember) {
+
+			if (!result.success) {
 				return interaction.reply({
 					embeds: [
 						new EmbedBuilder()
@@ -199,34 +452,11 @@ export default {
 								name: "エラー",
 								iconURL: ERROR_ICON_URL,
 							})
-							.setDescription("❌ Botメンバー情報を取得できません"),
+							.setDescription(`❌ ${result.error}`),
 					],
 					flags: MessageFlags.Ephemeral,
 				});
 			}
-
-			const channel = guild.channels.cache.find(
-				(c) =>
-					c.isTextBased() &&
-					c.permissionsFor(botMember)?.has("CreateInstantInvite"),
-			);
-
-			if (!channel || !("createInvite" in channel)) {
-				return interaction.reply({
-					embeds: [
-						new EmbedBuilder()
-							.setColor(0xed4245)
-							.setAuthor({
-								name: "エラー",
-								iconURL: ERROR_ICON_URL,
-							})
-							.setDescription("❌ 招待作れない"),
-					],
-					flags: MessageFlags.Ephemeral,
-				});
-			}
-
-			const invite = await channel.createInvite({ maxAge: 0 });
 
 			return interaction.reply({
 				embeds: [
@@ -236,7 +466,9 @@ export default {
 							name: "🔗 招待リンク",
 							iconURL: SUCCESS_ICON_URL,
 						})
-						.setDescription(invite.url),
+						.setDescription(
+							`${result.url}\n対象: ${result.name} (Shard #${result.shardId})`,
+						),
 				],
 				flags: MessageFlags.Ephemeral,
 			});
