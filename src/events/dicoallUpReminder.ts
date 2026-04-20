@@ -23,7 +23,11 @@ export default {
 	async execute(message: Messsage) {
 		if (!isUpMessage(message)) return;
 
-    await message.reply('UPを検知しました\n1時間後に通知します');
-    scheduleReminder(message.channel, '前回のDICOALLのUPから1時間が経過しました\n</up:935190259111706754> を再度実行できます', REMINDER_INTERVAL);
-  }
-}
+		await message.reply("UPを検知しました\n1時間後に通知します");
+		scheduleReminder(
+			message.channel,
+			"前回のDICOALLのUPから1時間が経過しました\n</up:935190259111706754> を再度実行できます",
+			REMINDER_INTERVAL,
+		);
+	},
+};
