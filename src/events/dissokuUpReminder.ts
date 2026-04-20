@@ -6,11 +6,11 @@ const REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
 const DISSOKU_BOT_ID = "761562078095867916";
 
 function isUpMessage(message: Messsage) {
-  if (!message.inGuild()) return;
-  if (!message.author.bot || message.author.id !== DISBOARD_BOT_ID) return;
-  if (!message.interactionMetadata) return;
-  const txt = convertToCombinedText(message.interactionMetadata);
-  return txt.includes('/up') && txt.includes('をアップしたよ!');
+	if (!message.inGuild()) return;
+	if (!message.author.bot || message.author.id !== DISBOARD_BOT_ID) return;
+	if (!message.interactionMetadata) return;
+	const txt = convertToCombinedText(message.interactionMetadata);
+	return txt.includes("/up") && txt.includes("をアップしたよ!");
 }
 
 export default {
