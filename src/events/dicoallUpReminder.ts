@@ -6,11 +6,16 @@ const REMINDER_INTERVAL = 1 * 60 * 60 * 1000;
 const DICOALL_BOT_ID = "903541413298450462";
 
 function isUpMessage(message: Messsage) {
-  if (!message.inGuild()) return false;
-  if (!message.author.bot || message.author.id !== DICOALL_BOT_ID) return false;
-  if (!message.interactionMetadata) return false;
-  const txt = convertToCombinedText(message);
-  return (txt.includes('サーバーがリストの最上段に更新されました！') && txt.includes('サーバーリストのトップに正常に表示されています。')) || (txt.includes('UP was successful.') && txt.includes('The server is displayed at the top.'));
+	if (!message.inGuild()) return false;
+	if (!message.author.bot || message.author.id !== DICOALL_BOT_ID) return false;
+	if (!message.interactionMetadata) return false;
+	const txt = convertToCombinedText(message);
+	return (
+		(txt.includes("サーバーがリストの最上段に更新されました！") &&
+			txt.includes("サーバーリストのトップに正常に表示されています。")) ||
+		(txt.includes("UP was successful.") &&
+			txt.includes("The server is displayed at the top."))
+	);
 }
 
 export default {
