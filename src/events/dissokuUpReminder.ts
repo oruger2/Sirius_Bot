@@ -1,6 +1,6 @@
-import type { Messsage } from 'discord.js';
-import scheduleReminder from '../utils/scheduleReminder';
-import convertToCombinedText from '../utils/convertToCombinedText';
+import type { Messsage } from "discord.js";
+import convertToCombinedText from "../utils/convertToCombinedText";
+import scheduleReminder from "../utils/scheduleReminder";
 
 const REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
 const DISSOKU_BOT_ID = "761562078095867916";
