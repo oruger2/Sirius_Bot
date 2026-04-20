@@ -6,11 +6,15 @@ const REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
 const DISBOARD_BOT_ID = "302050872383242240";
 
 function isBumpMessage(message: Messsage) {
-  if (!message.inGuild()) return false;
-  if (!message.author.bot || message.author.id !== DISBOARD_BOT_ID) return false;
-  if (!message.interactionMetadata) return false;
-  const txt = convertToCombinedText(message);
-  return txt.includes('表示順をアップしたよ :thumbsup:') && txt.includes('で確認してね');
+	if (!message.inGuild()) return false;
+	if (!message.author.bot || message.author.id !== DISBOARD_BOT_ID)
+		return false;
+	if (!message.interactionMetadata) return false;
+	const txt = convertToCombinedText(message);
+	return (
+		txt.includes("表示順をアップしたよ :thumbsup:") &&
+		txt.includes("で確認してね")
+	);
 }
 
 export default {
