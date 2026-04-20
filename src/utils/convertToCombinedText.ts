@@ -1,6 +1,6 @@
 import type { Message } from "discord.js";
 
-export default function convertToCombinedText (message: Message) {
+export default function convertToCombinedText(message: Message) {
 	const embedText = message.embeds
 		.flatMap((embed) => [
 			embed.title,
