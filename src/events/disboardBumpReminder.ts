@@ -22,7 +22,11 @@ export default {
 	async execute(message: Messsage) {
 		if (!isBumpMessage(message)) return;
 
-    await message.reply('BUMPを検知しました\n2時間後に通知します');
-    scheduleReminder(message.channel, '前回のDISBOARDのBUMPから2時間が経過しました\n</bump:947088344167366698> を再度実行できます', REMINDER_INTERVAL);
-  }
-}
+		await message.reply("BUMPを検知しました\n2時間後に通知します");
+		scheduleReminder(
+			message.channel,
+			"前回のDISBOARDのBUMPから2時間が経過しました\n</bump:947088344167366698> を再度実行できます",
+			REMINDER_INTERVAL,
+		);
+	},
+};
