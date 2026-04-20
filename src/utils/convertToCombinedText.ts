@@ -1,4 +1,4 @@
-import type { Message } from 'discord.js';
+import type { Message } from "discord.js";
 
 export default function convertToCombinedText (message: Message) {
 	const embedText = message.embeds
