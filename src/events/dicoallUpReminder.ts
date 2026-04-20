@@ -3,7 +3,7 @@ import convertToCombinedText from "../utils/convertToCombinedText";
 import scheduleReminder from "../utils/scheduleReminder";
 
 const REMINDER_INTERVAL = 1 * 60 * 60 * 1000;
-const DICOALL_BOT_ID = '903541413298450462';
+const DICOALL_BOT_ID = "903541413298450462";
 
 function isUpMessage(message: Messsage) {
   if (!message.inGuild()) return false;
