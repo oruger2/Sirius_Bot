@@ -14,9 +14,9 @@ function isUpMessage(message: Messsage) {
 }
 
 export default {
-  name: 'messageEdit',
-  async execute(oldMessage: Messsage, newMessage: Messsage) {
-    if (!isUpMessage(newMessage)) return;
+	name: "messageEdit",
+	async execute(oldMessage: Messsage, newMessage: Messsage) {
+		if (!isUpMessage(newMessage)) return;
 
     await message.reply('UPを検知しました\n2時間後に通知します');
     scheduleReminder(newMessage.channel, '前回のDISSOKUのUPから2時間が経過しました\n</up:1363739182672904354> を再度実行できます', REMINDER_INTERVAL);
