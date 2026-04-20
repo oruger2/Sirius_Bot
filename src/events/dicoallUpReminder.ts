@@ -1,6 +1,6 @@
-import type { Messsage } from 'discord.js';
-import scheduleReminder from '../utils/scheduleReminder';
-import convertToCombinedText from '../utils/convertToCombinedText';
+import type { Messsage } from "discord.js";
+import convertToCombinedText from "../utils/convertToCombinedText";
+import scheduleReminder from "../utils/scheduleReminder";
 
 const REMINDER_INTERVAL = 1 * 60 * 60 * 1000;
 const DICOALL_BOT_ID = '903541413298450462';
