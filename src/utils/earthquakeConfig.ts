@@ -26,15 +26,17 @@ const normalizeConfig = (raw: unknown): EarthquakeNotifyConfig => {
 
 	return {
 		channels: normalizeChannels(raw.channels),
-		lastEventKey: typeof raw.lastEventKey === "string" ? raw.lastEventKey : null,
+		lastEventKey:
+			typeof raw.lastEventKey === "string" ? raw.lastEventKey : null,
 	};
 };
 
-export const readEarthquakeConfig = async (): Promise<EarthquakeNotifyConfig> => {
-	const fallback = createDefaultEarthquakeNotifyConfig();
-	const raw = await readJsonData<unknown>(CONFIG_FILE_NAME, fallback);
-	return normalizeConfig(raw);
-};
+export const readEarthquakeConfig =
+	async (): Promise<EarthquakeNotifyConfig> => {
+		const fallback = createDefaultEarthquakeNotifyConfig();
+		const raw = await readJsonData<unknown>(CONFIG_FILE_NAME, fallback);
+		return normalizeConfig(raw);
+	};
 
 export const writeEarthquakeConfig = async (config: EarthquakeNotifyConfig) => {
 	await writeJsonData(CONFIG_FILE_NAME, config);

@@ -1,7 +1,8 @@
-import { EmbedBuilder, type APIEmbed, type Client } from "discord.js";
+import { type APIEmbed, type Client, EmbedBuilder } from "discord.js";
 
 const TARGET_CHANNEL_ID = "1445639739188445420";
-const EARTHQUAKE_API_URL = "https://api.p2pquake.net/v2/history?codes=551&limit=1";
+const EARTHQUAKE_API_URL =
+	"https://api.p2pquake.net/v2/history?codes=551&limit=1";
 const EEW_API_URL = "https://api.p2pquake.net/v2/history?codes=556&limit=1";
 const POLL_INTERVAL_MS = 30_000;
 const SEND_TEST_SHAKE_SCALE3_ON_BOOT = true;
@@ -71,7 +72,8 @@ const isShardingInProcessError = (error: unknown): boolean => {
 	);
 };
 
-const toScaleLabel = (scale: number) => scaleLabelMap[scale] ?? `不明 (${scale})`;
+const toScaleLabel = (scale: number) =>
+	scaleLabelMap[scale] ?? `不明 (${scale})`;
 
 const toScaleColor = (scale: number) => {
 	if (scale >= 55) return 0xed4245;
@@ -143,7 +145,9 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 				? quake.hypocenter.magnitude
 				: null;
 		const depth =
-			typeof quake.hypocenter?.depth === "number" ? quake.hypocenter.depth : null;
+			typeof quake.hypocenter?.depth === "number"
+				? quake.hypocenter.depth
+				: null;
 		const time = quake.time ?? item.time ?? new Date().toISOString();
 		const eventKey =
 			typeof item.id === "string" && item.id.length > 0
@@ -159,7 +163,8 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 			maxScale: quake.maxScale,
 			tsunami:
 				tsunamiLabelMap[quake.domesticTsunami ?? ""] ??
-				(quake.domesticTsunami ?? "不明"),
+				quake.domesticTsunami ??
+				"不明",
 		};
 	} catch (error) {
 		console.error("❌ 地震情報の取得に失敗", error);
@@ -221,11 +226,16 @@ const fetchLatestEew = async (): Promise<EewInfo | null> => {
 
 		const areaScales = Array.isArray(item.areas)
 			? item.areas
-					.flatMap((area) => [toValidNumber(area.scaleTo), toValidNumber(area.scaleFrom)])
+					.flatMap((area) => [
+						toValidNumber(area.scaleTo),
+						toValidNumber(area.scaleFrom),
+					])
 					.filter((value): value is number => value !== null)
 			: [];
 		const maxForecastScale =
-			areaScales.length > 0 ? Math.max(...areaScales.map((v) => Math.trunc(v))) : null;
+			areaScales.length > 0
+				? Math.max(...areaScales.map((v) => Math.trunc(v)))
+				: null;
 
 		const depth = toValidNumber(item.earthquake?.hypocenter?.depth);
 		const magnitude = toValidNumber(item.earthquake?.hypocenter?.magnitude);
@@ -367,8 +377,10 @@ const sendToConfiguredChannel = async (
 		try {
 			const results = await client.shard.broadcastEval(
 				async (c, context) => {
-					const ch = await c.channels.fetch(context.channelId).catch(() => null);
-					if (!ch || !ch.isTextBased() || !ch.isSendable()) {
+					const ch = await c.channels
+						.fetch(context.channelId)
+						.catch(() => null);
+					if (!ch?.isTextBased() || !ch.isSendable()) {
 						return false;
 					}
 
@@ -381,7 +393,9 @@ const sendToConfiguredChannel = async (
 			return results.some((result) => result);
 		} catch (error) {
 			if (isShardingInProcessError(error)) {
-				console.warn("⏳ Shard起動中のため地震通知を次回ポーリングで再試行します。");
+				console.warn(
+					"⏳ Shard起動中のため地震通知を次回ポーリングで再試行します。",
+				);
 				return false;
 			}
 
@@ -390,7 +404,7 @@ const sendToConfiguredChannel = async (
 	}
 
 	const channel = await client.channels.fetch(channelId).catch(() => null);
-	if (!channel || !channel.isTextBased() || !channel.isSendable()) {
+	if (!channel?.isTextBased() || !channel.isSendable()) {
 		return false;
 	}
 
@@ -417,7 +431,11 @@ const pollEarthquake = async (
 
 		if (quake && lastNotifiedEarthquakeEventKey !== quake.eventKey) {
 			const embed = buildEarthquakeEmbed(quake);
-			const sent = await sendToConfiguredChannel(client, TARGET_CHANNEL_ID, embed);
+			const sent = await sendToConfiguredChannel(
+				client,
+				TARGET_CHANNEL_ID,
+				embed,
+			);
 
 			if (sent) {
 				lastNotifiedEarthquakeEventKey = quake.eventKey;
@@ -433,7 +451,11 @@ const pollEarthquake = async (
 
 		if (eew && lastNotifiedEewEventKey !== eew.eventKey) {
 			const embed = buildEewEmbed(eew);
-			const sent = await sendToConfiguredChannel(client, TARGET_CHANNEL_ID, embed);
+			const sent = await sendToConfiguredChannel(
+				client,
+				TARGET_CHANNEL_ID,
+				embed,
+			);
 
 			if (sent) {
 				lastNotifiedEewEventKey = eew.eventKey;
@@ -463,16 +485,14 @@ export default {
 		}
 
 		if (!TARGET_CHANNEL_ID.trim()) {
-			console.warn(
-				"⚠️ earthquakeNotify.ts の TARGET_CHANNEL_ID が未設定です。",
-			);
+			console.warn("⚠️ earthquakeNotify.ts の TARGET_CHANNEL_ID が未設定です。");
 			return;
 		}
 
 		if (pollTimer) {
 			return;
 		}
-		
+
 		if (SEND_TEST_SHAKE_SCALE3_ON_BOOT) {
 			setTimeout(() => {
 				void pollEarthquake(client, { useTestScale3: true });

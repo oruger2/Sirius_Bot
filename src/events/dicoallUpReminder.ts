@@ -1,11 +1,11 @@
-import type { Messsage } from "discord.js";
+import type { Message } from "discord.js";
 import convertToCombinedText from "../utils/convertToCombinedText";
 import scheduleReminder from "../utils/scheduleReminder";
 
 const REMINDER_INTERVAL = 1 * 60 * 60 * 1000;
 const DICOALL_BOT_ID = "903541413298450462";
 
-function isUpMessage(message: Messsage) {
+function isUpMessage(message: Message) {
 	if (!message.inGuild()) return false;
 	if (!message.author.bot || message.author.id !== DICOALL_BOT_ID) return false;
 	if (!message.interactionMetadata) return false;
@@ -20,7 +20,7 @@ function isUpMessage(message: Messsage) {
 
 export default {
 	name: "messageCreate",
-	async execute(message: Messsage) {
+	async execute(message: Message) {
 		if (!isUpMessage(message)) return;
 
 		await message.reply("UPを検知しました\n1時間後に通知します");

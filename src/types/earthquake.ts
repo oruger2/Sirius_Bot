@@ -3,7 +3,8 @@ export type EarthquakeNotifyConfig = {
 	lastEventKey: string | null;
 };
 
-export const createDefaultEarthquakeNotifyConfig = (): EarthquakeNotifyConfig => ({
-	channels: {},
-	lastEventKey: null,
-});
+export const createDefaultEarthquakeNotifyConfig =
+	(): EarthquakeNotifyConfig => ({
+		channels: {},
+		lastEventKey: null,
+	});
