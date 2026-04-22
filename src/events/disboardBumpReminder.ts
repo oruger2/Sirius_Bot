@@ -1,11 +1,11 @@
-import type { Messsage } from "discord.js";
+import type { Message } from "discord.js";
 import convertToCombinedText from "../utils/convertToCombinedText";
 import scheduleReminder from "../utils/scheduleReminder";
 
 const REMINDER_INTERVAL = 2 * 60 * 60 * 1000;
 const DISBOARD_BOT_ID = "302050872383242240";
 
-function isBumpMessage(message: Messsage) {
+function isBumpMessage(message: Message) {
 	if (!message.inGuild()) return false;
 	if (!message.author.bot || message.author.id !== DISBOARD_BOT_ID)
 		return false;
@@ -19,7 +19,7 @@ function isBumpMessage(message: Messsage) {
 
 export default {
 	name: "messageCreate",
-	async execute(message: Messsage) {
+	async execute(message: Message) {
 		if (!isBumpMessage(message)) return;
 
 		await message.reply("BUMPを検知しました\n2時間後に通知します");
