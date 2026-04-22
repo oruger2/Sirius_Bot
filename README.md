@@ -9,4 +9,4 @@
 
 なお、このファイルは AI で編集してはいけません。
 
-[^1]: Visual Studio Code では、検索欄で `>Remote Repositories: Pull` を実行することで可能です。
+[^1]: Visual Studio Code では、サイドバーのGitタブから操作できます
