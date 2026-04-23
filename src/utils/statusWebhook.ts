@@ -1,10 +1,9 @@
 import { type Client, EmbedBuilder, WebhookClient } from "discord.js";
 
 const STATUS_WEBHOOK_URL = process.env.DISCORD_STATUS_WEBHOOK?.trim();
+const statusWebhook = STATUS_WEBHOOK_URL
 	? new WebhookClient({ url: STATUS_WEBHOOK_URL })
 	: null;
-
-const statusWebhook = new WebhookClient({ url: STATUS_WEBHOOK_URL });
 
 export type ShardGuildDistribution = {
 	id: number;
