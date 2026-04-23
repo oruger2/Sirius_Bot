@@ -2,12 +2,8 @@ import { type Client, EmbedBuilder, WebhookClient } from "discord.js";
 
 const STATUS_WEBHOOK_URL = process.env.DISCORD_STATUS_WEBHOOK?.trim();
 const statusWebhook = STATUS_WEBHOOK_URL
-? new WebhookClient(
-{
-	url: STATUS_WEBHOOK_URL;
-}
-)
-	: null
+	? new WebhookClient({ url: STATUS_WEBHOOK_URL })
+	: null;
 
 export type ShardGuildDistribution = {
 	id: number;
@@ -38,12 +34,18 @@ const buildBaseEmbed = (client: Client) => {
 		.setTimestamp(new Date());
 };
 
+const sendStatusWebhook = async (embed: EmbedBuilder) => {
+	if (!statusWebhook) return;
+
+	await statusWebhook.send({ embeds: [embed] });
+};
+
 export const sendBotOnlineStatus = async (client: Client) => {
 	const embed = buildBaseEmbed(client)
 		.setTitle("Bot Online")
 		.setDescription("Bot がオンラインになりました。");
 
-	await statusWebhook.send({ embeds: [embed] });
+	await sendStatusWebhook(embed);
 };
 
 export const sendShardOnlineStatus = async (
@@ -55,7 +57,7 @@ export const sendShardOnlineStatus = async (
 		.setDescription(`Shard \`${shardId}\` がオンラインになりました。`)
 		.addFields({ name: "Shard ID", value: `${shardId}`, inline: true });
 
-	await statusWebhook.send({ embeds: [embed] });
+	await sendStatusWebhook(embed);
 };
 
 export const sendShardDistributionStatus = async (
@@ -88,5 +90,5 @@ export const sendShardDistributionStatus = async (
 			...distributionFields,
 		);
 
-	await statusWebhook.send({ embeds: [embed] });
+	await sendStatusWebhook(embed);
 };
