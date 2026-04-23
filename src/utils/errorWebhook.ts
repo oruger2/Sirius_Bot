@@ -1,10 +1,10 @@
 import * as util from "node:util";
 import { EmbedBuilder, WebhookClient } from "discord.js";
 
-const ERROR_WEBHOOK_URL =
-	"https://discord.com/api/webhooks/1486329783020158986/9GGPt_RRN-oDuHx-c9Rz7J203F6v8pAmNzyUOKcYazlwMl92OQgchhdofjm2-JlSlkI5";
-
-const errorWebhook = new WebhookClient({ url: ERROR_WEBHOOK_URL });
+const ERROR_WEBHOOK_URL = process.env.DISCORD_ERROR_WEBHOOK?.trim();
+const errorWebhook = ERROR_WEBHOOK_URL
+	? new WebhookClient({ url: ERROR_WEBHOOK_URL })
+	: null;
 
 const MAX_FIELD_LENGTH = 1024;
 const MAX_DESCRIPTION_LENGTH = 4096;
@@ -52,6 +52,7 @@ const buildEmbed = (title: string, details: string, stack?: string) => {
 };
 
 const enqueueSend = async (embed: EmbedBuilder) => {
+	if (!errorWebhook) return;
 	sendQueue = sendQueue
 		.then(async () => {
 			await errorWebhook.send({ embeds: [embed] });
