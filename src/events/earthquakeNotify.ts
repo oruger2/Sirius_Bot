@@ -37,6 +37,10 @@ type EarthquakeInfo = {
 	depth: number | null;
 	maxScale: number;
 	tsunami: string;
+	points: Array<{
+		name: string;
+		scale: number;
+	}>;
 };
 
 type EewInfo = {
@@ -101,6 +105,45 @@ const toJst = (raw: string) => {
 	});
 };
 
+const clampEmbedFieldValue = (value: string, maxLength = 1024): string => {
+	if (value.length <= maxLength) {
+		return value;
+	}
+
+	return `${value.slice(0, Math.max(0, maxLength - 1))}…`;
+};
+
+const buildIntensityMapText = (
+	points: Array<{ name: string; scale: number }>,
+): string => {
+	if (points.length === 0) {
+		return "地域ごとの震度データは取得できませんでした。";
+	}
+
+	const grouped = new Map<number, string[]>();
+	for (const point of points) {
+		const scale = Math.trunc(point.scale);
+		if (!grouped.has(scale)) {
+			grouped.set(scale, []);
+		}
+
+		grouped.get(scale)?.push(point.name);
+	}
+
+	const sortedScales = [...grouped.keys()].sort((a, b) => b - a);
+	const lines: string[] = [];
+
+	for (const scale of sortedScales) {
+		const names = [...new Set(grouped.get(scale) ?? [])];
+		const shown = names.slice(0, 6);
+		const overflow = names.length - shown.length;
+		const suffix = overflow > 0 ? ` ほか${overflow}地域` : "";
+		lines.push(`震度${toScaleLabel(scale)}: ${shown.join("、")}${suffix}`);
+	}
+
+	return clampEmbedFieldValue(lines.join("\n"));
+};
+
 const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8_000);
@@ -132,6 +175,11 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 					depth?: number;
 				};
 			};
+			points?: Array<{
+				addr?: string;
+				pref?: string;
+				scale?: number;
+			}>;
 		};
 
 		const quake = item.earthquake;
@@ -153,6 +201,24 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 			typeof item.id === "string" && item.id.length > 0
 				? item.id
 				: `${time}-${place}-${quake.maxScale}-${magnitude ?? "na"}`;
+		const points = Array.isArray(item.points)
+			? item.points
+					.map((point) => {
+						const nameCandidate =
+							typeof point.addr === "string" && point.addr.trim().length > 0
+								? point.addr.trim()
+								: typeof point.pref === "string" && point.pref.trim().length > 0
+									? point.pref.trim()
+									: null;
+
+						return nameCandidate && typeof point.scale === "number"
+							? { name: nameCandidate, scale: point.scale }
+							: null;
+					})
+					.filter(
+						(point): point is { name: string; scale: number } => point !== null,
+					)
+			: [];
 
 		return {
 			eventKey,
@@ -165,6 +231,7 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 				tsunamiLabelMap[quake.domesticTsunami ?? ""] ??
 				quake.domesticTsunami ??
 				"不明",
+			points,
 		};
 	} catch (error) {
 		console.error("❌ 地震情報の取得に失敗", error);
@@ -285,6 +352,11 @@ const buildTestScale3Earthquake = (): EarthquakeInfo => {
 		depth: 20,
 		maxScale: 30,
 		tsunami: tsunamiLabelMap.None,
+		points: [
+			{ name: "東京都", scale: 30 },
+			{ name: "神奈川県", scale: 20 },
+			{ name: "千葉県", scale: 20 },
+		],
 	};
 };
 
@@ -305,6 +377,11 @@ const buildEarthquakeEmbed = (quake: EarthquakeInfo): APIEmbed => {
 			{ name: "深さ", value: depthText, inline: true },
 			{ name: "発生時刻 (JST)", value: toJst(quake.time), inline: false },
 			{ name: "津波", value: quake.tsunami, inline: false },
+			{
+				name: "震度マップ（地域別）",
+				value: buildIntensityMapText(quake.points),
+				inline: false,
+			},
 		)
 		.setColor(toScaleColor(quake.maxScale))
 		.setFooter({ text: "Data: P2P地震情報" })
