@@ -186,6 +186,25 @@ const command = {
 				return;
 			}
 
+			// Post-connect check: re-verify that users are still present
+			const postConnectHumanCount = resolvedVoiceChannel.members.filter(
+				(member) => !member.user.bot,
+			).size;
+			if (postConnectHumanCount === 0) {
+				disconnectGuildSpeech(guildId);
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
+							.setDescription(
+								`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
+							),
+					],
+				});
+				return;
+			}
+
 			setGuildTtsSession(guildId, {
 				textChannelId: textChannel.id,
 				voiceChannelId: voiceChannel.id,

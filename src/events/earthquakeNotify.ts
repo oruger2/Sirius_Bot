@@ -514,8 +514,13 @@ const sendToConfiguredChannel = async (
 							: null;
 
 					if (existingMessage) {
-						await existingMessage.edit({ embeds: [context.embed] });
-						return existingMessage.id;
+						try {
+							await existingMessage.edit({ embeds: [context.embed] });
+							return existingMessage.id;
+						} catch {
+							const newMessage = await ch.send({ embeds: [context.embed] });
+							return newMessage.id;
+						}
 					}
 
 					const sentMessage = await ch.send({ embeds: [context.embed] });
@@ -553,8 +558,13 @@ const sendToConfiguredChannel = async (
 			: null;
 
 	if (existingMessage) {
-		await existingMessage.edit({ embeds: [embed] });
-		return existingMessage.id;
+		try {
+			await existingMessage.edit({ embeds: [embed] });
+			return existingMessage.id;
+		} catch {
+			const newMessage = await channel.send({ embeds: [embed] });
+			return newMessage.id;
+		}
 	}
 
 	const sentMessage = await channel.send({ embeds: [embed] });

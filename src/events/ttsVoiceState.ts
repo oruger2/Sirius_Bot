@@ -16,6 +16,7 @@ export default {
 
 		const session = getGuildTtsSession(guild.id);
 		if (!session) {
+			disconnectGuildSpeech(guild.id);
 			return;
 		}
 
