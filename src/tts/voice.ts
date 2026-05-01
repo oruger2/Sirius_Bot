@@ -8,6 +8,7 @@ import {
 	joinVoiceChannel,
 	NoSubscriberBehavior,
 	StreamType,
+	type VoiceConnection,
 	VoiceConnectionStatus,
 } from "@discordjs/voice";
 import type { Guild, GuildBasedChannel, VoiceBasedChannel } from "discord.js";
@@ -58,6 +59,26 @@ const normalizeText = (input: string) => {
 	return `${compact.slice(0, MAX_TTS_TEXT_LENGTH)}。以下省略`;
 };
 
+const destroyConnectionSafely = (
+	connection: VoiceConnection | undefined,
+	context: string,
+) => {
+	if (!connection) {
+		return;
+	}
+
+	if (connection.state.status === VoiceConnectionStatus.Destroyed) {
+		console.log(`[TTS] Connection already destroyed (${context})`);
+		return;
+	}
+
+	try {
+		connection.destroy();
+	} catch (error) {
+		console.error(`[TTS] Failed to destroy connection (${context}):`, error);
+	}
+};
+
 const ensureConnection = async (guild: Guild, voiceChannelId: string) => {
 	console.log(
 		`[TTS] Ensuring connection for guild ${guild.id} to channel ${voiceChannelId}`,
@@ -71,7 +92,7 @@ const ensureConnection = async (guild: Guild, voiceChannelId: string) => {
 	let connection = getVoiceConnection(guild.id);
 	if (connection && connection.joinConfig.channelId !== targetChannel.id) {
 		console.log(`[TTS] Destroying existing connection`);
-		connection.destroy();
+		destroyConnectionSafely(connection, "switch-channel");
 		connection = undefined;
 	}
 
@@ -91,9 +112,17 @@ const ensureConnection = async (guild: Guild, voiceChannelId: string) => {
 		return connection;
 	} catch (error) {
 		console.error(`[TTS] Failed to enter ready state:`, error);
-		connection.destroy();
+		destroyConnectionSafely(connection, "ready-timeout");
 		return null;
 	}
+};
+
+export const connectGuildSpeech = async (
+	guild: Guild,
+	voiceChannelId: string,
+) => {
+	const connection = await ensureConnection(guild, voiceChannelId);
+	return connection !== null;
 };
 
 const createSpeechResource = async (text: string) => {
@@ -186,7 +215,7 @@ export const enqueueGuildSpeech = async (
 
 export const disconnectGuildSpeech = (guildId: string) => {
 	const connection = getVoiceConnection(guildId);
-	connection?.destroy();
+	destroyConnectionSafely(connection, "manual-disconnect");
 
 	const state = statesByGuild.get(guildId);
 	if (!state) {

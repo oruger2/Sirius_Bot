@@ -11,7 +11,7 @@ import {
 	getGuildTtsSession,
 	setGuildTtsSession,
 } from "@/tts/session";
-import { disconnectGuildSpeech } from "@/tts/voice";
+import { connectGuildSpeech, disconnectGuildSpeech } from "@/tts/voice";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
@@ -95,6 +95,9 @@ const command = {
 				"voice_channel",
 				true,
 			);
+			const resolvedVoiceChannel = interaction.guild?.channels.cache.get(
+				voiceChannel.id,
+			);
 
 			// Botの権限チェック
 			const botMember = interaction.guild?.members.me;
@@ -123,13 +126,60 @@ const command = {
 					PermissionsBitField.Flags.Speak,
 				])
 			) {
-				await interaction.reply({
+				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
 							.setColor(0xed4245)
 							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
 							.setDescription(
 								`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
+							),
+					],
+				});
+				return;
+			}
+
+			if (!resolvedVoiceChannel?.isVoiceBased()) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
+							.setDescription("❌ 読み上げ先VCの取得に失敗しました。"),
+					],
+				});
+				return;
+			}
+
+			const humanCount = resolvedVoiceChannel.members.filter(
+				(member) => !member.user.bot,
+			).size;
+			if (humanCount === 0) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
+							.setDescription(
+								`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
+							),
+					],
+				});
+				return;
+			}
+
+			const connected = await connectGuildSpeech(
+				interaction.guild,
+				voiceChannel.id,
+			);
+			if (!connected) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
+							.setDescription(
+								`❌ <#${voiceChannel.id}> への接続に失敗しました。権限と接続状態を確認してください。`,
 							),
 					],
 				});

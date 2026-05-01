@@ -14,13 +14,12 @@ export default {
 			return;
 		}
 
-		if (!hasConnectedTtsSession(guild.id)) {
+		const session = getGuildTtsSession(guild.id);
+		if (!session) {
 			return;
 		}
 
-		const session = getGuildTtsSession(guild.id);
-		if (!session) {
-			disconnectGuildSpeech(guild.id);
+		if (!hasConnectedTtsSession(guild.id)) {
 			return;
 		}
 

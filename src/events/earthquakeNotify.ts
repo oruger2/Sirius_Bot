@@ -7,6 +7,8 @@ const EEW_API_URL = "https://api.p2pquake.net/v2/history?codes=556&limit=1";
 const POLL_INTERVAL_MS = 30_000;
 const SEND_TEST_SHAKE_SCALE3_ON_BOOT = true;
 const STARTUP_TEST_DELAY_MS = 20_000;
+const JST_TIME_ZONE = "Asia/Tokyo";
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 const scaleLabelMap: Record<number, string> = {
 	10: "1",
@@ -58,8 +60,22 @@ type EewInfo = {
 	maxForecastScale: number | null;
 };
 
-let lastNotifiedEarthquakeEventKey: string | null = null;
-let lastNotifiedEewEventKey: string | null = null;
+type NotificationState = {
+	eventKey: string | null;
+	messageId: string | null;
+	signature: string | null;
+};
+
+let earthquakeState: NotificationState = {
+	eventKey: null,
+	messageId: null,
+	signature: null,
+};
+let eewState: NotificationState = {
+	eventKey: null,
+	messageId: null,
+	signature: null,
+};
 let polling = false;
 let pollTimer: NodeJS.Timeout | null = null;
 
@@ -87,14 +103,39 @@ const toScaleColor = (scale: number) => {
 	return 0x57f287;
 };
 
+const parseApiTime = (raw: string): Date | null => {
+	// P2Pの時刻はタイムゾーン無しの "YYYY/MM/DD HH:mm:ss" の場合がある。
+	// その場合はJSTとして固定解釈し、実行環境のTZ差分で時刻がずれないようにする。
+	const naiveJstMatch = raw.match(
+		/^(\d{4})[/-](\d{2})[/-](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/,
+	);
+	const hasTimeZoneSuffix = /(Z|[+-]\d{2}:?\d{2})$/i.test(raw);
+
+	if (naiveJstMatch && !hasTimeZoneSuffix) {
+		const year = Number.parseInt(naiveJstMatch[1], 10);
+		const month = Number.parseInt(naiveJstMatch[2], 10);
+		const day = Number.parseInt(naiveJstMatch[3], 10);
+		const hour = Number.parseInt(naiveJstMatch[4], 10);
+		const minute = Number.parseInt(naiveJstMatch[5], 10);
+		const second = Number.parseInt(naiveJstMatch[6] ?? "0", 10);
+		const utcMs =
+			Date.UTC(year, month - 1, day, hour, minute, second) - JST_OFFSET_MS;
+
+		return new Date(utcMs);
+	}
+
+	const parsed = new Date(raw);
+	return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const toJst = (raw: string) => {
-	const date = new Date(raw);
-	if (Number.isNaN(date.getTime())) {
+	const date = parseApiTime(raw);
+	if (!date) {
 		return raw;
 	}
 
 	return date.toLocaleString("ja-JP", {
-		timeZone: "Asia/Tokyo",
+		timeZone: JST_TIME_ZONE,
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
@@ -112,6 +153,16 @@ const clampEmbedFieldValue = (value: string, maxLength = 1024): string => {
 
 	return `${value.slice(0, Math.max(0, maxLength - 1))}…`;
 };
+
+const toValidNumber = (value: unknown): number | null =>
+	typeof value === "number" && Number.isFinite(value) ? value : null;
+
+const toNonNegativeNumber = (value: unknown): number | null => {
+	const normalized = toValidNumber(value);
+	return normalized !== null && normalized >= 0 ? normalized : null;
+};
+
+const buildSignature = (value: unknown): string => JSON.stringify(value);
 
 const buildIntensityMapText = (
 	points: Array<{ name: string; scale: number }>,
@@ -188,14 +239,8 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 		}
 
 		const place = quake.hypocenter?.name ?? "不明";
-		const magnitude =
-			typeof quake.hypocenter?.magnitude === "number"
-				? quake.hypocenter.magnitude
-				: null;
-		const depth =
-			typeof quake.hypocenter?.depth === "number"
-				? quake.hypocenter.depth
-				: null;
+		const magnitude = toNonNegativeNumber(quake.hypocenter?.magnitude);
+		const depth = toNonNegativeNumber(quake.hypocenter?.depth);
 		const time = quake.time ?? item.time ?? new Date().toISOString();
 		const eventKey =
 			typeof item.id === "string" && item.id.length > 0
@@ -240,9 +285,6 @@ const fetchLatestEarthquake = async (): Promise<EarthquakeInfo | null> => {
 		clearTimeout(timeout);
 	}
 };
-
-const toValidNumber = (value: unknown): number | null =>
-	typeof value === "number" && Number.isFinite(value) ? value : null;
 
 const fetchLatestEew = async (): Promise<EewInfo | null> => {
 	const controller = new AbortController();
@@ -304,8 +346,10 @@ const fetchLatestEew = async (): Promise<EewInfo | null> => {
 				? Math.max(...areaScales.map((v) => Math.trunc(v)))
 				: null;
 
-		const depth = toValidNumber(item.earthquake?.hypocenter?.depth);
-		const magnitude = toValidNumber(item.earthquake?.hypocenter?.magnitude);
+		const depth = toNonNegativeNumber(item.earthquake?.hypocenter?.depth);
+		const magnitude = toNonNegativeNumber(
+			item.earthquake?.hypocenter?.magnitude,
+		);
 		const originTime =
 			typeof item.earthquake?.originTime === "string"
 				? item.earthquake.originTime
@@ -329,8 +373,8 @@ const fetchLatestEew = async (): Promise<EewInfo | null> => {
 			originTime,
 			arrivalTime,
 			hypocenterName: item.earthquake?.hypocenter?.name ?? "不明",
-			magnitude: magnitude !== null && magnitude >= 0 ? magnitude : null,
-			depth: depth !== null && depth >= 0 ? depth : null,
+			magnitude,
+			depth,
 			maxForecastScale,
 		};
 	} catch (error) {
@@ -367,6 +411,7 @@ const buildEarthquakeEmbed = (quake: EarthquakeInfo): APIEmbed => {
 		typeof quake.depth === "number" && quake.depth >= 0
 			? `${quake.depth}km`
 			: "不明";
+	const quakeDate = parseApiTime(quake.time);
 
 	return new EmbedBuilder()
 		.setTitle(`地震速報 | 最大震度 ${toScaleLabel(quake.maxScale)}`)
@@ -385,7 +430,7 @@ const buildEarthquakeEmbed = (quake: EarthquakeInfo): APIEmbed => {
 		)
 		.setColor(toScaleColor(quake.maxScale))
 		.setFooter({ text: "Data: P2P地震情報" })
-		.setTimestamp(new Date(quake.time))
+		.setTimestamp(quakeDate ?? new Date())
 		.toJSON();
 };
 
@@ -449,7 +494,8 @@ const sendToConfiguredChannel = async (
 	client: Client,
 	channelId: string,
 	embed: APIEmbed,
-): Promise<boolean> => {
+	messageId?: string | null,
+): Promise<string | null> => {
 	if (client.shard) {
 		try {
 			const results = await client.shard.broadcastEval(
@@ -458,22 +504,38 @@ const sendToConfiguredChannel = async (
 						.fetch(context.channelId)
 						.catch(() => null);
 					if (!ch?.isTextBased() || !ch.isSendable()) {
-						return false;
+						return null;
 					}
 
-					await ch.send({ embeds: [context.embed] });
-					return true;
+					const existingMessage =
+						typeof context.messageId === "string" &&
+						context.messageId.length > 0
+							? await ch.messages.fetch(context.messageId).catch(() => null)
+							: null;
+
+					if (existingMessage) {
+						await existingMessage.edit({ embeds: [context.embed] });
+						return existingMessage.id;
+					}
+
+					const sentMessage = await ch.send({ embeds: [context.embed] });
+					return sentMessage.id;
 				},
-				{ context: { channelId, embed } },
+				{ context: { channelId, embed, messageId } },
 			);
 
-			return results.some((result) => result);
+			return (
+				results.find(
+					(result): result is string =>
+						typeof result === "string" && result.length > 0,
+				) ?? null
+			);
 		} catch (error) {
 			if (isShardingInProcessError(error)) {
 				console.warn(
 					"⏳ Shard起動中のため地震通知を次回ポーリングで再試行します。",
 				);
-				return false;
+				return null;
 			}
 
 			throw error;
@@ -482,11 +544,21 @@ const sendToConfiguredChannel = async (
 
 	const channel = await client.channels.fetch(channelId).catch(() => null);
 	if (!channel?.isTextBased() || !channel.isSendable()) {
-		return false;
+		return null;
 	}
 
-	await channel.send({ embeds: [embed] });
-	return true;
+	const existingMessage =
+		typeof messageId === "string" && messageId.length > 0
+			? await channel.messages.fetch(messageId).catch(() => null)
+			: null;
+
+	if (existingMessage) {
+		await existingMessage.edit({ embeds: [embed] });
+		return existingMessage.id;
+	}
+
+	const sentMessage = await channel.send({ embeds: [embed] });
+	return sentMessage.id;
 };
 
 const pollEarthquake = async (
@@ -506,43 +578,67 @@ const pollEarthquake = async (
 			fetchLatestEew(),
 		]);
 
-		if (quake && lastNotifiedEarthquakeEventKey !== quake.eventKey) {
+		if (quake) {
 			const embed = buildEarthquakeEmbed(quake);
-			const sent = await sendToConfiguredChannel(
-				client,
-				TARGET_CHANNEL_ID,
-				embed,
-			);
+			const signature = buildSignature(quake);
+			const isSameEvent = earthquakeState.eventKey === quake.eventKey;
+			const shouldSendOrUpdate =
+				!isSameEvent || earthquakeState.signature !== signature;
 
-			if (sent) {
-				lastNotifiedEarthquakeEventKey = quake.eventKey;
-				console.log(
-					`${options?.useTestScale3 ? "🧪 テスト" : "📨"} 地震通知を送信: ${quake.place} / 最大震度 ${toScaleLabel(quake.maxScale)}`,
+			if (shouldSendOrUpdate) {
+				const messageId = await sendToConfiguredChannel(
+					client,
+					TARGET_CHANNEL_ID,
+					embed,
+					isSameEvent ? earthquakeState.messageId : null,
 				);
-			} else {
-				console.warn(
-					`⚠️ 地震通知先チャンネルへ送信できませんでした: ${TARGET_CHANNEL_ID}`,
-				);
+
+				if (messageId) {
+					earthquakeState = {
+						eventKey: quake.eventKey,
+						messageId,
+						signature,
+					};
+					console.log(
+						`${options?.useTestScale3 ? "🧪 テスト" : isSameEvent ? "📝 更新" : "📨 送信"} 地震通知: ${quake.place} / 最大震度 ${toScaleLabel(quake.maxScale)}`,
+					);
+				} else {
+					console.warn(
+						`⚠️ 地震通知先チャンネルへ送信できませんでした: ${TARGET_CHANNEL_ID}`,
+					);
+				}
 			}
 		}
 
-		if (eew && lastNotifiedEewEventKey !== eew.eventKey) {
+		if (eew) {
 			const embed = buildEewEmbed(eew);
-			const sent = await sendToConfiguredChannel(
-				client,
-				TARGET_CHANNEL_ID,
-				embed,
-			);
+			const signature = buildSignature(eew);
+			const isSameEvent = eewState.eventKey === eew.eventKey;
+			const shouldSendOrUpdate =
+				!isSameEvent || eewState.signature !== signature;
 
-			if (sent) {
-				lastNotifiedEewEventKey = eew.eventKey;
-				console.log(
-					`🚨 緊急地震速報を送信: ${eew.hypocenterName} / 予測最大震度 ${toForecastScaleLabel(eew.maxForecastScale)}`,
+			if (shouldSendOrUpdate) {
+				const messageId = await sendToConfiguredChannel(
+					client,
+					TARGET_CHANNEL_ID,
+					embed,
+					isSameEvent ? eewState.messageId : null,
 				);
-			} else {
-				console.warn(
-					`⚠️ 緊急地震速報の通知先チャンネルへ送信できませんでした: ${TARGET_CHANNEL_ID}`,
-				);
+
+				if (messageId) {
+					eewState = {
+						eventKey: eew.eventKey,
+						messageId,
+						signature,
+					};
+					console.log(
+						`${isSameEvent ? "📝 更新" : "🚨 送信"} 緊急地震速報: ${eew.hypocenterName} / 予測最大震度 ${toForecastScaleLabel(eew.maxForecastScale)}`,
+					);
+				} else {
+					console.warn(
+						`⚠️ 緊急地震速報の通知先チャンネルへ送信できませんでした: ${TARGET_CHANNEL_ID}`,
+					);
+				}
 			}
 		}
 	} catch (error) {
