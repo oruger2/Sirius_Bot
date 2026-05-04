@@ -300,12 +300,12 @@ buildEmbed(
 "TTS設定状況",
 `読み上げ元: <#${config.textChannelId}>
 読み上げ先VC: <#${config.voiceChannelId}>`,
-0x5865f2,
-SUCCESS_ICON_URL,
-),
-);
-}
-},
+					0x5865f2,
+					SUCCESS_ICON_URL,
+				),
+			);
+		}
+	},
 };
 
 export default command;
