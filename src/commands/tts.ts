@@ -132,9 +132,12 @@ const command = {
 
 		const subcommand = interaction.options.getSubcommand();
 
-if (subcommand === "set") {
-const textChannel = interaction.options.getChannel("text_channel", true);
-const voiceChannel = interaction.options.getChannel("voice_channel", true);
+		if (subcommand === "set") {
+			const textChannel = interaction.options.getChannel("text_channel", true);
+			const voiceChannel = interaction.options.getChannel(
+				"voice_channel",
+				true,
+			);
 
 			if (!isTextChannel(textChannel) || !isVoiceChannel(voiceChannel)) {
 				await replyEmbed(
