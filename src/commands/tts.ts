@@ -9,9 +9,9 @@ import {
 	type VoiceBasedChannel,
 } from "discord.js";
 import {
-clearGuildTtsSession,
-getGuildTtsSession,
-setGuildTtsSession,
+	clearGuildTtsSession,
+	getGuildTtsSession,
+	setGuildTtsSession,
 } from "@/tts/session";
 import { connectGuildSpeech, disconnectGuildSpeech } from "@/tts/voice";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
