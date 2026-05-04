@@ -136,18 +136,18 @@ if (subcommand === "set") {
 const textChannel = interaction.options.getChannel("text_channel", true);
 const voiceChannel = interaction.options.getChannel("voice_channel", true);
 
-if (!isTextChannel(textChannel) || !isVoiceChannel(voiceChannel)) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-"❌ 指定されたチャンネルを取得できませんでした。",
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			if (!isTextChannel(textChannel) || !isVoiceChannel(voiceChannel)) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						"❌ 指定されたチャンネルを取得できませんでした。",
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
 const botMember = guild.members.me;
 if (!botMember) {
