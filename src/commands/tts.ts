@@ -116,19 +116,19 @@ const command = {
 			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		}
 
-const guild = interaction.guild;
-if (!guild || !interaction.guildId) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-"❌ サーバー情報を取得できませんでした。",
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+		const guild = interaction.guild;
+		if (!guild || !interaction.guildId) {
+			await replyEmbed(
+				interaction,
+				buildEmbed(
+					"エラー",
+					"❌ サーバー情報を取得できませんでした。",
+					0xed4245,
+					ERROR_ICON_URL,
+				),
+			);
+			return;
+		}
 
 		const subcommand = interaction.options.getSubcommand();
 
