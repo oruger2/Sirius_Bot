@@ -263,9 +263,9 @@ buildEmbed(
 			return;
 		}
 
-if (subcommand === "off") {
-clearGuildTtsSession(interaction.guildId);
-disconnectGuildSpeech(interaction.guildId);
+		if (subcommand === "off") {
+			clearGuildTtsSession(interaction.guildId);
+			disconnectGuildSpeech(interaction.guildId);
 
 await replyEmbed(
 interaction,
