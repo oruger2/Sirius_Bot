@@ -52,14 +52,14 @@ const isVoiceChannel = (channel: unknown): channel is VoiceBasedChannel =>
 			(channel as VoiceBasedChannel).isVoiceBased(),
 	);
 
-const isTextChannel = (
-channel: unknown,
-): channel is GuildTextBasedChannel =>
-Boolean(
-channel && typeof channel === "object" && "isTextBased" in channel &&
-typeof (channel as GuildTextBasedChannel).isTextBased === "function" &&
-(channel as GuildTextBasedChannel).isTextBased(),
-);
+const isTextChannel = (channel: unknown): channel is GuildTextBasedChannel =>
+	Boolean(
+		channel &&
+			typeof channel === "object" &&
+			"isTextBased" in channel &&
+			typeof (channel as GuildTextBasedChannel).isTextBased === "function" &&
+			(channel as GuildTextBasedChannel).isTextBased(),
+	);
 
 const command = {
 data: new SlashCommandBuilder()
