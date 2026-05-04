@@ -256,12 +256,12 @@ buildEmbed(
 読み上げ先VC: <#${voiceChannel.id}>
 
 この設定は一時的です。Bot再起動またはVC無人で自動解除されます。`,
-0x57f287,
-SUCCESS_ICON_URL,
-),
-);
-return;
-}
+					0x57f287,
+					SUCCESS_ICON_URL,
+				),
+			);
+			return;
+		}
 
 if (subcommand === "off") {
 clearGuildTtsSession(interaction.guildId);
