@@ -1,12 +1,12 @@
 import {
-ChannelType,
-type ChatInputCommandInteraction,
-type GuildTextBasedChannel,
-type VoiceBasedChannel,
-EmbedBuilder,
-MessageFlags,
-PermissionsBitField,
-SlashCommandBuilder,
+	ChannelType,
+	type ChatInputCommandInteraction,
+	EmbedBuilder,
+	type GuildTextBasedChannel,
+	MessageFlags,
+	PermissionsBitField,
+	SlashCommandBuilder,
+	type VoiceBasedChannel,
 } from "discord.js";
 import {
 clearGuildTtsSession,
