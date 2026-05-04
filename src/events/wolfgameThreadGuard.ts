@@ -1,8 +1,9 @@
+import { Events } from "discord.js";
 import type { AnyThreadChannel } from "discord.js";
 import { sessionsByGuild } from "@/commands/wolfgame/registry";
 
 export default {
-	name: "threadCreate",
+	name: Events.ThreadCreate,
 	async execute(thread: AnyThreadChannel) {
 		const guildId = thread.guildId;
 		if (!guildId) return;
@@ -25,10 +26,6 @@ export default {
 		const player = session.players.get(ownerId);
 		if (!player || player.alive) return;
 
-		try {
-			await thread.delete("wolfgame: dead player cannot create threads");
-		} catch {
-			// ignore
-		}
+		await thread.delete("wolfgame: dead player cannot create threads").catch(() => {});  // Ignore errors
 	},
 };

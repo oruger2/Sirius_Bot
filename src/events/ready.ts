@@ -1,8 +1,9 @@
+import { Events } from "discord.js";
 import type { Client } from "discord.js";
 import { sendBotOnlineStatus } from "@/utils/statusWebhook";
 
 const event = {
-	name: "clientReady",
+	name: Events.ClientReady,
 	once: true,
 	async execute(client: Client) {
 		const shardId = client.shard?.ids?.[0] ?? 0;

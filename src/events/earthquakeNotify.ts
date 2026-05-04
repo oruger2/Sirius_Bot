@@ -1,4 +1,5 @@
-import { type APIEmbed, type Client, EmbedBuilder } from "discord.js";
+import { Events, EmbedBuilder } from "discord.js";
+import type { APIEmbed, Client } from "discord.js";
 
 const TARGET_CHANNEL_ID = "1445639739188445420";
 const EARTHQUAKE_API_URL =
@@ -553,7 +554,7 @@ const pollEarthquake = async (
 };
 
 export default {
-	name: "clientReady",
+	name: Events.ClientReady,
 	once: true,
 	async execute(client: Client) {
 		const shardId = client.shard?.ids?.[0] ?? 0;

@@ -1,3 +1,4 @@
+import { Events } from "discord.js";
 import { setTimeout as sleep } from "node:timers/promises";
 import type { Client } from "discord.js";
 import {
@@ -62,7 +63,7 @@ const fetchShardDistribution = async (
 };
 
 const event = {
-	name: "shardReady",
+	name: Events.ShardReady,
 	async execute(
 		shardId: number,
 		unavailableGuilds: Set<string> | undefined,

@@ -1,4 +1,5 @@
 import {
+	Events,
 	type ChatInputCommandInteraction,
 	type Client,
 	type Collection,
@@ -24,7 +25,7 @@ interface ExtendedClient extends Client {
 }
 
 export default {
-	name: "interactionCreate",
+	name: Events.InteractionCreate,
 
 	async execute(interaction: Interaction) {
 		if (!interaction.isChatInputCommand()) return;

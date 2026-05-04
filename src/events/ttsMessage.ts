@@ -1,3 +1,4 @@
+import { Events } from "discord.js";
 import type { Message } from "discord.js";
 import { getGuildTtsSession } from "@/tts/session";
 import { enqueueGuildSpeech } from "@/tts/voice";
@@ -16,7 +17,7 @@ const buildSpeechText = (message: Message) => {
 };
 
 export default {
-	name: "messageCreate",
+	name: Events.MessageCreate,
 	async execute(message: Message) {
 		if (message.author.bot || !message.inGuild()) {
 			return;
