@@ -130,7 +130,7 @@ ERROR_ICON_URL,
 return;
 }
 
-const subcommand = interaction.options.getSubcommand();
+		const subcommand = interaction.options.getSubcommand();
 
 if (subcommand === "set") {
 const textChannel = interaction.options.getChannel("text_channel", true);
