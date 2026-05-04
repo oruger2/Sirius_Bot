@@ -176,25 +176,25 @@ ERROR_ICON_URL,
 return;
 }
 
-if (
-!botMember
-.permissionsIn(voiceChannel.id)
-.has([
-PermissionsBitField.Flags.Connect,
-PermissionsBitField.Flags.Speak,
-])
-) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			if (
+				!botMember
+					.permissionsIn(voiceChannel.id)
+					.has([
+						PermissionsBitField.Flags.Connect,
+						PermissionsBitField.Flags.Speak,
+					])
+			) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
 const humanCount = voiceChannel.members.filter(
 (member) => !member.user.bot,
