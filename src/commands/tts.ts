@@ -98,19 +98,19 @@ const command = {
 			sub.setName("status").setDescription("現在の読み上げ設定を表示"),
 		),
 
-async execute(interaction: ChatInputCommandInteraction) {
-if (!interaction.inGuild()) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-"❌ サーバー内で実行してください。",
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+	async execute(interaction: ChatInputCommandInteraction) {
+		if (!interaction.inGuild()) {
+			await replyEmbed(
+				interaction,
+				buildEmbed(
+					"エラー",
+					"❌ サーバー内で実行してください。",
+					0xed4245,
+					ERROR_ICON_URL,
+				),
+			);
+			return;
+		}
 
 		if (!interaction.deferred && !interaction.replied) {
 			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
