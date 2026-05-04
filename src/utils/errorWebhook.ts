@@ -1,7 +1,9 @@
 import * as util from "node:util";
 import { EmbedBuilder, WebhookClient } from "discord.js";
 
-const ERROR_WEBHOOK_URL = process.env.ERROR_WEBHOOK_URL?.trim() || process.env.DISCORD_ERROR_WEBHOOK?.trim();
+const ERROR_WEBHOOK_URL =
+	process.env.ERROR_WEBHOOK_URL?.trim() ||
+	process.env.DISCORD_ERROR_WEBHOOK?.trim();
 const errorWebhook = ERROR_WEBHOOK_URL
 	? new WebhookClient({ url: ERROR_WEBHOOK_URL })
 	: null;
