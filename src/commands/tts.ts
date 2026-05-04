@@ -17,10 +17,10 @@ import { connectGuildSpeech, disconnectGuildSpeech } from "@/tts/voice";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const buildEmbed = (
-title: string,
-description: string,
-color: number,
-iconURL: string,
+	title: string,
+	description: string,
+	color: number,
+	iconURL: string,
 ) =>
 new EmbedBuilder()
 .setAuthor({ name: title, iconURL })
