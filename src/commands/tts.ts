@@ -62,41 +62,41 @@ const isTextChannel = (channel: unknown): channel is GuildTextBasedChannel =>
 	);
 
 const command = {
-data: new SlashCommandBuilder()
-.setName("tts")
-.setDescription("指定したチャンネルのメッセージをVCで読み上げます")
-.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
-.addSubcommand((sub) =>
-sub
-.setName("set")
-.setDescription("一時的な読み上げ対象チャンネルを設定")
-.addChannelOption((opt) =>
-opt
-.setName("text_channel")
-.setDescription("読み上げ元テキストチャンネル")
-.addChannelTypes(
-ChannelType.GuildText,
-ChannelType.GuildAnnouncement,
-)
-.setRequired(true),
-)
-.addChannelOption((opt) =>
-opt
-.setName("voice_channel")
-.setDescription("読み上げ先ボイスチャンネル")
-.addChannelTypes(
-ChannelType.GuildVoice,
-ChannelType.GuildStageVoice,
-)
-.setRequired(true),
-),
-)
-.addSubcommand((sub) =>
-sub.setName("off").setDescription("読み上げを停止して設定を解除"),
-)
-.addSubcommand((sub) =>
-sub.setName("status").setDescription("現在の読み上げ設定を表示"),
-),
+	data: new SlashCommandBuilder()
+		.setName("tts")
+		.setDescription("指定したチャンネルのメッセージをVCで読み上げます")
+		.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
+		.addSubcommand((sub) =>
+			sub
+				.setName("set")
+				.setDescription("一時的な読み上げ対象チャンネルを設定")
+				.addChannelOption((opt) =>
+					opt
+						.setName("text_channel")
+						.setDescription("読み上げ元テキストチャンネル")
+						.addChannelTypes(
+							ChannelType.GuildText,
+							ChannelType.GuildAnnouncement,
+						)
+						.setRequired(true),
+				)
+				.addChannelOption((opt) =>
+					opt
+						.setName("voice_channel")
+						.setDescription("読み上げ先ボイスチャンネル")
+						.addChannelTypes(
+							ChannelType.GuildVoice,
+							ChannelType.GuildStageVoice,
+						)
+						.setRequired(true),
+				),
+		)
+		.addSubcommand((sub) =>
+			sub.setName("off").setDescription("読み上げを停止して設定を解除"),
+		)
+		.addSubcommand((sub) =>
+			sub.setName("status").setDescription("現在の読み上げ設定を表示"),
+		),
 
 async execute(interaction: ChatInputCommandInteraction) {
 if (!interaction.inGuild()) {
