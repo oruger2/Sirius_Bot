@@ -29,8 +29,8 @@ const buildEmbed = (
 		.setTimestamp(new Date());
 
 const replyEmbed = async (
-interaction: ChatInputCommandInteraction,
-embed: EmbedBuilder,
+	interaction: ChatInputCommandInteraction,
+	embed: EmbedBuilder,
 ) => {
 if (interaction.deferred || interaction.replied) {
 await interaction.editReply({ embeds: [embed] });
