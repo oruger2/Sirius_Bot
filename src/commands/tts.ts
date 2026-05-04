@@ -152,32 +152,36 @@ const command = {
 				return;
 			}
 
-const botMember = guild.members.me;
-if (!botMember) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-"❌ Botメンバー情報を取得できませんでした。",
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			const botMember = guild.members.me;
+			if (!botMember) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						"❌ Botメンバー情報を取得できませんでした。",
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
-if (!botMember.permissionsIn(textChannel.id).has(PermissionsBitField.Flags.ViewChannel)) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`,
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			if (
+				!botMember
+					.permissionsIn(textChannel.id)
+					.has(PermissionsBitField.Flags.ViewChannel)
+			) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`,
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
 			if (
 				!botMember
@@ -199,63 +203,63 @@ return;
 				return;
 			}
 
-const humanCount = voiceChannel.members.filter(
-(member) => !member.user.bot,
-).size;
-if (humanCount === 0) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			const humanCount = voiceChannel.members.filter(
+				(member) => !member.user.bot,
+			).size;
+			if (humanCount === 0) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
-const connected = await connectGuildSpeech(guild, voiceChannel.id);
-if (!connected) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-`❌ <#${voiceChannel.id}> への接続に失敗しました。権限と接続状態を確認してください。`,
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			const connected = await connectGuildSpeech(guild, voiceChannel.id);
+			if (!connected) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						`❌ <#${voiceChannel.id}> への接続に失敗しました。権限と接続状態を確認してください。`,
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
-const postConnectHumanCount = voiceChannel.members.filter(
-(member) => !member.user.bot,
-).size;
-if (postConnectHumanCount === 0) {
-disconnectGuildSpeech(interaction.guildId);
-await replyEmbed(
-interaction,
-buildEmbed(
-"エラー",
-`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+			const postConnectHumanCount = voiceChannel.members.filter(
+				(member) => !member.user.bot,
+			).size;
+			if (postConnectHumanCount === 0) {
+				disconnectGuildSpeech(interaction.guildId);
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"エラー",
+						`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
-setGuildTtsSession(interaction.guildId, {
-textChannelId: textChannel.id,
-voiceChannelId: voiceChannel.id,
-});
+			setGuildTtsSession(interaction.guildId, {
+				textChannelId: textChannel.id,
+				voiceChannelId: voiceChannel.id,
+			});
 
-await replyEmbed(
-interaction,
-buildEmbed(
-"TTS設定完了",
-`読み上げ元: <#${textChannel.id}>
+			await replyEmbed(
+				interaction,
+				buildEmbed(
+					"TTS設定完了",
+					`読み上げ元: <#${textChannel.id}>
 読み上げ先VC: <#${voiceChannel.id}>
 
 この設定は一時的です。Bot再起動またはVC無人で自動解除されます。`,
@@ -270,38 +274,38 @@ buildEmbed(
 			clearGuildTtsSession(interaction.guildId);
 			disconnectGuildSpeech(interaction.guildId);
 
-await replyEmbed(
-interaction,
-buildEmbed(
-"TTS停止",
-"読み上げを停止し、設定を解除しました。",
-0xffa500,
-SUCCESS_ICON_URL,
-),
-);
-return;
-}
+			await replyEmbed(
+				interaction,
+				buildEmbed(
+					"TTS停止",
+					"読み上げを停止し、設定を解除しました。",
+					0xffa500,
+					SUCCESS_ICON_URL,
+				),
+			);
+			return;
+		}
 
-if (subcommand === "status") {
-const config = getGuildTtsSession(interaction.guildId);
-if (!config) {
-await replyEmbed(
-interaction,
-buildEmbed(
-"TTS未開始",
-"`/tts set` で一時読み上げを開始してください。",
-0xed4245,
-ERROR_ICON_URL,
-),
-);
-return;
-}
+		if (subcommand === "status") {
+			const config = getGuildTtsSession(interaction.guildId);
+			if (!config) {
+				await replyEmbed(
+					interaction,
+					buildEmbed(
+						"TTS未開始",
+						"`/tts set` で一時読み上げを開始してください。",
+						0xed4245,
+						ERROR_ICON_URL,
+					),
+				);
+				return;
+			}
 
-await replyEmbed(
-interaction,
-buildEmbed(
-"TTS設定状況",
-`読み上げ元: <#${config.textChannelId}>
+			await replyEmbed(
+				interaction,
+				buildEmbed(
+					"TTS設定状況",
+					`読み上げ元: <#${config.textChannelId}>
 読み上げ先VC: <#${config.voiceChannelId}>`,
 					0x5865f2,
 					SUCCESS_ICON_URL,
