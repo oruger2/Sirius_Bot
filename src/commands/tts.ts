@@ -22,11 +22,11 @@ const buildEmbed = (
 	color: number,
 	iconURL: string,
 ) =>
-new EmbedBuilder()
-.setAuthor({ name: title, iconURL })
-.setDescription(description)
-.setColor(color)
-.setTimestamp(new Date());
+	new EmbedBuilder()
+		.setAuthor({ name: title, iconURL })
+		.setDescription(description)
+		.setColor(color)
+		.setTimestamp(new Date());
 
 const replyEmbed = async (
 interaction: ChatInputCommandInteraction,
