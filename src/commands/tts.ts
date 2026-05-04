@@ -32,10 +32,10 @@ const replyEmbed = async (
 	interaction: ChatInputCommandInteraction,
 	embed: EmbedBuilder,
 ) => {
-if (interaction.deferred || interaction.replied) {
-await interaction.editReply({ embeds: [embed] });
-return;
-}
+	if (interaction.deferred || interaction.replied) {
+		await interaction.editReply({ embeds: [embed] });
+		return;
+	}
 
 await interaction.reply({
 embeds: [embed],
