@@ -112,9 +112,9 @@ ERROR_ICON_URL,
 return;
 }
 
-if (!interaction.deferred && !interaction.replied) {
-await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-}
+		if (!interaction.deferred && !interaction.replied) {
+			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		}
 
 const guild = interaction.guild;
 if (!guild || !interaction.guildId) {
