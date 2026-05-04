@@ -43,14 +43,14 @@ const replyEmbed = async (
 	});
 };
 
-const isVoiceChannel = (
-channel: unknown,
-): channel is VoiceBasedChannel =>
-Boolean(
-channel && typeof channel === "object" && "isVoiceBased" in channel &&
-typeof (channel as VoiceBasedChannel).isVoiceBased === "function" &&
-(channel as VoiceBasedChannel).isVoiceBased(),
-);
+const isVoiceChannel = (channel: unknown): channel is VoiceBasedChannel =>
+	Boolean(
+		channel &&
+			typeof channel === "object" &&
+			"isVoiceBased" in channel &&
+			typeof (channel as VoiceBasedChannel).isVoiceBased === "function" &&
+			(channel as VoiceBasedChannel).isVoiceBased(),
+	);
 
 const isTextChannel = (
 channel: unknown,
