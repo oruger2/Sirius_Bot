@@ -1,7 +1,12 @@
 import { Events } from "discord.js";
 import type { Message } from "discord.js";
+import { Events } from "discord.js";
 import { getGuildTtsSession } from "@/tts/session";
-import { enqueueGuildSpeech } from "@/tts/voice";
+import {
+	enqueueGuildSpeech,
+	getConnectedTtsChannelId,
+	hasConnectedTtsSession,
+} from "@/tts/voice";
 
 const buildSpeechText = (message: Message) => {
 	const sender = message.member?.displayName ?? message.author.displayName;
@@ -29,6 +34,14 @@ export default {
 		}
 
 		if (message.channelId !== config.textChannelId) {
+			return;
+		}
+
+		if (!hasConnectedTtsSession(message.guildId)) {
+			return;
+		}
+
+		if (getConnectedTtsChannelId(message.guildId) !== config.voiceChannelId) {
 			return;
 		}
 

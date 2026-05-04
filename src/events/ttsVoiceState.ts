@@ -15,13 +15,13 @@ export default {
 			return;
 		}
 
-		if (!hasConnectedTtsSession(guild.id)) {
-			return;
-		}
-
 		const session = getGuildTtsSession(guild.id);
 		if (!session) {
 			disconnectGuildSpeech(guild.id);
+			return;
+		}
+
+		if (!hasConnectedTtsSession(guild.id)) {
 			return;
 		}
 
