@@ -219,8 +219,14 @@ const command = {
 				return;
 			}
 
+			setGuildTtsSession(interaction.guildId, {
+				textChannelId: textChannel.id,
+				voiceChannelId: voiceChannel.id,
+			});
+
 			const connected = await connectGuildSpeech(guild, voiceChannel.id);
 			if (!connected) {
+				clearGuildTtsSession(interaction.guildId);
 				await replyEmbed(
 					interaction,
 					buildEmbed(
@@ -237,6 +243,7 @@ const command = {
 				(member) => !member.user.bot,
 			).size;
 			if (postConnectHumanCount === 0) {
+				clearGuildTtsSession(interaction.guildId);
 				disconnectGuildSpeech(interaction.guildId);
 				await replyEmbed(
 					interaction,
@@ -249,11 +256,6 @@ const command = {
 				);
 				return;
 			}
-
-			setGuildTtsSession(interaction.guildId, {
-				textChannelId: textChannel.id,
-				voiceChannelId: voiceChannel.id,
-			});
 
 			await replyEmbed(
 				interaction,
