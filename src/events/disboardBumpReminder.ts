@@ -1,4 +1,5 @@
 import type { Message } from "discord.js";
+import { Events } from "discord.js";
 import convertToCombinedText from "../utils/convertToCombinedText";
 import scheduleReminder from "../utils/scheduleReminder";
 
@@ -18,7 +19,7 @@ function isBumpMessage(message: Message) {
 }
 
 export default {
-	name: "messageCreate",
+	name: Events.MessageCreate,
 	async execute(message: Message) {
 		if (!isBumpMessage(message)) return;
 

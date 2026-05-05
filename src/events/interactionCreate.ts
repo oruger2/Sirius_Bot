@@ -3,6 +3,7 @@ import {
 	type Client,
 	type Collection,
 	EmbedBuilder,
+	Events,
 	type Interaction,
 	MessageFlags,
 	PermissionsBitField,
@@ -24,7 +25,7 @@ interface ExtendedClient extends Client {
 }
 
 export default {
-	name: "interactionCreate",
+	name: Events.InteractionCreate,
 
 	async execute(interaction: Interaction) {
 		if (!interaction.isChatInputCommand()) return;

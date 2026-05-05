@@ -1,4 +1,5 @@
 import type { Message } from "discord.js";
+import { Events } from "discord.js";
 import convertToCombinedText from "../utils/convertToCombinedText";
 import scheduleReminder from "../utils/scheduleReminder";
 
@@ -14,7 +15,7 @@ function isUpMessage(message: Message) {
 }
 
 export default {
-	name: "messageEdit",
+	name: Events.MessageUpdate,
 	async execute(_oldMessage: Message, newMessage: Message) {
 		if (!isUpMessage(newMessage)) return;
 

@@ -1,5 +1,6 @@
 import {
 	type ButtonInteraction,
+	Events,
 	type Interaction,
 	MessageFlags,
 	type ModalSubmitInteraction,
@@ -10,7 +11,7 @@ import {
 } from "@/commands/wolfgame";
 
 export default {
-	name: "interactionCreate",
+	name: Events.InteractionCreate,
 	async execute(interaction: Interaction) {
 		const sendWolfgameError = async (
 			target: ButtonInteraction | ModalSubmitInteraction,

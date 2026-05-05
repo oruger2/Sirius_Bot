@@ -1,4 +1,5 @@
 import type { VoiceState } from "discord.js";
+import { Events } from "discord.js";
 import { clearGuildTtsSession, getGuildTtsSession } from "@/tts/session";
 import {
 	disconnectGuildSpeech,
@@ -7,7 +8,7 @@ import {
 } from "@/tts/voice";
 
 export default {
-	name: "voiceStateUpdate",
+	name: Events.VoiceStateUpdate,
 	async execute(oldState: VoiceState, newState: VoiceState) {
 		const guild = newState.guild ?? oldState.guild;
 		if (!guild) {
