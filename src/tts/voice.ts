@@ -144,7 +144,7 @@ const ensureConnection = async (guild: Guild, voiceChannelId: string) => {
 				await entersState(connection, VoiceConnectionStatus.Ready, 5_000);
 				console.log(`[TTS] Existing connection became ready`);
 				return connection;
-			} catch (error) {
+			} catch {
 				console.warn(
 					`[TTS] Existing connection failed to become ready; reconnecting`,
 				);

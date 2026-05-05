@@ -1,5 +1,4 @@
 import type { Message } from "discord.js";
-import { Events } from "discord.js";
 import { getGuildTtsSession } from "@/tts/session";
 import {
 	enqueueGuildSpeech,
