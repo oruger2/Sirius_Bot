@@ -1,5 +1,5 @@
-import { Events } from "discord.js";
 import type { VoiceState } from "discord.js";
+import { Events } from "discord.js";
 import { clearGuildTtsSession, getGuildTtsSession } from "@/tts/session";
 import {
 	disconnectGuildSpeech,

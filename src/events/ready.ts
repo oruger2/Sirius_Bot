@@ -1,5 +1,5 @@
-import { Events } from "discord.js";
 import type { Client } from "discord.js";
+import { Events } from "discord.js";
 import { sendBotOnlineStatus } from "@/utils/statusWebhook";
 
 const event = {

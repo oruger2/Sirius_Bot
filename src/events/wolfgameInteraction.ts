@@ -1,6 +1,6 @@
 import {
-	Events,
 	type ButtonInteraction,
+	Events,
 	type Interaction,
 	MessageFlags,
 	type ModalSubmitInteraction,

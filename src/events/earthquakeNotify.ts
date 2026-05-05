@@ -1,5 +1,5 @@
-import { Events, EmbedBuilder } from "discord.js";
 import type { APIEmbed, Client } from "discord.js";
+import { EmbedBuilder, Events } from "discord.js";
 
 const TARGET_CHANNEL_ID = "1445639739188445420";
 const EARTHQUAKE_API_URL =

@@ -1,9 +1,9 @@
 import {
-	Events,
 	type ChatInputCommandInteraction,
 	type Client,
 	type Collection,
 	EmbedBuilder,
+	Events,
 	type Interaction,
 	MessageFlags,
 	PermissionsBitField,

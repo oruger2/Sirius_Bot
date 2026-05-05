@@ -1,5 +1,5 @@
-import { Events } from "discord.js";
 import type { Message } from "discord.js";
+import { Events } from "discord.js";
 import { sessionsByGuild } from "@/commands/wolfgame/registry";
 
 export default {
@@ -22,6 +22,6 @@ export default {
 
 		if (!isDeadPlayer && !isNight) return;
 
-		await message.delete().catch(() => {});  // Ignore errors
+		await message.delete().catch(() => {}); // Ignore errors
 	},
 };

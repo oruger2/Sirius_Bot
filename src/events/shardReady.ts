@@ -1,6 +1,6 @@
-import { Events } from "discord.js";
 import { setTimeout as sleep } from "node:timers/promises";
 import type { Client } from "discord.js";
+import { Events } from "discord.js";
 import {
 	sendShardDistributionStatus,
 	sendShardOnlineStatus,
