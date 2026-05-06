@@ -68,7 +68,6 @@ const destroyConnectionSafely = (
 	}
 
 	if (connection.state.status === VoiceConnectionStatus.Destroyed) {
-		console.log(`[TTS] Connection already destroyed (${context})`);
 		return;
 	}
 
@@ -84,7 +83,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const joinChannelWithReady = async (
 	targetChannel: VoiceBasedChannel,
 ): Promise<VoiceConnection | null> => {
-	console.log(`[TTS] Joining voice channel ${targetChannel.id}`);
 	const connection = joinVoiceChannel({
 		guildId: targetChannel.guild.id,
 		channelId: targetChannel.id,
@@ -101,7 +99,6 @@ const joinChannelWithReady = async (
 
 	try {
 		await entersState(connection, VoiceConnectionStatus.Ready, 15_000);
-		console.log(`[TTS] Connection ready`);
 		return connection;
 	} catch (error) {
 		console.error(`[TTS] Failed to enter ready state:`, error);
@@ -116,38 +113,27 @@ const joinChannelWithReady = async (
 };
 
 const ensureConnection = async (guild: Guild, voiceChannelId: string) => {
-	console.log(
-		`[TTS] Ensuring connection for guild ${guild.id} to channel ${voiceChannelId}`,
-	);
 	const targetChannel = guild.channels.cache.get(voiceChannelId);
 	if (!isVoiceLikeChannel(targetChannel)) {
-		console.log(`[TTS] Target channel is not voice-based`);
 		return null;
 	}
 
 	let connection = getVoiceConnection(guild.id);
 	if (connection && connection.joinConfig.channelId !== targetChannel.id) {
-		console.log(`[TTS] Destroying existing connection`);
 		destroyConnectionSafely(connection, "switch-channel");
 		connection = undefined;
 	}
 
 	if (connection) {
 		if (connection.state.status === VoiceConnectionStatus.Destroyed) {
-			console.log(`[TTS] Existing connection was destroyed; recreating`);
 			connection = undefined;
 		} else if (connection.state.status === VoiceConnectionStatus.Ready) {
-			console.log(`[TTS] Existing connection already ready`);
 			return connection;
 		} else {
 			try {
 				await entersState(connection, VoiceConnectionStatus.Ready, 5_000);
-				console.log(`[TTS] Existing connection became ready`);
 				return connection;
 			} catch {
-				console.warn(
-					`[TTS] Existing connection failed to become ready; reconnecting`,
-				);
 				destroyConnectionSafely(connection, "stale-connection");
 				connection = undefined;
 			}
@@ -155,14 +141,11 @@ const ensureConnection = async (guild: Guild, voiceChannelId: string) => {
 	}
 
 	for (let attempt = 1; attempt <= 2; attempt += 1) {
-		const prefix = attempt === 1 ? "" : `retry attempt ${attempt}: `;
-		console.log(`[TTS] ${prefix}Joining voice channel`);
 		connection = (await joinChannelWithReady(targetChannel)) ?? undefined;
 		if (connection) {
 			return connection;
 		}
 		if (attempt < 2) {
-			console.log(`[TTS] Waiting before retrying voice join`);
 			await sleep(500);
 		}
 	}
@@ -179,20 +162,16 @@ export const connectGuildSpeech = async (
 };
 
 const createSpeechResource = async (text: string) => {
-	console.log(`[TTS] Generating audio for text: ${text}`);
 	const url = googleTTS.getAudioUrl(text, {
 		lang: "ja",
 		slow: false,
 		host: "https://translate.google.com",
 	});
-	console.log(`[TTS] TTS URL: ${url}`);
 	const response = await fetch(url);
-	console.log(`[TTS] Fetch response status: ${response.status}`);
 	if (!response.ok) {
 		throw new Error(`TTS audio fetch failed: ${response.status}`);
 	}
 	const audioBuffer = Buffer.from(await response.arrayBuffer());
-	console.log(`[TTS] Audio buffer size: ${audioBuffer.length}`);
 	const audioStream = Readable.from(audioBuffer);
 
 	return createAudioResource(audioStream, {
@@ -210,7 +189,6 @@ const processQueue = async (
 	}
 
 	state.processing = true;
-	console.log(`[TTS] Starting queue processing for guild ${guild.id}`);
 
 	try {
 		while (state.queue.length > 0) {
@@ -218,31 +196,21 @@ const processQueue = async (
 			if (!nextText) {
 				continue;
 			}
-			console.log(`[TTS] Processing text: ${nextText}`);
 
 			const connection = await ensureConnection(guild, voiceChannelId);
 			if (!connection) {
-				console.log(
-					`[TTS] Failed to establish connection for guild ${guild.id}`,
-				);
 				state.queue.length = 0;
 				break;
 			}
-			console.log(`[TTS] Connection established`);
 
 			connection.subscribe(state.player);
-			console.log(`[TTS] Player subscribed`);
 
 			try {
 				const resource = await createSpeechResource(nextText);
-				console.log(`[TTS] Audio resource created`);
 				state.player.play(resource);
-				console.log(`[TTS] Started playing`);
 
 				await entersState(state.player, AudioPlayerStatus.Playing, 7_000);
-				console.log(`[TTS] Player is playing`);
 				await entersState(state.player, AudioPlayerStatus.Idle, 90_000);
-				console.log(`[TTS] Player idle`);
 			} catch (error) {
 				console.error(`[TTS] Error during speech creation or playback:`, error);
 				state.player.stop(true);
@@ -250,7 +218,6 @@ const processQueue = async (
 		}
 	} finally {
 		state.processing = false;
-		console.log(`[TTS] Queue processing finished for guild ${guild.id}`);
 	}
 };
 
@@ -260,7 +227,6 @@ export const enqueueGuildSpeech = async (
 	text: string,
 ) => {
 	const normalized = normalizeText(text);
-	console.log(`[TTS] Enqueuing speech for guild ${guild.id}: ${normalized}`);
 	const state = getOrCreateState(guild.id);
 	state.queue.push(normalized);
 	await processQueue(guild, voiceChannelId, state);
