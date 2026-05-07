@@ -614,10 +614,10 @@ export default {
 							failures.length > 0
 								? `⛔ /${cmd} を停止（プレゼンス/通知の一部更新に失敗）`
 								: `⛔ /${cmd} を停止`,
-						)
-					],
-					flags: MessageFlags.Ephemeral,
-				});
+						),
+				],
+				flags: MessageFlags.Ephemeral,
+			});
 		}
 
 		// ===== blacklist =====
