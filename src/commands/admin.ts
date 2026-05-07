@@ -567,7 +567,7 @@ export default {
 				return interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setColor(0x57f287)
+							.setColor(failures.length > 0 ? 0xfee75c : 0x57f287)
 							.setAuthor({
 								name:
 									failures.length > 0
