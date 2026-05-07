@@ -579,8 +579,8 @@ export default {
 								failures.length > 0
 									? `✅ /${cmd} を再開しました（プレゼンス/通知の一部更新に失敗）`
 									: `✅ /${cmd} を再開しました`,
-							)
-						],
+							),
+					],
 					flags: MessageFlags.Ephemeral,
 				});
 			}
