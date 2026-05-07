@@ -597,7 +597,8 @@ export default {
 				),
 			]);
 			const failures = sideEffects.filter(
-				(result): result is PromiseRejectedResult => result.status === "rejected",
+				(result): result is PromiseRejectedResult =>
+					result.status === "rejected",
 			);
 			if (failures.length > 0) {
 				console.error(
