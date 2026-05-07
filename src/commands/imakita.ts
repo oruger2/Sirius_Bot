@@ -1,6 +1,7 @@
 import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -62,7 +63,7 @@ export default {
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		if (!interaction.deferred && !interaction.replied) {
-			await interaction.deferReply();
+			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		}
 
 		const channel = interaction.channel;

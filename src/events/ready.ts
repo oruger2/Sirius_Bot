@@ -1,5 +1,6 @@
 import type { Client } from "discord.js";
 import { Events } from "discord.js";
+import { updateGlobalPresence } from "@/utils/presence";
 import { sendBotOnlineStatus } from "@/utils/statusWebhook";
 
 const event = {
@@ -56,40 +57,8 @@ const event = {
 		// Presence更新
 		// ======================
 		const updatePresence = async () => {
-			if (!client.user) return;
-
 			try {
-				let guildCount = client.guilds.cache.size;
-				let totalUsers = client.guilds.cache.reduce(
-					(sum, g) => sum + (g.memberCount ?? 0),
-					0,
-				);
-
-				if (client.shard) {
-					const results = await client.shard.broadcastEval((c) => ({
-						guilds: c.guilds.cache.size,
-						users: c.guilds.cache.reduce(
-							(sum, g) => sum + (g.memberCount ?? 0),
-							0,
-						),
-					}));
-
-					guildCount = results.reduce((a, b) => a + b.guilds, 0);
-					totalUsers = results.reduce((a, b) => a + b.users, 0);
-				}
-
-				const ping = Math.round(client.ws.ping);
-				const shardCount = client.shard?.count ?? 1;
-
-				await client.user.setPresence({
-					activities: [
-						{
-							name: `Servers:${guildCount} | Users:${totalUsers} | Ping:${ping}ms | Shards:${shardCount}`,
-							type: 0,
-						},
-					],
-					status: "online",
-				});
+				await updateGlobalPresence(client);
 			} catch (e) {
 				console.error("❌ Presence更新失敗", e);
 			}
