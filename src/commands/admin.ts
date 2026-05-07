@@ -556,7 +556,8 @@ export default {
 
 				// Check for any rejections and log them
 				const failures = results.filter(
-					(result): result is PromiseRejectedResult => result.status === "rejected",
+					(result): result is PromiseRejectedResult =>
+						result.status === "rejected",
 				);
 				if (failures.length > 0) {
 					for (const failure of failures) {
