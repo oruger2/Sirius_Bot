@@ -104,7 +104,10 @@ export const updateGlobalPresence = async (
 	}
 
 	await client.shard.broadcastEval(
-		(shardClient, context) => shardClient.user?.setPresence(context.presence),
+		(shardClient, context) => {
+			shardClient.user?.setPresence(context.presence);
+			return null;
+		},
 		{ context: { presence } },
 	);
 };
