@@ -612,7 +612,8 @@ export default {
 					new EmbedBuilder()
 						.setColor(failures.length > 0 ? 0xfee75c : 0xffa500)
 						.setAuthor({
-							name: failures.length > 0 ? "⚠️ 停止完了（警告あり）" : "⛔ 停止完了",
+							name:
+								failures.length > 0 ? "⚠️ 停止完了（警告あり）" : "⛔ 停止完了",
 							iconURL: SUCCESS_ICON_URL,
 						})
 						.setDescription(
