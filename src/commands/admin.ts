@@ -6,6 +6,8 @@ import {
 } from "discord.js";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 import { readJsonData, writeJsonData } from "@/utils/jsonFileStore";
+import { updateGlobalPresence } from "@/utils/presence";
+import { sendStoppedCommandsStatus } from "@/utils/statusWebhook";
 
 type GuildListEntry = {
 	id: string;
@@ -527,7 +529,7 @@ export default {
 								name: "エラー",
 								iconURL: ERROR_ICON_URL,
 							})
-							.setDescription(`❌ /${cmd} というコマンドはありません`),
+							.setDescription("❌ 実在するコマンドを入力してください。"),
 					],
 					flags: MessageFlags.Ephemeral,
 				});
@@ -542,6 +544,15 @@ export default {
 			if (stopIndex !== -1) {
 				config.stopping.splice(stopIndex, 1);
 				await writeJsonData("config.json", config);
+				await Promise.allSettled([
+					updateGlobalPresence(interaction.client, config.stopping),
+					sendStoppedCommandsStatus(
+						interaction.client,
+						config.stopping,
+						"resume",
+						cmd,
+					),
+				]);
 
 				return interaction.reply({
 					embeds: [
@@ -559,6 +570,15 @@ export default {
 
 			config.stopping.push(cmd);
 			await writeJsonData("config.json", config);
+			await Promise.allSettled([
+				updateGlobalPresence(interaction.client, config.stopping),
+				sendStoppedCommandsStatus(
+					interaction.client,
+					config.stopping,
+					"stop",
+					cmd,
+				),
+			]);
 
 			return interaction.reply({
 				embeds: [

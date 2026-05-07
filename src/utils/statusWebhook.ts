@@ -3,6 +3,7 @@ import { type Client, EmbedBuilder, WebhookClient } from "discord.js";
 const STATUS_WEBHOOK_URL =
 	process.env.STATUS_WEBHOOK_URL?.trim() ||
 	process.env.DISCORD_STATUS_WEBHOOK?.trim();
+const STOP_ALERT_ROLE_ID = "1469524987227406438";
 const statusWebhook = STATUS_WEBHOOK_URL
 	? new WebhookClient({ url: STATUS_WEBHOOK_URL })
 	: null;
@@ -40,6 +41,38 @@ const sendStatusWebhook = async (embed: EmbedBuilder) => {
 	if (!statusWebhook) return;
 
 	await statusWebhook.send({ embeds: [embed] });
+};
+
+export const sendStoppedCommandsStatus = async (
+	_client: Client,
+	stoppedCommands: string[],
+	action: "stop" | "resume",
+	command: string,
+) => {
+	if (!statusWebhook) return;
+
+	const hasStoppedCommands = stoppedCommands.length > 0;
+	const description = hasStoppedCommands
+		? `${action === "stop" ? `⛔ /${command} を停止しました。` : `✅ /${command} を再開しました。`}
+
+現在停止中のコマンド数: ${stoppedCommands.length}
+停止中のコマンド:
+${stoppedCommands.map((commandName) => `/${commandName}`).join("\n")}`
+		: "✅ 現在停止中のコマンドはありません。";
+
+	const embed = new EmbedBuilder()
+		.setColor(hasStoppedCommands ? 0xfaa61a : 0x57f287)
+		.setTitle("Command Stop Update")
+		.setDescription(description)
+		.setTimestamp(new Date());
+
+	await statusWebhook.send({
+		content: `<@&${STOP_ALERT_ROLE_ID}>`,
+		embeds: [embed],
+		allowedMentions: {
+			roles: [STOP_ALERT_ROLE_ID],
+		},
+	});
 };
 
 export const sendBotOnlineStatus = async (client: Client) => {
