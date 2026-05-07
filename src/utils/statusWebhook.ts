@@ -44,7 +44,7 @@ const sendStatusWebhook = async (embed: EmbedBuilder) => {
 };
 
 export const sendStoppedCommandsStatus = async (
-	client: Client,
+	_client: Client,
 	stoppedCommands: string[],
 	action: "stop" | "resume",
 	command: string,
