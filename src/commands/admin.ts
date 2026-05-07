@@ -544,7 +544,7 @@ export default {
 			if (stopIndex !== -1) {
 				config.stopping.splice(stopIndex, 1);
 				await writeJsonData("config.json", config);
-				await Promise.allSettled([
+				const results = await Promise.allSettled([
 					updateGlobalPresence(interaction.client, config.stopping),
 					sendStoppedCommandsStatus(
 						interaction.client,
@@ -554,15 +554,32 @@ export default {
 					),
 				]);
 
+				// Check for any rejections and log them
+				const failures = results.filter(
+					(result): result is PromiseRejectedResult => result.status === "rejected",
+				);
+				if (failures.length > 0) {
+					for (const failure of failures) {
+						console.error(
+							`[admin/stop] Failed to update presence or send status webhook:`,
+							failure.reason,
+						);
+					}
+				}
+
 				return interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setColor(0x57f287)
+							.setColor(failures.length > 0 ? 0xfee75c : 0x57f287)
 							.setAuthor({
-								name: "✅ 再開完了",
-								iconURL: SUCCESS_ICON_URL,
+								name: failures.length > 0 ? "⚠️ 再開完了（警告あり）" : "✅ 再開完了",
+								iconURL: failures.length > 0 ? ERROR_ICON_URL : SUCCESS_ICON_URL,
 							})
-							.setDescription(`✅ /${cmd} を再開しました`),
+							.setDescription(
+								failures.length > 0
+									? `⚠️ /${cmd} を再開しましたが、プレゼンス更新またはステータス通知に失敗しました。`
+									: `✅ /${cmd} を再開しました`,
+							),
 					],
 					flags: MessageFlags.Ephemeral,
 				});
@@ -570,7 +587,7 @@ export default {
 
 			config.stopping.push(cmd);
 			await writeJsonData("config.json", config);
-			await Promise.allSettled([
+			const results = await Promise.allSettled([
 				updateGlobalPresence(interaction.client, config.stopping),
 				sendStoppedCommandsStatus(
 					interaction.client,
@@ -580,15 +597,32 @@ export default {
 				),
 			]);
 
+			// Check for any rejections and log them
+			const failures = results.filter(
+				(result): result is PromiseRejectedResult => result.status === "rejected",
+			);
+			if (failures.length > 0) {
+				for (const failure of failures) {
+					console.error(
+						`[admin/stop] Failed to update presence or send status webhook:`,
+						failure.reason,
+					);
+				}
+			}
+
 			return interaction.reply({
 				embeds: [
 					new EmbedBuilder()
-						.setColor(0xffa500)
+						.setColor(failures.length > 0 ? 0xfee75c : 0xffa500)
 						.setAuthor({
-							name: "⛔ 停止完了",
-							iconURL: SUCCESS_ICON_URL,
+							name: failures.length > 0 ? "⚠️ 停止完了（警告あり）" : "⛔ 停止完了",
+							iconURL: failures.length > 0 ? ERROR_ICON_URL : SUCCESS_ICON_URL,
 						})
-						.setDescription(`⛔ /${cmd} を停止`),
+						.setDescription(
+							failures.length > 0
+								? `⚠️ /${cmd} を停止しましたが、プレゼンス更新またはステータス通知に失敗しました。`
+								: `⛔ /${cmd} を停止`,
+						),
 				],
 				flags: MessageFlags.Ephemeral,
 			});
