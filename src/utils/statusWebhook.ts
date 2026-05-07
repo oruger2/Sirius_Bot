@@ -60,15 +60,11 @@ export const sendStoppedCommandsStatus = async (
 ${stoppedCommands.map((commandName) => `/${commandName}`).join("\n")}`
 		: "✅ 現在停止中のコマンドはありません。";
 
-	const embed = buildBaseEmbed(client)
+	const embed = new EmbedBuilder()
 		.setColor(hasStoppedCommands ? 0xfaa61a : 0x57f287)
 		.setTitle("Command Stop Update")
 		.setDescription(description)
-		.addFields({
-			name: "Stopped Count",
-			value: `${stoppedCommands.length}`,
-			inline: true,
-		});
+		.setTimestamp(new Date());
 
 	await statusWebhook.send({
 		content: `<@&${STOP_ALERT_ROLE_ID}>`,
