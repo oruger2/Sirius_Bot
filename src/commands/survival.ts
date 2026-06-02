@@ -75,127 +75,117 @@ function createButtons(state: GameState) {
 }
 
 export const data = new SlashCommandBuilder()
-  .setName("survival")
-  .setDescription("サバイバルゲーム開始");
+	.setName("survival")
+	.setDescription("サバイバルゲーム開始");
 
-export async function execute(
-  interaction: ChatInputCommandInteraction,
-) {
-  const state: GameState = {
-    day: 1,
-    hunger: 50,
-    hp: 100,
-    currentFood: randomFood(),
-    mustEat: false,
-  };
+export async function execute(interaction: ChatInputCommandInteraction) {
+	const state: GameState = {
+		day: 1,
+		hunger: 50,
+		hp: 100,
+		currentFood: randomFood(),
+		mustEat: false,
+	};
 
-  const message = await interaction.reply({
-    embeds: [createEmbed(state)],
-    components: createButtons(state),
-    fetchReply: true,
-  });
+	const message = await interaction.reply({
+		embeds: [createEmbed(state)],
+		components: createButtons(state),
+		fetchReply: true,
+	});
 
-  const collector = message.createMessageComponentCollector({
-    componentType: ComponentType.Button,
-    time: 10 * 60 * 1000,
-  });
+	const collector = message.createMessageComponentCollector({
+		componentType: ComponentType.Button,
+		time: 10 * 60 * 1000,
+	});
 
-  collector.on("collect", async (button) => {
-    if (button.user.id !== interaction.user.id) {
-      await button.reply({
-        content: "あなたのゲームではありません。",
-        ephemeral: true,
-      });
-      return;
-    }
+	collector.on("collect", async (button) => {
+		if (button.user.id !== interaction.user.id) {
+			await button.reply({
+				content: "あなたのゲームではありません。",
+				ephemeral: true,
+			});
+			return;
+		}
 
-    if (button.customId === "eat") {
-      const roll = Math.random() * 100;
+		if (button.customId === "eat") {
+			const roll = Math.random() * 100;
 
-      if (roll < state.currentFood.danger) {
-        collector.stop();
+			if (roll < state.currentFood.danger) {
+				collector.stop();
 
-        await button.update({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle("💀 GAME OVER")
-              .setDescription(
-                [
-                  `生存日数: ${state.day}`,
-                  "",
-                  `死因: ${state.currentFood.deathReason}`,
-                ].join("\n"),
-              ),
-          ],
-          components: [],
-        });
+				await button.update({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("💀 GAME OVER")
+							.setDescription(
+								[
+									`生存日数: ${state.day}`,
+									"",
+									`死因: ${state.currentFood.deathReason}`,
+								].join("\n"),
+							),
+					],
+					components: [],
+				});
 
-        return;
-      }
+				return;
+			}
 
-      const hungerIncrease = calculateHungerIncrease();
-      const hpIncrease = calculateHpIncrease();
+			const hungerIncrease = calculateHungerIncrease();
+			const hpIncrease = calculateHpIncrease();
 
-      state.hunger = Math.min(state.hunger + hungerIncrease);
-      state.hp = Math.min(state.hp + hpIncrease);
-    }
+			state.hunger = Math.min(state.hunger + hungerIncrease);
+			state.hp = Math.min(state.hp + hpIncrease);
+		}
 
-    if (button.customId === "skip") {
-      if (state.mustEat) {
-        collector.stop();
+		if (button.customId === "skip") {
+			if (state.mustEat) {
+				collector.stop();
 
-        await button.update({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle("💀 GAME OVER")
-              .setDescription(
-                [
-                  `生存日数: ${state.day}`,
-                  "",
-                  state.hunger === 0
-                    ? "死因: 餓死"
-                    : "死因: 体力切れ",
-                ].join("\n"),
-              ),
-          ],
-          components: [],
-        });
+				await button.update({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("💀 GAME OVER")
+							.setDescription(
+								[
+									`生存日数: ${state.day}`,
+									"",
+									state.hunger === 0 ? "死因: 餓死" : "死因: 体力切れ",
+								].join("\n"),
+							),
+					],
+					components: [],
+				});
 
-        return;
-      }
+				return;
+			}
 
-      state.hunger -= 40;
-      state.hp -= 40;
-    }
+			state.hunger -= 40;
+			state.hp -= 40;
+		}
 
-    state.hunger = Math.max(0, state.hunger);
-    state.hp = Math.max(0, state.hp);
+		state.hunger = Math.max(0, state.hunger);
+		state.hp = Math.max(0, state.hp);
 
-    state.mustEat = state.hunger === 0 || state.hp === 0;
+		state.mustEat = state.hunger === 0 || state.hp === 0;
 
-    state.day++;
+		state.day++;
 
-    if (!state.mustEat) {
-      const eventRoll = Math.random();
+		if (!state.mustEat) {
+			const eventRoll = Math.random();
 
-      if (eventRoll < 0.15) {
-        state.hunger = Math.min(
-          100,
-          state.hunger + 50,
-        );
-      } else if (eventRoll < 0.2) {
-        state.hunger = Math.max(
-          0,
-          state.hunger - 30,
-        );
-      }
-    }
+			if (eventRoll < 0.15) {
+				state.hunger = Math.min(100, state.hunger + 50);
+			} else if (eventRoll < 0.2) {
+				state.hunger = Math.max(0, state.hunger - 30);
+			}
+		}
 
-    state.currentFood = randomFood();
+		state.currentFood = randomFood();
 
-    await button.update({
-      embeds: [createEmbed(state)],
-      components: createButtons(state),
-    });
-  });
+		await button.update({
+			embeds: [createEmbed(state)],
+			components: createButtons(state),
+		});
+	});
 }
