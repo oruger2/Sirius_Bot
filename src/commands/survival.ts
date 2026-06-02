@@ -32,7 +32,7 @@ function calculateHungerIncrease() {
 }
 
 function calculateHpIncrease() {
-  return (Math.floor(Math.random() * 3) + 1) * 10;
+	return (Math.floor(Math.random() * 3) + 1) * 10;
 }
 
 function createEmbed(state: GameState) {
