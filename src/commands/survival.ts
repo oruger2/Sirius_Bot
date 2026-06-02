@@ -58,20 +58,20 @@ function createEmbed(state: GameState) {
 }
 
 function createButtons(state: GameState) {
-  return [
-    new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("eat")
-        .setLabel("🍴 食べる")
-        .setStyle(ButtonStyle.Success),
+	return [
+		new ActionRowBuilder<ButtonBuilder>().addComponents(
+			new ButtonBuilder()
+				.setCustomId("eat")
+				.setLabel("🍴 食べる")
+				.setStyle(ButtonStyle.Success),
 
-      new ButtonBuilder()
-        .setCustomId("skip")
-        .setLabel("❌ 食べない")
-        .setDisabled(state.mustEat)
-        .setStyle(ButtonStyle.Danger),
-    ),
-  ];
+			new ButtonBuilder()
+				.setCustomId("skip")
+				.setLabel("❌ 食べない")
+				.setDisabled(state.mustEat)
+				.setStyle(ButtonStyle.Danger),
+		),
+	];
 }
 
 export const data = new SlashCommandBuilder()
