@@ -1,9 +1,9 @@
 import {
-    Events,
-    Message,
-    PermissionsBitField,
-    EmbedBuilder,
-    GuildMember,
+	EmbedBuilder,
+	Events,
+	GuildMember,
+	type Message,
+	PermissionsBitField,
 } from "discord.js";
 
 const userMessages = new Map<
