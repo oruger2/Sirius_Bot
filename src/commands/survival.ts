@@ -9,10 +9,10 @@ import {
 } from "discord.js";
 
 interface Food {
-  name: string;
-  danger: number;
-  deathReason: string;
-  image?: string;
+	name: string;
+	danger: number;
+	deathReason: string;
+	image?: string;
 }
 
 interface GameState {
