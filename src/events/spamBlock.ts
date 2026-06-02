@@ -47,7 +47,7 @@ export default {
 
 		userMessages.set(compositeKey, recentLogs);
 
-		if (recentLogs.length >= 5) {
+		if (recentLogs.length > 5) {
 			const member = message.member;
 			if (!member) return;
 
