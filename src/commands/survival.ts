@@ -24,7 +24,7 @@ interface GameState {
 }
 ]
 function randomFood() {
-  return foods[Math.floor(Math.random() * foods.length)];
+	return foods[Math.floor(Math.random() * foods.length)];
 }
 
 function calculateHungerIncrease() {
