@@ -28,7 +28,7 @@ function randomFood() {
 }
 
 function calculateHungerIncrease() {
-  return (Math.floor(Math.random() * 3) + 1) * 10;
+	return (Math.floor(Math.random() * 3) + 1) * 10;
 }
 
 function calculateHpIncrease() {
