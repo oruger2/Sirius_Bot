@@ -36,27 +36,25 @@ function calculateHpIncrease() {
 }
 
 function createEmbed(state: GameState) {
-  const embed = new EmbedBuilder()
-    .setTitle(`${state.day}日目`)
-    .setDescription(
-      [
-        `## ${state.currentFood.name}`,
-        "",
-        state.mustEat
-          ? "⚠️ **食べないと死んでしまう！**"
-          : "",
-        `危険度: ${state.currentFood.danger}%`,
-        "",
-        `🍖 おなか: ${state.hunger}`,
-        `❤️ 体力: ${state.hp}`,
-      ].join("\n"),
-    );
+	const embed = new EmbedBuilder()
+		.setTitle(`${state.day}日目`)
+		.setDescription(
+			[
+				`## ${state.currentFood.name}`,
+				"",
+				state.mustEat ? "⚠️ **食べないと死んでしまう！**" : "",
+				`危険度: ${state.currentFood.danger}%`,
+				"",
+				`🍖 おなか: ${state.hunger}`,
+				`❤️ 体力: ${state.hp}`,
+			].join("\n"),
+		);
 
-  if (state.currentFood.image) {
-    embed.setImage(state.currentFood.image);
-  }
+	if (state.currentFood.image) {
+		embed.setImage(state.currentFood.image);
+	}
 
-  return embed;
+	return embed;
 }
 
 function createButtons(state: GameState) {
