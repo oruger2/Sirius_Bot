@@ -141,6 +141,8 @@ vite.config.ts.timestamp-*
 # Less log files
 .lesshst
 
+# Jupyter checkpoint files
+.ipynb_checkpoints/
 
 start.sh
 json/

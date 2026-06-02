@@ -60,7 +60,9 @@ class ExtendedClient extends Client {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isTargetModule = (file: string) => file.endsWith(".ts");
+const isTargetModule = (file: string) =>
+	!file.includes(".ipynb_checkpoints") &&
+	(file.endsWith(".ts") || file.endsWith(".js"));
 
 const listDirectoryIfExists = async (targetPath: string) => {
 	try {
