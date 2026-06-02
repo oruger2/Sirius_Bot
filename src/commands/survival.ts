@@ -1,11 +1,11 @@
 import {
-  SlashCommandBuilder,
-  ChatInputCommandInteraction,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  ComponentType,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	type ChatInputCommandInteraction,
+	ComponentType,
+	EmbedBuilder,
+	SlashCommandBuilder,
 } from "discord.js";
 
 interface Food {
