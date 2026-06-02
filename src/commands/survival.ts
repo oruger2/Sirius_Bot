@@ -22,7 +22,7 @@ interface GameState {
 	currentFood: Food;
 	mustEat: boolean;
 }
-];
+]
 function randomFood() {
   return foods[Math.floor(Math.random() * foods.length)];
 }
