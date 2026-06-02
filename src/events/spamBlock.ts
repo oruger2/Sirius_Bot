@@ -1,15 +1,30 @@
 import {
 	EmbedBuilder,
 	Events,
-	GuildMember,
 	type Message,
 	PermissionsBitField,
 } from "discord.js";
 
-const userMessages = new Map<
-    string,
-    { timestamp: number; message: Message }[]
->();
+type MessageMetadata = {
+	timestamp: number;
+	messageId: string;
+	channelId: string;
+};
+
+const userMessages = new Map<string, MessageMetadata[]>();
+
+// Periodic cleanup to prevent memory buildup
+setInterval(() => {
+	const now = Date.now();
+	for (const [key, logs] of userMessages.entries()) {
+		const recentLogs = logs.filter((log) => now - log.timestamp < 5000);
+		if (recentLogs.length === 0) {
+			userMessages.delete(key);
+		} else {
+			userMessages.set(key, recentLogs);
+		}
+	}
+}, 30000); // Clean up every 30 seconds
 
 export default {
     name: Events.MessageCreate,
@@ -17,10 +32,10 @@ export default {
     async execute(message: Message): Promise<void> {
         if (!message.guild || message.author.bot) return;
 
-        const userId = message.author.id;
+        const compositeKey = `${message.author.id}:${message.guild.id}:${message.channelId}`;
         const now = Date.now();
 
-        const logs = userMessages.get(userId) ?? [];
+        const logs = userMessages.get(compositeKey) ?? [];
 
         const recentLogs = logs.filter(
             (log) => now - log.timestamp < 5000,
@@ -28,10 +43,11 @@ export default {
 
         recentLogs.push({
             timestamp: now,
-            message,
+            messageId: message.id,
+            channelId: message.channelId,
         });
 
-        userMessages.set(userId, recentLogs);
+        userMessages.set(compositeKey, recentLogs);
 
         if (recentLogs.length >= 5) {
             const member = message.member;
@@ -49,7 +65,15 @@ export default {
             try {
                 // スパムメッセージ削除
                 for (const log of recentLogs) {
-                    await log.message.delete().catch(() => {});
+                    try {
+                        const channel = await message.client.channels.fetch(log.channelId);
+                        if (channel?.isTextBased()) {
+                            const msg = await channel.messages.fetch(log.messageId);
+                            await msg.delete().catch(() => {});
+                        }
+                    } catch {
+                        // メッセージ取得/削除失敗は無視
+                    }
                 }
 
                 // 10分タイムアウト
@@ -71,12 +95,14 @@ export default {
                     embeds: [embed],
                 });
 
-                userMessages.delete(userId);
+                userMessages.delete(compositeKey);
             } catch (error) {
                 console.error(
-                    `スパム処理失敗 (${userId})`,
+                    `スパム処理失敗 (${compositeKey})`,
                     error,
                 );
+                // エラー時もクリーンアップ
+                userMessages.delete(compositeKey);
             }
         }
     },
