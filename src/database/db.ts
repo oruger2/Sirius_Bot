@@ -11,7 +11,14 @@ const DB_NAME = process.env.DB_NAME;
 const DB_PORT = process.env.DB_PORT;
 const DB_CA_PATH = path.join(process.cwd(), "certs", "isgrootx1.pem");
 
-if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME || !DB_PORT || !fs.existsSync(DB_CA_PATH)) {
+if (
+	!DB_HOST ||
+	!DB_USER ||
+	!DB_PASSWORD ||
+	!DB_NAME ||
+	!DB_PORT ||
+	!fs.existsSync(DB_CA_PATH)
+) {
 	const missing = [];
 	if (!DB_HOST) missing.push("DB_HOST");
 	if (!DB_USER) missing.push("DB_USER");
@@ -40,7 +47,7 @@ const adapter = new PrismaMariaDb({
 	ssl: {
 		ca: fs.readFileSync(DB_CA_PATH, "utf8"),
 		rejectUnauthorized: true,
-	}
+	},
 });
 
 export const prisma = new PrismaClient({
