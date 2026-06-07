@@ -1,7 +1,6 @@
 import * as fsPromises from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { serve } from "@hono/node-server";
 import {
 	Client,
 	Collection,
@@ -15,8 +14,6 @@ import * as dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
 import { initErrorReporting } from "@/utils/errorWebhook";
 import { ensureJsonDataDir } from "@/utils/jsonFileStore";
-import { startHealthCheckCron } from "./cron";
-import healthCheckServer from "./server";
 
 dotenv.config();
 initErrorReporting();
@@ -418,10 +415,3 @@ if (shardProcess) {
 		process.exitCode = 1;
 	});
 }
-
-// Koyeb用のヘルスチェックサーバーを起動
-serve({
-	fetch: healthCheckServer.fetch,
-	port: 8000,
-});
-startHealthCheckCron();
