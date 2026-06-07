@@ -23,6 +23,7 @@
 		"google-tts-api": "^2.0.2",
 		"libsodium-wrappers": "^0.8.2",
 		"mysql2": "^3.20.0",
+		"node-cron": "^4.2.1",
 		"node-fetch": "^3.3.2",
 		"tweetnacl": "^1.0.3"
 	},
