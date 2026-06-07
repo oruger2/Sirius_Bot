@@ -524,6 +524,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 			if (roll < state.currentFood.danger) {
 				collector.stop();
+				await button.deferUpdate();
 				const currentRecord = await prisma.survivalRanking.findUnique({
 					where: { userId: interaction.user.id },
 				});
@@ -547,7 +548,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					},
 					take: 10,
 				});
-				await button.deferUpdate();
 				await button.editReply({
 					embeds: [
 						new EmbedBuilder()

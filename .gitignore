@@ -146,4 +146,8 @@ vite.config.ts.timestamp-*
 
 start.sh
 json/
-prisma/
+
+# Prisma generated files
+node_modules/.prisma/
+.prisma/
+prisma/client/
