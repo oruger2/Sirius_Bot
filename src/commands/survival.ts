@@ -524,8 +524,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 			if (roll < state.currentFood.danger) {
 				collector.stop();
+				await button.deferUpdate();
+				const currentRecord = await prisma.survivalRanking.findUnique({
+					where: { userId: interaction.user.id },
+				});
 
-				await button.update({
+				await prisma.survivalRanking.upsert({
+					where: {
+						userId: interaction.user.id,
+					},
+					update: {
+						bestDays: Math.max(currentRecord?.bestDays ?? 0, state.day),
+					},
+					create: {
+						userId: interaction.user.id,
+						username: interaction.user.username,
+						bestDays: state.day,
+					},
+				});
+				const rankings = await prisma.survivalRanking.findMany({
+					orderBy: {
+						bestDays: "desc",
+					},
+					take: 10,
+				});
+				await button.editReply({
 					embeds: [
 						new EmbedBuilder()
 							.setTitle("💀 GAME OVER")
@@ -534,6 +557,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 									`生存日数: ${state.day}`,
 									"",
 									`死因: ${state.currentFood.deathReason}`,
+									`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
 								].join("\n"),
 							),
 					],
@@ -554,7 +578,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 			if (state.mustEat) {
 				collector.stop();
 
-				await button.update({
+				await button.deferUpdate();
+				await button.editReply({
 					embeds: [
 						new EmbedBuilder()
 							.setTitle("💀 GAME OVER")
@@ -595,7 +620,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 		state.currentFood = randomFood();
 
-		await button.update({
+		await button.deferUpdate();
+		await button.editReply({
 			embeds: [createEmbed(state)],
 			components: createButtons(state),
 		});
