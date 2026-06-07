@@ -9,7 +9,7 @@ const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_NAME = process.env.DB_NAME;
 const DB_PORT = process.env.DB_PORT;
-const DB_CA_PATH = path.join(process.cwd(), "src", "certs", "isgrootx1.pem");
+const DB_CA_PATH = path.join(process.cwd(), "src", "certs", "isrgrootx1.pem");
 const caExists = fs.existsSync(DB_CA_PATH);
 
 if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME || !DB_PORT || !caExists) {
