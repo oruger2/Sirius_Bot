@@ -7,6 +7,7 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
+import prisma from "@/database/db";
 
 interface Food {
 	name: string;
@@ -557,7 +558,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 									`生存日数: ${state.day}`,
 									"",
 									`死因: ${state.currentFood.deathReason}`,
-									`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
+									`\n\n🏆ランキング🏆\n${rankings.map((r: { username: any; bestDays: any; }, i: number) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
 								].join("\n"),
 							),
 					],

@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model SurvivalRanking {
+  userId    String   @id
+  username  String
+  bestDays  Int      @default(0)
+
+  updatedAt DateTime @updatedAt
+}
