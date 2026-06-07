@@ -15,6 +15,16 @@ import express, { type Request, type Response } from "express";
 import { initErrorReporting } from "@/utils/errorWebhook";
 import { ensureJsonDataDir } from "@/utils/jsonFileStore";
 
+const app = express();
+
+app.get("/", (_, res) => {
+	res.send("Sirius Bot Running");
+});
+
+app.listen(process.env.PORT || 3000, () => {
+	console.log("Web server started");
+});
+
 dotenv.config();
 initErrorReporting();
 
