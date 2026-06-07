@@ -541,12 +541,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 						bestDays: state.day,
 					},
 				});
-                const rankings = await prisma.survivalRanking.findMany({
-                        orderBy: {
-                        bestDays: "desc",
-                        },
-                    take: 10,
-                });
+				const rankings = await prisma.survivalRanking.findMany({
+					orderBy: {
+						bestDays: "desc",
+					},
+					take: 10,
+				});
 				await button.deferUpdate();
 				await button.editReply({
 					embeds: [
