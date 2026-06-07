@@ -30,7 +30,9 @@ if (
 
 	const errors = [];
 	if (missingEnvVars.length > 0) {
-		errors.push(`Missing required database environment variables: ${missingEnvVars.join(", ")}`);
+		errors.push(
+			`Missing required database environment variables: ${missingEnvVars.join(", ")}`,
+		);
 	}
 	if (!caExists) {
 		errors.push(`Missing DB_CA_PATH file: ${DB_CA_PATH}`);
