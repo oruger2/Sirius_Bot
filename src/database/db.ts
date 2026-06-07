@@ -13,14 +13,7 @@ const DB_CA_PATH = path.join(process.cwd(), "certs", "isgrootx1.pem");
 
 const caExists = fs.existsSync(DB_CA_PATH);
 
-if (
-	!DB_HOST ||
-	!DB_USER ||
-	!DB_PASSWORD ||
-	!DB_NAME ||
-	!DB_PORT ||
-	!caExists
-) {
+if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME || !DB_PORT || !caExists) {
 	const missingEnvVars = [];
 	if (!DB_HOST) missingEnvVars.push("DB_HOST");
 	if (!DB_USER) missingEnvVars.push("DB_USER");
