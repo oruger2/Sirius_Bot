@@ -1,4 +1,3 @@
-import prisma from "@/database/db";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
