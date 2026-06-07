@@ -11,24 +11,32 @@ const DB_NAME = process.env.DB_NAME;
 const DB_PORT = process.env.DB_PORT;
 const DB_CA_PATH = path.join(process.cwd(), "certs", "isgrootx1.pem");
 
+const caExists = fs.existsSync(DB_CA_PATH);
+
 if (
 	!DB_HOST ||
 	!DB_USER ||
 	!DB_PASSWORD ||
 	!DB_NAME ||
 	!DB_PORT ||
-	!fs.existsSync(DB_CA_PATH)
+	!caExists
 ) {
-	const missing = [];
-	if (!DB_HOST) missing.push("DB_HOST");
-	if (!DB_USER) missing.push("DB_USER");
-	if (!DB_PASSWORD) missing.push("DB_PASSWORD");
-	if (!DB_NAME) missing.push("DB_NAME");
-	if (!DB_PORT) missing.push("DB_PORT");
-	if (!fs.existsSync(DB_CA_PATH)) missing.push("DB_CA_PATH");
-	throw new Error(
-		`Missing required database environment variables: ${missing.join(", ")}`,
-	);
+	const missingEnvVars = [];
+	if (!DB_HOST) missingEnvVars.push("DB_HOST");
+	if (!DB_USER) missingEnvVars.push("DB_USER");
+	if (!DB_PASSWORD) missingEnvVars.push("DB_PASSWORD");
+	if (!DB_NAME) missingEnvVars.push("DB_NAME");
+	if (!DB_PORT) missingEnvVars.push("DB_PORT");
+
+	const errors = [];
+	if (missingEnvVars.length > 0) {
+		errors.push(`Missing required database environment variables: ${missingEnvVars.join(", ")}`);
+	}
+	if (!caExists) {
+		errors.push(`Missing DB_CA_PATH file: ${DB_CA_PATH}`);
+	}
+
+	throw new Error(errors.join("; "));
 }
 
 const port = Number.parseInt(DB_PORT, 10);
