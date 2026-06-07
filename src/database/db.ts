@@ -1,4 +1,3 @@
-import { PrismaClient } from "../generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import "dotenv/config";
 
