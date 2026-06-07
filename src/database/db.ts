@@ -1,16 +1,20 @@
-import dotenv from "dotenv";
-import mysql, { type Pool } from "mysql2/promise";
+import { PrismaClient } from "../generated/prisma/client";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import "dotenv/config";
 
-dotenv.config();
-
-const pool: Pool = mysql.createPool({
-	host: process.env.DB_HOST as string,
-	port: Number(process.env.DB_PORT),
-	user: process.env.DB_USER as string,
-	password: process.env.DB_PASSWORD as string,
-	database: process.env.DB_NAME as string,
-	waitForConnections: true,
-	connectionLimit: 5,
+const adapter = new PrismaMariaDb({
+    host: process.env.DB_HOST!,
+    port: parseInt(process.env.DB_PORT!),
+    user: process.env.DB_USER!,
+    password: process.env.DB_PASSWORD!,
+    database: process.env.DB_NAME!,
+    ssl: {
+        rejectUnauthorized: true,
+    },
 });
 
-export default pool;
+export const prisma = new PrismaClient({
+    adapter,
+});
+
+export default prisma;
