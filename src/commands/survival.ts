@@ -544,26 +544,26 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					},
 				});
 				const rankings = await prisma.survivalRanking.findMany({
-							select: {
-								username: true,
-								bestDays: true,
-							},
-							orderBy: {
-								bestDays: "desc",
-							},
-							take: 10,
-						});
-						await button.editReply({
-							embeds: [
-								new EmbedBuilder()
-									.setTitle("💀 GAME OVER")
-									.setDescription(
-										[
-											`生存日数: ${state.day}`,
-											"",
-											`死因: ${state.currentFood.deathReason}`,
-											`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
-										].join("\n"),
+					select: {
+						username: true,
+						bestDays: true,
+					},
+					orderBy: {
+						bestDays: "desc",
+					},
+					take: 10,
+				});
+				await button.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("💀 GAME OVER")
+							.setDescription(
+								[
+									`生存日数: ${state.day}`,
+									"",
+									`死因: ${state.currentFood.deathReason}`,
+									`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
+								].join("\n"),
 							),
 					],
 					components: [],
