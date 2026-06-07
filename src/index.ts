@@ -30,7 +30,7 @@ if (!applicationId) {
 	throw new Error("❌ DISCORD_CLIENT_ID が設定されていません");
 }
 
-const SHARD_LIST = [0, 1] as const;
+const SHARD_LIST = [0] as const;
 const TOTAL_SHARDS = SHARD_LIST.length;
 const API_PORT = Number.parseInt(process.env.API_PORT ?? "20419", 10);
 
