@@ -1,10 +1,10 @@
+import * as vm from "node:vm";
 import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
-import * as vm from "node:vm";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 import { readJsonData, writeJsonData } from "@/utils/jsonFileStore";
 import { updateGlobalPresence } from "@/utils/presence";
@@ -327,16 +327,16 @@ export default {
 				),
 		)
 		.addSubcommand((sub) =>
-            sub
-	            .setName("code")
-		        .setDescription("JavaScriptコードを実行")
-		        .addStringOption((opt) =>
-			       opt
-			        	.setName("script")
-				        .setDescription("実行するコード")
-				        .setRequired(true),
-		        ),
-	　　),
+			sub
+				.setName("code")
+				.setDescription("JavaScriptコードを実行")
+				.addStringOption((opt) =>
+					opt
+						.setName("script")
+						.setDescription("実行するコード")
+						.setRequired(true),
+				),
+		),
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		// ===== ファイル読み込み =====
@@ -693,76 +693,77 @@ export default {
 				],
 				flags: MessageFlags.Ephemeral,
 			});
-	}
-	// ===== code =====
-	if (sub === "code") {
-		const script = interaction.options.getString("script", true);
-
-		// Dual gate: BOT_OWNER_ID and ENABLE_ADMIN_EVAL
-		const BOT_OWNER_ID = process.env.BOT_OWNER_ID;
-		const ENABLE_ADMIN_EVAL = process.env.ENABLE_ADMIN_EVAL;
-
-		if (
-			!BOT_OWNER_ID ||
-			interaction.user.id !== BOT_OWNER_ID ||
-			!ENABLE_ADMIN_EVAL
-		) {
-			return interaction.reply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor(0xed4245)
-						.setAuthor({
-							name: "❌ 権限エラー",
-							iconURL: ERROR_ICON_URL,
-						})
-						.setDescription(
-							"このコマンドは **Bot所有者専用** で、かつ環境フラグが必要です。",
-						),
-				],
-				flags: MessageFlags.Ephemeral,
-			});
 		}
+		// ===== code =====
+		if (sub === "code") {
+			const script = interaction.options.getString("script", true);
 
-		try {
-			// Run script in sandboxed vm context
-			const util = await import("node:util");
-			const vmScript = new vm.Script(script);
-			let result = vmScript.runInNewContext({
-				console,
-				interaction,
-				util,
-			});
+			// Dual gate: BOT_OWNER_ID and ENABLE_ADMIN_EVAL
+			const BOT_OWNER_ID = process.env.BOT_OWNER_ID;
+			const ENABLE_ADMIN_EVAL = process.env.ENABLE_ADMIN_EVAL;
 
-			if (typeof result !== "string") {
-				result = util.inspect(result, {
-					depth: 1,
+			if (
+				!BOT_OWNER_ID ||
+				interaction.user.id !== BOT_OWNER_ID ||
+				!ENABLE_ADMIN_EVAL
+			) {
+				return interaction.reply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setAuthor({
+								name: "❌ 権限エラー",
+								iconURL: ERROR_ICON_URL,
+							})
+							.setDescription(
+								"このコマンドは **Bot所有者専用** で、かつ環境フラグが必要です。",
+							),
+					],
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
-			return interaction.reply({
-	        		embeds: [
-	         			new EmbedBuilder()
-	         				.setColor(0x57f287)
-	        				.setTitle("✅ 実行結果")
-	        				.setDescription(
-	        					`\`\`\`js\n${String(result).slice(0, 3900)}\n\`\`\``,
-	         				),
-	        		],
-	        		flags: MessageFlags.Ephemeral,
-	         	});
-		} catch (error) {
-			console.error("Admin code execution error:", error);
-			return interaction.reply({
-	         		embeds: [
-	        			new EmbedBuilder()
-	        				.setColor(0xed4245)
-		        			.setTitle("❌ エラー")
-	        				.setDescription(
-	        					`\`\`\`js\n${(error instanceof Error ? error.stack ?? error.message : String(error)).slice(0, 3900)}\n\`\`\``,
-		        			),
-		        	],
-		        	flags: MessageFlags.Ephemeral,
-	        	});
+			try {
+				// Run script in sandboxed vm context
+				const util = await import("node:util");
+				const vmScript = new vm.Script(script);
+				let result = vmScript.runInNewContext({
+					console,
+					interaction,
+					util,
+				});
+
+				if (typeof result !== "string") {
+					result = util.inspect(result, {
+						depth: 1,
+					});
+				}
+
+				return interaction.reply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0x57f287)
+							.setTitle("✅ 実行結果")
+							.setDescription(
+								`\`\`\`js\n${String(result).slice(0, 3900)}\n\`\`\``,
+							),
+					],
+					flags: MessageFlags.Ephemeral,
+				});
+			} catch (error) {
+				console.error("Admin code execution error:", error);
+				return interaction.reply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor(0xed4245)
+							.setTitle("❌ エラー")
+							.setDescription(
+								`\`\`\`js\n${(error instanceof Error ? (error.stack ?? error.message) : String(error)).slice(0, 3900)}\n\`\`\``,
+							),
+					],
+					flags: MessageFlags.Ephemeral,
+				});
+			}
 		}
 	},
 };
