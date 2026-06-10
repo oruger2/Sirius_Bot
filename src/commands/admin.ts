@@ -729,7 +729,8 @@ export default {
 		        	],
 		        	flags: MessageFlags.Ephemeral,
 	        	});
-	         }
-         }
-	},
-};
+		}
+	}
+}
+,
+}
