@@ -19,6 +19,6 @@ export * from "./enums";
 export { Prisma };
 /**
  * Model SurvivalRanking
- * 
+ *
  */
 export type SurvivalRanking = Prisma.SurvivalRankingModel
