@@ -692,10 +692,10 @@ export default {
 				],
 				flags: MessageFlags.Ephemeral,
 			});
-		}
-		// ===== code =====
-　　　　　if (sub === "code") {
-            const script = interaction.options.getString("script", true);
+	}
+	// ===== code =====
+	if (sub === "code") {
+		const script = interaction.options.getString("script", true);
 
         	try {
         		let result = await eval(`(async () => { ${script} })()`);
