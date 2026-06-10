@@ -21,4 +21,4 @@ export { Prisma };
  * Model SurvivalRanking
  *
  */
-export type SurvivalRanking = Prisma.SurvivalRankingModel
+export type SurvivalRanking = Prisma.SurvivalRankingModel;
