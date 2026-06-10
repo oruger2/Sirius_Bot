@@ -706,7 +706,7 @@ export default {
 				});
 			}
 
-	        	return interaction.reply({
+			return interaction.reply({
 	        		embeds: [
 	         			new EmbedBuilder()
 	         				.setColor(0x57f287)
