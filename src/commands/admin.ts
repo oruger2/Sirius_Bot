@@ -697,8 +697,8 @@ export default {
 	if (sub === "code") {
 		const script = interaction.options.getString("script", true);
 
-        	try {
-        		let result = await eval(`(async () => { ${script} })()`);
+		try {
+			let result = await eval(`(async () => { ${script} })()`);
 
         		if (typeof result !== "string") {
 	         		result = require("util").inspect(result, {
