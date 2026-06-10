@@ -700,11 +700,11 @@ export default {
 		try {
 			let result = await eval(`(async () => { ${script} })()`);
 
-        		if (typeof result !== "string") {
-	         		result = require("util").inspect(result, {
-	         			depth: 1,
-	         		});
-	         	}
+			if (typeof result !== "string") {
+				result = require("util").inspect(result, {
+					depth: 1,
+				});
+			}
 
 	        	return interaction.reply({
 	        		embeds: [
