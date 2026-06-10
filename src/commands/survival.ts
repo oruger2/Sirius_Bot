@@ -551,7 +551,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					orderBy: {
 						bestDays: "desc",
 					},
-					take: 10,
+					take: 20,
 				});
 				await button.editReply({
 					embeds: [
