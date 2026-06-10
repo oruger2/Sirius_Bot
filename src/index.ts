@@ -15,8 +15,6 @@ import express, { type Request, type Response } from "express";
 import { initErrorReporting } from "@/utils/errorWebhook";
 import { ensureJsonDataDir } from "@/utils/jsonFileStore";
 
-const app = express();
-
 dotenv.config();
 initErrorReporting();
 
