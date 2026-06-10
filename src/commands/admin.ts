@@ -324,6 +324,7 @@ export default {
 						.setDescription("ユーザーID または サーバーID")
 						.setRequired(true),
 				),
+		)
 		.addSubcommand((sub) =>
             sub
 	            .setName("code")
@@ -730,7 +731,5 @@ export default {
 		        	flags: MessageFlags.Ephemeral,
 	        	});
 		}
-	}
-}
-,
-}
+	},
+};
