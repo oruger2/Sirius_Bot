@@ -4,6 +4,7 @@ import {
 	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
+import * as vm from "node:vm";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 import { readJsonData, writeJsonData } from "@/utils/jsonFileStore";
 import { updateGlobalPresence } from "@/utils/presence";
@@ -698,11 +699,43 @@ export default {
 	if (sub === "code") {
 		const script = interaction.options.getString("script", true);
 
+		// Dual gate: BOT_OWNER_ID and ENABLE_ADMIN_EVAL
+		const BOT_OWNER_ID = process.env.BOT_OWNER_ID;
+		const ENABLE_ADMIN_EVAL = process.env.ENABLE_ADMIN_EVAL;
+
+		if (
+			!BOT_OWNER_ID ||
+			interaction.user.id !== BOT_OWNER_ID ||
+			!ENABLE_ADMIN_EVAL
+		) {
+			return interaction.reply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor(0xed4245)
+						.setAuthor({
+							name: "❌ 権限エラー",
+							iconURL: ERROR_ICON_URL,
+						})
+						.setDescription(
+							"このコマンドは **Bot所有者専用** で、かつ環境フラグが必要です。",
+						),
+				],
+				flags: MessageFlags.Ephemeral,
+			});
+		}
+
 		try {
-			let result = await eval(`(async () => { ${script} })()`);
+			// Run script in sandboxed vm context
+			const util = await import("node:util");
+			const vmScript = new vm.Script(script);
+			let result = vmScript.runInNewContext({
+				console,
+				interaction,
+				util,
+			});
 
 			if (typeof result !== "string") {
-				result = require("util").inspect(result, {
+				result = util.inspect(result, {
 					depth: 1,
 				});
 			}
@@ -719,13 +752,14 @@ export default {
 	        		flags: MessageFlags.Ephemeral,
 	         	});
 		} catch (error) {
+			console.error("Admin code execution error:", error);
 			return interaction.reply({
 	         		embeds: [
 	        			new EmbedBuilder()
 	        				.setColor(0xed4245)
 		        			.setTitle("❌ エラー")
 	        				.setDescription(
-	        					`\`\`\`js\n${error instanceof Error ? error.stack : String(error)}\n\`\`\``,
+	        					`\`\`\`js\n${(error instanceof Error ? error.stack ?? error.message : String(error)).slice(0, 3900)}\n\`\`\``,
 		        			),
 		        	],
 		        	flags: MessageFlags.Ephemeral,
