@@ -336,8 +336,7 @@ export default {
 				        .setDescription("実行するコード")
 				        .setRequired(true),
 		        ),
-       )
-	),
+	　　),
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		// ===== ファイル読み込み =====
