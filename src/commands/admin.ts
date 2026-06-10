@@ -717,8 +717,8 @@ export default {
 	        		],
 	        		flags: MessageFlags.Ephemeral,
 	         	});
-        	} catch (error) {
-	        	return interaction.reply({
+		} catch (error) {
+			return interaction.reply({
 	         		embeds: [
 	        			new EmbedBuilder()
 	        				.setColor(0xed4245)
