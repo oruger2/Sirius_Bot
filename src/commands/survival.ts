@@ -422,49 +422,56 @@ const foods: Food[] = [
 		name: "バレーボール",
 		danger: 38,
 		deathReason: "バレーボールが喉に詰まった",
-		image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjebatlM7TiMX4OjedW6GVeY0jtqSCHIBo6rcbHUXir1yiuuYighsRJLh5YSxNcDSE78Z0_22J2y_3OpJJFXfsINzAhrcrAYm3Be5OYNlGTupr5KK2g5rpKk8OROxHTotvNU-l5Po42vFBt/s800/sports_ball_volleyball_greenred.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjebatlM7TiMX4OjedW6GVeY0jtqSCHIBo6rcbHUXir1yiuuYighsRJLh5YSxNcDSE78Z0_22J2y_3OpJJFXfsINzAhrcrAYm3Be5OYNlGTupr5KK2g5rpKk8OROxHTotvNU-l5Po42vFBt/s800/sports_ball_volleyball_greenred.png",
 	},
 	{
 		name: "オムライス",
 		danger: 5,
 		deathReason: "食べきれなかったのでもったいないばあさんに殺された",
-		image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhg5nDb_mCwhuyWtSDadS6fFWmUKskJCha5EifBMoq68cjQDZ11qrrEbRvUApAUlslPxUMNSshjnXqQpSZz1SBgwWdBTD7-i4tCsU39fQukZDMjRHmB8V5UgTak5uhbV-RwF37CIRnRt9Ex/s800/food_omurice.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhg5nDb_mCwhuyWtSDadS6fFWmUKskJCha5EifBMoq68cjQDZ11qrrEbRvUApAUlslPxUMNSshjnXqQpSZz1SBgwWdBTD7-i4tCsU39fQukZDMjRHmB8V5UgTak5uhbV-RwF37CIRnRt9Ex/s800/food_omurice.png",
 	},
 	{
 		name: "スポンジ",
 		danger: 38,
 		deathReason: "体内の水分を全部吸われた",
-		image:"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjevwiJXcb9Qy6c1BiAgBPGJrE2CfN0bCE3L2E7Tj3lpf7YHxhgcq77Sl3U8dUZv5XD52N1QM8NoeG5r8U5RDpzcdEwff1RB_j5wa3G_rvUJeRSqwzPUFBG432WJy7Wq79yHtFD-cSJn7k/s800/cooking_sponge.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjevwiJXcb9Qy6c1BiAgBPGJrE2CfN0bCE3L2E7Tj3lpf7YHxhgcq77Sl3U8dUZv5XD52N1QM8NoeG5r8U5RDpzcdEwff1RB_j5wa3G_rvUJeRSqwzPUFBG432WJy7Wq79yHtFD-cSJn7k/s800/cooking_sponge.png",
 	},
 	{
 		name: "石炭",
 		danger: 32,
 		deathReason: "石炭が胃の中で燃えた",
-		image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5Rof24HVGKbrk4o7UhfqnvnTo5ZCb1l3ozGBvnfUe7yMouGAZae5GWGw_wht_AHR14HjtfjtNMmPUq7ZiHG6N-SFmta1b6XT8Bzb6bOg3Fry5pYihxV6a2oZTYZ56E9hWnyDnhcQqrqQD/s800/nenryou_sekitan.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5Rof24HVGKbrk4o7UhfqnvnTo5ZCb1l3ozGBvnfUe7yMouGAZae5GWGw_wht_AHR14HjtfjtNMmPUq7ZiHG6N-SFmta1b6XT8Bzb6bOg3Fry5pYihxV6a2oZTYZ56E9hWnyDnhcQqrqQD/s800/nenryou_sekitan.png",
 	},
 	{
 		name: "木片",
 		danger: 22,
 		deathReason: "木片が刺さった",
-		image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhWC4CO14m0GEfo5QlG8PLOb-mHvw693uvmbF-aLnXDyeFcxIUL3K4UhMc0A_mVTsWTK0zpyhfnSjuTl53zkyqK1huCbqC12eGlbH9UUJAGYu1tjwZbPD0gissoUocj8Jtb_8LwODvcs2iC/s800/nenryou_maki.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhWC4CO14m0GEfo5QlG8PLOb-mHvw693uvmbF-aLnXDyeFcxIUL3K4UhMc0A_mVTsWTK0zpyhfnSjuTl53zkyqK1huCbqC12eGlbH9UUJAGYu1tjwZbPD0gissoUocj8Jtb_8LwODvcs2iC/s800/nenryou_maki.png",
 	},
 	{
 		name: "落ち葉",
 		danger: 16,
 		deathReason: "胃の中でダンゴムシが大量発生した",
-		image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1Ogzcfqnkb5qEeTr_gSDW5xN9DP3ABtiB3yErx9wJqCZEU_ZyiMpLhk7dvxevSwiXhW8AgVyy9aAxTT2iZ7PpiK3ioDQPkRQqTQtIKgkqRBG_lGX9U_nfiY2aoGzT8JSBJWyYY8Oweu-9/s800/ochiba9.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1Ogzcfqnkb5qEeTr_gSDW5xN9DP3ABtiB3yErx9wJqCZEU_ZyiMpLhk7dvxevSwiXhW8AgVyy9aAxTT2iZ7PpiK3ioDQPkRQqTQtIKgkqRBG_lGX9U_nfiY2aoGzT8JSBJWyYY8Oweu-9/s800/ochiba9.png",
 	},
 	{
 		name: "芝生",
 		danger: 13,
 		deathReason: "喉がチクチクした",
-		image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_sLzXW_ryGHZoOgGmDL7R9mHDfgkkgtqWoP-vuW8nVJJRaQ9pmQtCwM4TFYCPaqk2upqtkHhW-mdgf9DxmIK96nq6hHz8_SLOnMJ5kzOJNocU1PnKCDPPP6-xGl3usbZLGOHWAXpn8HQ/s800/kagu_carpet_maru.png"
+		image:
+			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_sLzXW_ryGHZoOgGmDL7R9mHDfgkkgtqWoP-vuW8nVJJRaQ9pmQtCwM4TFYCPaqk2upqtkHhW-mdgf9DxmIK96nq6hHz8_SLOnMJ5kzOJNocU1PnKCDPPP6-xGl3usbZLGOHWAXpn8HQ/s800/kagu_carpet_maru.png",
 	},
 	{
 		name: "観葉植物",
 		danger: 15,
 		deathReason: "観葉植物に反撃された",
-		image: ""
+		image: "",
 	},
 	{
 		name: "花びら",
