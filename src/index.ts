@@ -184,11 +184,9 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
 		}
 	});
 
-    app.get(
-		"/",
-		(_, res) => {
-	    res.send("Sirius Bot Running");
-    });
+	app.get("/", (_, res) => {
+		res.send("Sirius Bot Running");
+	});
 
 	app.get(
 		"/api/shards/:id",
