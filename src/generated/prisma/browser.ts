@@ -3,7 +3,7 @@
 // biome-ignore-all lint: generated file
 // @ts-nocheck
 /*
- * This file should be your main import to use Prisma-related types and utilities in a browser. 
+ * This file should be your main import to use Prisma-related types and utilities in a browser.
  * Use it to get access to models, enums, and input types.
  * 
  * This file does not contain a `PrismaClient` class, nor several other helpers that are intended as server-side only.
