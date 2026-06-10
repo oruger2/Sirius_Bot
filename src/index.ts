@@ -17,14 +17,6 @@ import { ensureJsonDataDir } from "@/utils/jsonFileStore";
 
 const app = express();
 
-app.get("/", (_, res) => {
-	res.send("Sirius Bot Running");
-});
-
-app.listen(process.env.PORT || 3000, () => {
-	console.log("Web server started");
-});
-
 dotenv.config();
 initErrorReporting();
 
@@ -42,7 +34,6 @@ if (!applicationId) {
 
 const SHARD_LIST = [0] as const;
 const TOTAL_SHARDS = SHARD_LIST.length;
-const API_PORT = Number.parseInt(process.env.API_PORT ?? "20419", 10);
 
 /* ======================
    コマンド型
@@ -193,6 +184,12 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
 		}
 	});
 
+    app.get(
+		"/",
+		(_, res) => {
+	    res.send("Sirius Bot Running");
+    });
+
 	app.get(
 		"/api/shards/:id",
 		async (req: Request<{ id: string }>, res: Response) => {
@@ -260,9 +257,9 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
 		}
 	});
 
-	app.listen(API_PORT, () => {
-		console.log(`✅ API started on shard 0 (port: ${API_PORT})`);
-	});
+    app.listen(process.env.PORT || 3000, () => {
+	    console.log("Web server started");
+    });
 };
 
 async function loadCommands(client: ExtendedClient) {
