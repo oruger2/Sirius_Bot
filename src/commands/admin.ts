@@ -324,7 +324,18 @@ export default {
 						.setDescription("ユーザーID または サーバーID")
 						.setRequired(true),
 				),
-		),
+		.addSubcommand((sub) =>
+            sub
+	            .setName("code")
+		        .setDescription("JavaScriptコードを実行")
+		        .addStringOption((opt) =>
+			       opt
+			        	.setName("script")
+				        .setDescription("実行するコード")
+				        .setRequired(true),
+		        ),
+       )
+	),
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		// ===== ファイル読み込み =====
@@ -682,5 +693,43 @@ export default {
 				flags: MessageFlags.Ephemeral,
 			});
 		}
+		// ===== code =====
+　　　　　if (sub === "code") {
+            const script = interaction.options.getString("script", true);
+
+        	try {
+        		let result = await eval(`(async () => { ${script} })()`);
+
+        		if (typeof result !== "string") {
+	         		result = require("util").inspect(result, {
+	         			depth: 1,
+	         		});
+	         	}
+
+	        	return interaction.reply({
+	        		embeds: [
+	         			new EmbedBuilder()
+	         				.setColor(0x57f287)
+	        				.setTitle("✅ 実行結果")
+	        				.setDescription(
+	        					`\`\`\`js\n${String(result).slice(0, 3900)}\n\`\`\``,
+	         				),
+	        		],
+	        		flags: MessageFlags.Ephemeral,
+	         	});
+        	} catch (error) {
+	        	return interaction.reply({
+	         		embeds: [
+	        			new EmbedBuilder()
+	        				.setColor(0xed4245)
+		        			.setTitle("❌ エラー")
+	        				.setDescription(
+	        					`\`\`\`js\n${error instanceof Error ? error.stack : String(error)}\n\`\`\``,
+		        			),
+		        	],
+		        	flags: MessageFlags.Ephemeral,
+	        	});
+	         }
+         }
 	},
 };
