@@ -15,12 +15,8 @@ export default {
 					serverId: guild.id,
 				},
 			});
-
 		} catch (error) {
-			console.error(
-				`❌ Failed to create ServerSetting for ${guild.id}`,
-				error,
-			);
+			console.error(`❌ Failed to create ServerSetting for ${guild.id}`, error);
 		}
 	},
 };
