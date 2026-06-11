@@ -14,3 +14,22 @@ model SurvivalRanking {
 
   updatedAt DateTime @updatedAt
 }
+
+model ServerSetting {
+  id String @id @default(cuid())
+
+  // DiscordサーバーID（実質ユニークキー）
+  serverId String @unique
+
+  // オプトアウト設定
+  spamBlockEnabled    Boolean @default(true)
+  inviteBlockEnabled  Boolean @default(true)
+
+  // 報告先チャンネル
+  spamReportChannelId   String?
+  inviteReportChannelId String?
+
+  // メタ情報（任意）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
