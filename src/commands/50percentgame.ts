@@ -1,9 +1,9 @@
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
+	type ButtonInteraction,
 	ButtonStyle,
-	ChatInputCommandInteraction,
-	ButtonInteraction,
+	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -59,9 +59,7 @@ function createGameEmbed(streak: number) {
 		.setColor(0x5865f2);
 }
 
-export async function handleRedBlueButton(
-	interaction: ButtonInteraction,
-) {
+export async function handleRedBlueButton(interaction: ButtonInteraction) {
 	if (
 		interaction.customId !== "redblue_red" &&
 		interaction.customId !== "redblue_blue"
@@ -82,8 +80,7 @@ export async function handleRedBlueButton(
 	// 正解をランダム決定
 	const answer = Math.random() < 0.5 ? "red" : "blue";
 
-	const success =
-		interaction.customId === `redblue_${answer}`;
+	const success = interaction.customId === `redblue_${answer}`;
 
 	// 失敗
 	if (!success) {
