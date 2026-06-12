@@ -18,33 +18,33 @@ type GuildListEntry = {
 
 type LeaveResult =
 	| {
-		id: string;
-		name: string;
-		shardId: number;
-		success: true;
+			id: string;
+			name: string;
+			shardId: number;
+			success: true;
 	  }
 	| {
-		id: string;
-		name: string;
-		shardId: number;
-		success: false;
-		error: string;
+			id: string;
+			name: string;
+			shardId: number;
+			success: false;
+			error: string;
 	  };
 
-	type InviteResult =
+type InviteResult =
 	| {
-		id: string;
-		name: string;
-		shardId: number;
-		success: true;
-		url: string;
+			id: string;
+			name: string;
+			shardId: number;
+			success: true;
+			url: string;
 	  }
 	| {
-		id: string;
-		name: string;
-		shardId: number;
-		success: false;
-		error: string;
+			id: string;
+			name: string;
+			shardId: number;
+			success: false;
+			error: string;
 	  };
 
 const getAllGuilds = async (
@@ -539,7 +539,9 @@ const command = {
 		// ===== stop =====
 		if (sub === "stop") {
 			const cmd = interaction.options.getString("command", true);
-			const config = await readJsonData("config.json", { stopping: [] as string[] });
+			const config = await readJsonData("config.json", {
+				stopping: [] as string[],
+			});
 			if (config.stopping.includes(cmd)) {
 				config.stopping = config.stopping.filter((c) => c !== cmd);
 				await writeJsonData("config.json", config);
@@ -566,9 +568,7 @@ const command = {
 					.setColor(failures.length > 0 ? 0xfee75c : 0x57f287)
 					.setAuthor({
 						name:
-							failures.length > 0
-								? "⚠️ 再開完了（警告あり）"
-								: "✅ 再開完了",
+							failures.length > 0 ? "⚠️ 再開完了（警告あり）" : "✅ 再開完了",
 						iconURL: SUCCESS_ICON_URL,
 					})
 					.setDescription(
@@ -603,8 +603,7 @@ const command = {
 			const embed = new EmbedBuilder()
 				.setColor(failures.length > 0 ? 0xfee75c : 0xffa500)
 				.setAuthor({
-					name:
-						failures.length > 0 ? "⚠️ 停止完了（警告あり）" : "⛔ 停止完了",
+					name: failures.length > 0 ? "⚠️ 停止完了（警告あり）" : "⛔ 停止完了",
 					iconURL: SUCCESS_ICON_URL,
 				})
 				.setDescription(
@@ -669,7 +668,9 @@ const command = {
 				interaction.user.id !== BOT_OWNER_ID ||
 				!ENABLE_ADMIN_EVAL
 			) {
-				await replyError("このコマンドは **Bot所有者専用** で、かつ環境フラグが必要です。");
+				await replyError(
+					"このコマンドは **Bot所有者専用** で、かつ環境フラグが必要です。",
+				);
 				return;
 			}
 			try {
@@ -689,9 +690,7 @@ const command = {
 				const embed = new EmbedBuilder()
 					.setColor(0x57f287)
 					.setTitle("✅ 実行結果")
-					.setDescription(
-						`\`\`\`js\n${String(result).slice(0, 3900)}\n\`\`\``,
-					);
+					.setDescription(`\`\`\`js\n${String(result).slice(0, 3900)}\n\`\`\``);
 				await sendEphemeral(embed);
 				return;
 			} catch (error) {

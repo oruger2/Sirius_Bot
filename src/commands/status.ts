@@ -153,7 +153,10 @@ const command = {
 			try {
 				const results = await client.shard.broadcastEval((c) => ({
 					guilds: c.guilds.cache.size,
-					users: c.guilds.cache.reduce((sum, g) => sum + (g.memberCount ?? 0), 0),
+					users: c.guilds.cache.reduce(
+						(sum, g) => sum + (g.memberCount ?? 0),
+						0,
+					),
 				}));
 
 				totalGuilds = results.reduce((a, b) => a + b.guilds, 0);

@@ -602,7 +602,11 @@ const command = {
 			embed: EmbedBuilder,
 			components?: ActionRowBuilder<ButtonBuilder>[],
 		) => {
-			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const, components };
+			const replyPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+				components,
+			};
 			const editPayload = { embeds: [embed], components };
 			const followUpPayload = {
 				embeds: [embed],

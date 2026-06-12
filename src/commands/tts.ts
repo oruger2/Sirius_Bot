@@ -19,19 +19,19 @@ import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 const isVoiceChannel = (channel: unknown): channel is VoiceBasedChannel =>
 	Boolean(
 		channel &&
-		typeof channel === "object" &&
-		"isVoiceBased" in channel &&
-		typeof (channel as VoiceBasedChannel).isVoiceBased === "function" &&
-		(channel as VoiceBasedChannel).isVoiceBased(),
+			typeof channel === "object" &&
+			"isVoiceBased" in channel &&
+			typeof (channel as VoiceBasedChannel).isVoiceBased === "function" &&
+			(channel as VoiceBasedChannel).isVoiceBased(),
 	);
 
 const isTextChannel = (channel: unknown): channel is GuildTextBasedChannel =>
 	Boolean(
 		channel &&
-		typeof channel === "object" &&
-		"isTextBased" in channel &&
-		typeof (channel as GuildTextBasedChannel).isTextBased === "function" &&
-		(channel as GuildTextBasedChannel).isTextBased(),
+			typeof channel === "object" &&
+			"isTextBased" in channel &&
+			typeof (channel as GuildTextBasedChannel).isTextBased === "function" &&
+			(channel as GuildTextBasedChannel).isTextBased(),
 	);
 
 const command = {
