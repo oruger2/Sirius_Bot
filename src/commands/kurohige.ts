@@ -137,7 +137,7 @@ const command = {
 			const msg = (await sendGameMessage(embed)) as Message | null;
 			if (!msg) return;
 
-			await startGame(msg, user1, null, true);
+			await startSingleOrGuildGame(msg, user1, null, true);
 			return;
 		}
 
@@ -183,7 +183,7 @@ const command = {
 				await i.deferUpdate();
 
 				const matchedEmbed = new EmbedBuilder()
-					.setTitle("⚔️ 対戦決定")
+					.setTitle("⚔️ 对戦決定")
 					.setDescription(
 						`プレイヤー1: ${user1}\nプレイヤー2: ${i.user}\n\nゲームを開始します！`,
 					)
@@ -191,7 +191,7 @@ const command = {
 					.setTimestamp(new Date());
 
 				await msg.edit({ embeds: [matchedEmbed], components: [] });
-				await startGame(msg, user1, i.user, false);
+				await startSingleOrGuildGame(msg, user1, i.user, false);
 			});
 
 			collector.on("end", async (_, reason) => {
@@ -209,38 +209,40 @@ const command = {
 			return;
 		}
 
-		// 3. グローバルマッチングモード
+		// 3. 【重要修正】グローバルマッチングモード
 		if (mode === "global") {
 			if (globalQueue && globalQueue.userId !== user1.id) {
-				const opponent = globalQueue.interaction;
+				// マッチング成立
+				const waiter = globalQueue;
 				globalQueue = null;
 
 				const matchEmbed = new EmbedBuilder()
 					.setTitle("🌐 グローバルマッチング成立！")
 					.setDescription(
-						`マッチングが完了しました！\n対戦相手: ${opponent.user} vs ${user1}`,
+						`マッチングが完了しました！ゲームを開始します。\n\n🔵 プレイヤー1: ${waiter.interaction.user}\n🟢 プレイヤー2: ${user1}`,
 					)
 					.setColor(0x57f287)
 					.setTimestamp(new Date());
 
 				try {
-					await opponent.followUp({ embeds: [matchEmbed] });
-					const msg = (await interaction.followUp({
-						embeds: [matchEmbed],
-					})) as Message;
-					await startGame(msg, opponent.user, user1, false);
+					// お互いの画面（それぞれのインタラクション）に初期表示
+					await waiter.interaction.editReply({ embeds: [matchEmbed] });
+					await interaction.editReply({ embeds: [matchEmbed] });
+
+					// 双方の interaction を引き渡してメッセージ同期型のゲームを開始
+					await startGlobalGame(waiter.interaction, interaction);
 				} catch (_error) {
-					// 未使用変数警告(noUnusedVariables)対策で「_error」に変更
 					await replyError(
 						"❌ マッチング相手への通知に失敗しました。キューをリセットします。",
 					);
 				}
 			} else {
+				// 待機列に登録
 				globalQueue = { userId: user1.id, interaction };
 				const waitEmbed = new EmbedBuilder()
 					.setTitle("🌐 グローバルマッチング中")
 					.setDescription(
-						"他サーバーからの対戦相手を待っています...\n見つかるまでこのまましばらくお待ちください。",
+						"他サーバー・他チャンネルからの対戦相手を待っています...\n見つかるまでこのまましばらくお待ちください。",
 					)
 					.setColor(0xf1c40f)
 					.setTimestamp(new Date());
@@ -250,9 +252,170 @@ const command = {
 	},
 };
 
-// --- コア・ゲームロジック関数 ---
-// 引数「interaction」は使われていなかったため削除 (noUnusedFunctionParameters対策)
-async function startGame(
+// --- 🌐 グローバル対戦用（2つの別チャンネルメッセージ同期）ロジック ---
+async function startGlobalGame(
+	interaction1: ChatInputCommandInteraction,
+	interaction2: ChatInputCommandInteraction,
+) {
+	const totalHoles = 8;
+	const loseHole = Math.floor(Math.random() * totalHoles);
+	const safeHoles: number[] = [];
+	let turn = 1; // 1 = interaction1のユーザー、2 = interaction2のユーザー
+	let isGameOver = false;
+
+	const player1 = interaction1.user;
+	const player2 = interaction2.user;
+
+	const getActivePlayer = (): User => {
+		return turn === 1 ? player1 : player2;
+	};
+
+	// 自分のターンであるメッセージ側のボタンだけ有効にする
+	const buildButtons = (
+		forPlayer1: boolean,
+	): ActionRowBuilder<ButtonBuilder>[] => {
+		const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+		let currentRow = new ActionRowBuilder<ButtonBuilder>();
+
+		const isMyTurn = (forPlayer1 && turn === 1) || (!forPlayer1 && turn === 2);
+
+		for (let i = 0; i < totalHoles; i++) {
+			if (i > 0 && i % 4 === 0) {
+				rows.push(currentRow);
+				currentRow = new ActionRowBuilder<ButtonBuilder>();
+			}
+
+			const btn = new ButtonBuilder().setCustomId(`hole_click_${i}`);
+			if (safeHoles.includes(i)) {
+				btn.setLabel("🗡️").setStyle(ButtonStyle.Secondary).setDisabled(true);
+			} else {
+				btn.setLabel(`穴 ${i + 1}`).setStyle(ButtonStyle.Success);
+				// 自分のターンではない、またはゲームオーバー時はすべてのボタンを無効化
+				if (!isMyTurn || isGameOver) {
+					btn.setDisabled(true);
+				}
+			}
+			currentRow.addComponents(btn);
+		}
+		rows.push(currentRow);
+		return rows;
+	};
+
+	const buildGameEmbed = (extraText = "") => {
+		return new EmbedBuilder()
+			.setTitle("🏴‍☠️ 黒ひげ危機一発 (グローバル対戦)")
+			.setDescription(
+				`${extraText}\n🔵 プレイヤー1: ${player1} (送信先 ch: <#${interaction1.channelId}>)\n🟢 プレイヤー2: ${player2} (送信先 ch: <#${interaction2.channelId}>)\n\n👉 **現在の手番:** ${getActivePlayer()}`,
+			)
+			.setColor(0x3498db)
+			.setFooter({ text: `安全な穴: ${safeHoles.length} / ${totalHoles - 1}` })
+			.setTimestamp(new Date());
+	};
+
+	// 🔴 双方のチャンネルのメッセージを同時に最新化する関数
+	const syncScreens = async (noticeText = "順番に穴を刺してください。") => {
+		const embed = buildGameEmbed(noticeText);
+		await interaction1
+			.editReply({ embeds: [embed], components: buildButtons(true) })
+			.catch(() => null);
+		await interaction2
+			.editReply({ embeds: [embed], components: buildButtons(false) })
+			.catch(() => null);
+	};
+
+	// 初回表示
+	await syncScreens(
+		"ゲーム開始！順番に穴を刺してください。ハズレを引くと黒ひげが飛び出します！",
+	);
+
+	const msg1 = await interaction1.fetchReply();
+	const msg2 = await interaction2.fetchReply();
+
+	const collector1 = msg1.createMessageComponentCollector({
+		componentType: ComponentType.Button,
+		time: 300000,
+	});
+	const collector2 = msg2.createMessageComponentCollector({
+		componentType: ComponentType.Button,
+		time: 300000,
+	});
+
+	const stopCollectors = () => {
+		collector1.stop();
+		collector2.stop();
+	};
+
+	const handlePokeAction = async (i: any, clickerId: string) => {
+		const activePlayer = getActivePlayer();
+
+		if (clickerId !== activePlayer.id) {
+			await i.reply({
+				content: "❌ あなたのターンではありません！",
+				ephemeral: true,
+			});
+			return;
+		}
+
+		await i.deferUpdate();
+		const selected = parseInt(i.customId.split("_")[2], 10);
+
+		if (selected === loseHole) {
+			isGameOver = true;
+			stopCollectors();
+
+			const winnerText = turn === 1 ? player2.username : player1.username;
+			const loseEmbed = new EmbedBuilder()
+				.setAuthor({ name: "💥 ドカーン！ゲーム終了", iconURL: ERROR_ICON_URL })
+				.setDescription(
+					`${i.user} がハズレを刺してしまいました！黒ひげが飛び出します！\n\n🏆 **勝者: ${winnerText}**`,
+				)
+				.setColor(0xed4245)
+				.setTimestamp(new Date());
+
+			await interaction1
+				.editReply({ embeds: [loseEmbed], components: [] })
+				.catch(() => null);
+			await interaction2
+				.editReply({ embeds: [loseEmbed], components: [] })
+				.catch(() => null);
+		} else {
+			safeHoles.push(selected);
+			turn = turn === 1 ? 2 : 1;
+			await syncScreens(`${i.user} はセーフ！`);
+		}
+	};
+
+	collector1.on("collect", async (i) => await handlePokeAction(i, player1.id));
+	collector2.on("collect", async (i) => await handlePokeAction(i, player2.id));
+
+	const handleTimeout = async () => {
+		if (isGameOver) return;
+		isGameOver = true;
+		stopCollectors();
+
+		const timeoutEmbed = new EmbedBuilder()
+			.setDescription(
+				"⏳ プレイヤーの操作が無かったため、時間切れで終了しました。",
+			)
+			.setColor(0x95a5a6);
+		await interaction1
+			.editReply({ embeds: [timeoutEmbed], components: [] })
+			.catch(() => null);
+		await interaction2
+			.editReply({ embeds: [timeoutEmbed], components: [] })
+			.catch(() => null);
+	};
+
+	collector1.on("end", async (_, reason) => {
+		if (reason === "time") await handleTimeout();
+	});
+	collector2.on("end", async (_, reason) => {
+		if (reason === "time") await handleTimeout();
+	});
+}
+
+// --- 🤖 AI戦 & 👥 サーバー内募集用（1つのメッセージで完結する従来のゲームシステム） ---
+async function startSingleOrGuildGame(
 	message: Message,
 	player1: User,
 	player2: User | null,
@@ -363,12 +526,10 @@ async function startGame(
 		}
 
 		await i.deferUpdate();
-		// 10進数の明示 (useParseIntRadix対策)
 		const selected = parseInt(i.customId.split("_")[2], 10);
 
 		if (selected === loseHole) {
 			collector.stop("gameover");
-			// フォールバック付きの評価にし、!を排除 (noNonNullAssertion対策)
 			const winner =
 				turn === 1
 					? isAi
