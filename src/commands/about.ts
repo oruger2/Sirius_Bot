@@ -6,22 +6,24 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
+import { SUCCESS_ICON_URL, ERROR_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
 	data: new SlashCommandBuilder()
 		.setName("about")
 		.setDescription("Botの情報を表示します"),
-
 	async execute(interaction: ChatInputCommandInteraction) {
 		const sendEphemeral = async (
 			embed: EmbedBuilder,
 			components?: ActionRowBuilder<ButtonBuilder>[],
 		) => {
-			const replyPayload = { embeds: [embed], components };
+			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const, components };
 			const editPayload = { embeds: [embed], components };
-			const followUpPayload = { embeds: [embed], components };
-
+			const followUpPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+				components,
+			};
 			const tryEdit = async () => {
 				try {
 					return await interaction.editReply(editPayload);
@@ -35,7 +37,6 @@ const command = {
 					throw error;
 				}
 			};
-
 			const tryReply = async () => {
 				try {
 					return await interaction.reply(replyPayload);
@@ -46,7 +47,6 @@ const command = {
 					throw error;
 				}
 			};
-
 			const tryFollowUp = async () => {
 				try {
 					return await interaction.followUp(followUpPayload);
@@ -54,31 +54,46 @@ const command = {
 					return null;
 				}
 			};
-
 			if (interaction.deferred || interaction.replied) {
 				const edited = await tryEdit();
-				if (edited) return edited;
-
+				if (edited) {
+					return edited;
+				}
 				const replied = await tryReply();
-				if (replied) return replied;
-
+				if (replied) {
+					return replied;
+				}
 				await tryFollowUp();
 				return;
 			}
-
 			const replied = await tryReply();
-			if (replied) return replied;
-
+			if (replied) {
+				return replied;
+			}
 			const edited = await tryEdit();
-			if (edited) return edited;
-
+			if (edited) {
+				return edited;
+			}
 			await tryFollowUp();
+		};
+		const replyError = async (content: string) => {
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "エラー",
+					iconURL: ERROR_ICON_URL,
+				})
+				.setDescription(content)
+				.setColor(0xed4245)
+				.setTimestamp(new Date());
+			await sendEphemeral(embed);
 		};
 
 		if (!interaction.deferred && !interaction.replied) {
 			try {
-				await interaction.deferReply();
-			} catch {}
+				await interaction.deferReply({ flags: ["Ephemeral"] as const });
+			} catch {
+				// If defer fails, continue and attempt a normal reply in sendEphemeral.
+			}
 		}
 
 		const embed = new EmbedBuilder()
@@ -95,7 +110,6 @@ const command = {
 			)
 			.setColor(0x5865f2)
 			.setTimestamp(new Date());
-
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			new ButtonBuilder()
 				.setLabel("サポートサーバー")
@@ -106,9 +120,7 @@ const command = {
 				.setStyle(ButtonStyle.Link)
 				.setURL("https://siriusbot.f5.si/"),
 		);
-
 		await sendEphemeral(embed, [row] as const);
 	},
 };
-
 export default command;

@@ -5,114 +5,204 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
-export const data = new SlashCommandBuilder()
-	.setName("status")
-	.setDescription("Botの詳細ステータスを表示");
+const command = {
+	data: new SlashCommandBuilder()
+		.setName("status")
+		.setDescription("Botの詳細ステータスを表示"),
 
-export async function execute(interaction: ChatInputCommandInteraction) {
-	await interaction.deferReply();
+	async execute(interaction: ChatInputCommandInteraction) {
+		const sendEphemeral = async (embed: EmbedBuilder) => {
+			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+			const editPayload = { embeds: [embed] };
+			const followUpPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+			};
 
-	const client = interaction.client;
+			const tryEdit = async () => {
+				try {
+					return await interaction.editReply(editPayload);
+				} catch (error) {
+					if (
+						error instanceof Error &&
+						error.name === "InteractionNotReplied"
+					) {
+						return null;
+					}
+					throw error;
+				}
+			};
 
-	// =========================
-	// ✅ CPU
-	// =========================
-	const cpus = os.cpus();
-	const cpuUsage =
-		cpus.reduce((acc, cpu) => {
-			const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
-			return acc + (1 - cpu.times.idle / total);
-		}, 0) / cpus.length;
+			const tryReply = async () => {
+				try {
+					return await interaction.reply(replyPayload);
+				} catch (error) {
+					if ((error as { code?: number }).code === 40060) {
+						return null;
+					}
+					throw error;
+				}
+			};
 
-	const cpuPercent = (cpuUsage * 100).toFixed(2);
+			const tryFollowUp = async () => {
+				try {
+					return await interaction.followUp(followUpPayload);
+				} catch {
+					return null;
+				}
+			};
 
-	// =========================
-	// ✅ RAM（サーバー）
-	// =========================
-	const totalMem = os.totalmem();
-	const freeMem = os.freemem();
-	const usedMem = totalMem - freeMem;
+			if (interaction.deferred || interaction.replied) {
+				const edited = await tryEdit();
+				if (edited) {
+					return edited;
+				}
+				const replied = await tryReply();
+				if (replied) {
+					return replied;
+				}
+				await tryFollowUp();
+				return;
+			}
 
-	const usedMemMB = (usedMem / 1024 / 1024).toFixed(0);
-	const totalMemMB = (totalMem / 1024 / 1024).toFixed(0);
-	const memPercent = ((usedMem / totalMem) * 100).toFixed(2);
+			const replied = await tryReply();
+			if (replied) {
+				return replied;
+			}
 
-	// =========================
-	// ✅ Bot稼働時間
-	// =========================
-	const botUptime = formatTime(process.uptime());
+			const edited = await tryEdit();
+			if (edited) {
+				return edited;
+			}
 
-	// =========================
-	// ✅ サーバー稼働時間
-	// =========================
-	const serverUptime = formatTime(os.uptime());
+			await tryFollowUp();
+		};
 
-	// =========================
-	// ✅ Ping
-	// =========================
-	const ping = Math.round(client.ws.ping);
+		const replyError = async (content: string) => {
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "エラー",
+					iconURL: ERROR_ICON_URL,
+				})
+				.setDescription(content)
+				.setColor(0xed4245)
+				.setTimestamp(new Date());
+			await sendEphemeral(embed);
+		};
 
-	// =========================
-	// ✅ シャード対応
-	// =========================
-	let totalGuilds = client.guilds.cache.size;
-	let totalUsers = client.guilds.cache.reduce(
-		(sum, g) => sum + (g.memberCount ?? 0),
-		0,
-	);
-
-	if (client.shard) {
-		try {
-			const results = await client.shard.broadcastEval((c) => ({
-				guilds: c.guilds.cache.size,
-				users: c.guilds.cache.reduce((sum, g) => sum + (g.memberCount ?? 0), 0),
-			}));
-
-			totalGuilds = results.reduce((a, b) => a + b.guilds, 0);
-			totalUsers = results.reduce((a, b) => a + b.users, 0);
-		} catch {
-			// 起動中は無視
+		if (!interaction.deferred && !interaction.replied) {
+			try {
+				await interaction.deferReply({ flags: ["Ephemeral"] as const });
+			} catch {
+				// If defer fails, continue and attempt a normal reply in sendEphemeral.
+			}
 		}
-	}
 
-	// =========================
-	// ✅ Embed（author形式）
-	// =========================
-	const embed = new EmbedBuilder()
-		.setAuthor({
-			name: client.user?.tag ?? "Bot",
-			iconURL: client.user?.displayAvatarURL(),
-		})
-		.setDescription("📊 **Bot System Status**")
-		.addFields(
-			{
-				name: "🖥️ システム",
-				value: `CPU: **${cpuPercent}%**\nRAM: **${memPercent}%** (${usedMemMB}/${totalMemMB}MB)`,
-				inline: false,
-			},
-			{
-				name: "📡 ネットワーク",
-				value: `Ping: **${ping}ms**\nShard: **${client.shard?.count ?? 1}**`,
-				inline: false,
-			},
-			{
-				name: "🌐 Discord",
-				value: `Servers: **${totalGuilds}**\nUsers: **${totalUsers}**`,
-				inline: false,
-			},
-			{
-				name: "⏱️ 稼働時間",
-				value: `Bot: **${botUptime}**\nServer: **${serverUptime}**`,
-				inline: false,
-			},
-		)
-		.setColor(0x00ffcc)
-		.setFooter({ text: "Sirius System Monitor" })
-		.setTimestamp();
+		const client = interaction.client;
 
-	await interaction.editReply({ embeds: [embed] });
-}
+		// =========================
+		// ✅ CPU
+		// =========================
+		const cpus = os.cpus();
+		const cpuUsage =
+			cpus.reduce((acc, cpu) => {
+				const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
+				return acc + (1 - cpu.times.idle / total);
+			}, 0) / cpus.length;
+
+		const cpuPercent = (cpuUsage * 100).toFixed(2);
+
+		// =========================
+		// ✅ RAM（サーバー）
+		// =========================
+		const totalMem = os.totalmem();
+		const freeMem = os.freemem();
+		const usedMem = totalMem - freeMem;
+
+		const usedMemMB = (usedMem / 1024 / 1024).toFixed(0);
+		const totalMemMB = (totalMem / 1024 / 1024).toFixed(0);
+		const memPercent = ((usedMem / totalMem) * 100).toFixed(2);
+
+		// =========================
+		// ✅ Bot稼働時間
+		// =========================
+		const botUptime = formatTime(process.uptime());
+
+		// =========================
+		// ✅ サーバー稼働時間
+		// =========================
+		const serverUptime = formatTime(os.uptime());
+
+		// =========================
+		// ✅ Ping
+		// =========================
+		const ping = Math.round(client.ws.ping);
+
+		// =========================
+		// ✅ シャード対応
+		// =========================
+		let totalGuilds = client.guilds.cache.size;
+		let totalUsers = client.guilds.cache.reduce(
+			(sum, g) => sum + (g.memberCount ?? 0),
+			0,
+		);
+
+		if (client.shard) {
+			try {
+				const results = await client.shard.broadcastEval((c) => ({
+					guilds: c.guilds.cache.size,
+					users: c.guilds.cache.reduce((sum, g) => sum + (g.memberCount ?? 0), 0),
+				}));
+
+				totalGuilds = results.reduce((a, b) => a + b.guilds, 0);
+				totalUsers = results.reduce((a, b) => a + b.users, 0);
+			} catch {
+				// 起動中は無視
+			}
+		}
+
+		// =========================
+		// ✅ Embed（author形式）
+		// =========================
+		const embed = new EmbedBuilder()
+			.setAuthor({
+				name: client.user?.tag ?? "Bot",
+				iconURL: client.user?.displayAvatarURL(),
+			})
+			.setDescription("📊 **Bot System Status**")
+			.addFields(
+				{
+					name: "🖥️ システム",
+					value: `CPU: **${cpuPercent}%**\nRAM: **${memPercent}%** (${usedMemMB}/${totalMemMB}MB)`,
+					inline: false,
+				},
+				{
+					name: "📡 ネットワーク",
+					value: `Ping: **${ping}ms**\nShard: **${client.shard?.count ?? 1}**`,
+					inline: false,
+				},
+				{
+					name: "🌐 Discord",
+					value: `Servers: **${totalGuilds}**\nUsers: **${totalUsers}**`,
+					inline: false,
+				},
+				{
+					name: "⏱️ 稼働時間",
+					value: `Bot: **${botUptime}**\nServer: **${serverUptime}**`,
+					inline: false,
+				},
+			)
+			.setColor(0x00ffcc)
+			.setFooter({ text: "Sirius System Monitor" })
+			.setTimestamp();
+
+		await sendEphemeral(embed);
+	},
+};
+
+export default command;
 
 // =========================
 // ⏱️ 時間フォーマット
