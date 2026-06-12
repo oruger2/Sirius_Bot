@@ -3,7 +3,7 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { SUCCESS_ICON_URL, ERROR_ICON_URL } from "@/utils/embedIcons";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
 	data: new SlashCommandBuilder()

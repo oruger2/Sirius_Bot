@@ -6,7 +6,7 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { SUCCESS_ICON_URL, ERROR_ICON_URL } from "@/utils/embedIcons";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 const command = {
 	data: new SlashCommandBuilder()
@@ -17,7 +17,11 @@ const command = {
 			embed: EmbedBuilder,
 			components?: ActionRowBuilder<ButtonBuilder>[],
 		) => {
-			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const, components };
+			const replyPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+				components,
+			};
 			const editPayload = { embeds: [embed], components };
 			const followUpPayload = {
 				embeds: [embed],
