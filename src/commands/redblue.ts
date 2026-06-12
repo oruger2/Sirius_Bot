@@ -7,7 +7,7 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
+import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 type GameData = {
 	streak: number;
@@ -96,17 +96,6 @@ const command = {
 			await tryFollowUp();
 		};
 
-		const replyError = async (content: string) => {
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "エラー",
-					iconURL: ERROR_ICON_URL,
-				})
-				.setDescription(content)
-				.setColor(0xed4245)
-				.setTimestamp(new Date());
-			await sendEphemeral(embed);
-		};
 
 		if (!interaction.deferred && !interaction.replied) {
 			try {
