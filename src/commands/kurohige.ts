@@ -21,7 +21,7 @@ let globalQueue: Waiter | null = null;
 const command = {
 	data: new SlashCommandBuilder()
 		.setName("kurohige")
-		.setDescription("黒ひげ危機一発を開始します！")
+		.setDescription("海賊危機一発を開始します！")
 		.addStringOption((option) =>
 			option
 				.setName("mode")
@@ -129,7 +129,7 @@ const command = {
 		// 1. AI対戦モード
 		if (mode === "ai") {
 			const embed = new EmbedBuilder()
-				.setTitle("🤖 黒ひげ危機一発 - AI戦")
+				.setTitle("🤖 海賊危機一発 - AI戦")
 				.setDescription("AIとの対戦を開始します！")
 				.setColor(0x5865f2)
 				.setTimestamp(new Date());
@@ -149,7 +149,7 @@ const command = {
 			}
 
 			const embed = new EmbedBuilder()
-				.setTitle("👥 黒ひげ危機一発 - 参加者募集")
+				.setTitle("👥 海賊危機一発 - 参加者募集")
 				.setDescription(
 					`${user1}が対戦相手を募集しています！\n下のボタンを押してゲームに参戦してください。`,
 				)
@@ -303,7 +303,7 @@ async function startGlobalGame(
 
 	const buildGameEmbed = (extraText = "") => {
 		return new EmbedBuilder()
-			.setTitle("🏴‍☠️ 黒ひげ危機一発 (グローバル対戦)")
+			.setTitle("🏴‍☠️ 海賊危機一発 (グローバル対戦)")
 			.setDescription(
 				`${extraText}\n🔵 プレイヤー1: ${player1} (送信先 ch: <#${interaction1.channelId}>)\n🟢 プレイヤー2: ${player2} (送信先 ch: <#${interaction2.channelId}>)\n\n👉 **現在の手番:** ${getActivePlayer()}`,
 			)
