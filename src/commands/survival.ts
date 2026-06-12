@@ -8,6 +8,7 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import prisma from "@/database/db";
+import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 interface Food {
 	name: string;
@@ -329,174 +330,151 @@ const foods: Food[] = [
 	},
 	{
 		name: "ボディソープ",
-		danger: 23,
-		deathReason: "胃が泡だらけになった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiZhT1OHyz3ecWku0YSfBXPYhn9WjmFJcpbsvN7YBGvZzSORKstM1bRgSWhj2Q3bjjpfh22bHvNjC0r2-l3el8Vlc5pYBB-3TTVAKXq0igoxmPkmRUZ3BPHyo22ycd55_-UmaqdqO85UYGN/s1600/sekken_hand_soap_bottle.png",
+		danger: 32,
+		deathReason: "ボディソープで胃が綺麗になりすぎた",
 	},
 	{
 		name: "歯磨き粉",
-		danger: 10,
-		deathReason: "ミントの味が苦手だった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiLkxPgBvq4XmdCP3eM50TTlQTDlw0GnzgXepWJSHKv7FY_s0gBV4U1gPoRQDYynU62Q2t8nmtqNVUmm5UkoAsxuiTpwyGgCRjFOpUTn0309zK8UZ-5cM_ujLTeVyL753eHAN1Hx5xrgPH2/s800/hamigakiko.png",
+		danger: 28,
+		deathReason: "歯磨き粉で口がスースーしすぎた",
 	},
 	{
-		name: "口紅",
-		danger: 14,
-		deathReason: "胃の中が真っ赤になった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj2fSQAXMRmw6DQ5FZfJy90a-7MyUyDOe4hWVRknoJxaDMCQFVwyg_-grsEX_4dpmJM49wrilxGAxMqZhWztf18DzShKIvzXltC8tZYD0KeoRx4QIlb4Bo7cm0szsq_ENNCVKY2lObA2GSz/s581/kuchibeni.png",
-	},
-	{
-		name: "シャーペンの芯",
-		danger: 12,
-		deathReason: "シャーペンの芯が刺さった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSesMgF9B5crf8pTUhp3RxYDW3V8rUcIr5Sl_gHxHVIEvymCHBxgemrT_OlSxCAFu0xjTrXckLGznDQZMkV_sHJGI0dIDzwg9Z0CIVfW-VqX2siDnu65F6A77c8ADqjPGJtalMtbbyE3_E/s800/bunbougu_sharppen_shin.png",
-	},
-	{
-		name: "シャーペン",
-		danger: 11,
-		deathReason: "シャーペンが喉を突き破った",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEikBSnPwNJWvzF0eN3SrXbNqgp3fCg1W8wW7_nP-dh_hZ8yHbRvh17ZheSOdJT1YtRii0ko5qcapmRNcVAldpM8DhETHEuSlKx0dNhfm-nNg3VgRzYX3xIgZu5hiHkl8rU-FHQP7QaAibkd/s800/seizu_pen.png",
-	},
-	{
-		name: "カニ",
-		danger: 26,
-		deathReason: "カニの爪が喉を突き刺した",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjz0biB17cJqro957Jm6LcT1VK9yFkumQk1sbFyFW1VcFugcs_ZEyzMhqm3o9oYKHhMa0b_FRmcnjWdpCowiZxJKwx2YcmP6Ith5OF3Pp285NhZJma4HKyZJJ6v88m2hp04NuNn6rS7TmU1/s600/umi_kani.png",
-	},
-	{
-		name: "ワイン",
-		danger: 17,
-		deathReason: "酔いすぎた",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj067Jze2eb3uMM8rF2EVBlJruDVqIV58bsNLfnjTRFUPikopwH8UL8ag0y6Dzwwm6rnjwXmc4vTwUn_r0N1NsefOs4LCaqf0F9KyCqgzj2TU2IORsCtUYRAqANgsYUA8F6FoPSSMYU6Yw/s800/drink_sparkling_wine.png",
-	},
-	{
-		name: "フライパン",
-		danger: 44,
-		deathReason: "フライパンが熱すぎた",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjFIVDDYuLzd9P-Te4zg7x9dPadTEUCMTBZmXriCB1jr9YHLoJ6NjiZNVKTB1ig25QNmY6TuLkM4hpEVv1dkQ0yPjbYQPcUyD4oObDObklgGdErhLcbMUOd9ZijVscgbKB7gzMEnEuG-YY/s800/cooking_frypan.png",
-	},
-	{
-		name: "人形",
-		danger: 37,
-		deathReason: "呪いころされた",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhVXyqH-GVOB9Kd6Srvxo942Lboy3lD1_rJ5k3doqF7ipUp3oAuMzAVqzslrpEgKeqYbgUmqCKsCA90GxK5dCzrD_fN6To-X3bCzXOsTKPdZYOr90S9QkD1JzLGFB6InMzyJsgGyPI_r1qa/s800/toy_france_ningyou.png",
-	},
-	{
-		name: "教科書",
-		danger: 26,
-		deathReason: "スイミーは大きすぎた",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhLxia9QdF3GzQPWaaF1EGfyOKoaVnhY7q1AhP_UxR_Kno-0UJqN0tJQesJu9foR7KzHyk1HpHdpjEpZPlWlguzw2qdzfu-z7a7n2hG2AsFcOGVImLwHpQpKUB9oKcl4Vu4Mal2eGAw1jnL/s800/textbook_5kyouka_chuugaku.png",
-	},
-	{
-		name: "消しゴムのカス",
-		danger: 11,
-		deathReason: "胃の中で練り消しになった",
-		image:
-			"https://cdn.discordapp.com/attachments/1480902153655681064/1513370291575853107/image.png?ex=6a277b6a&is=6a2629ea&hm=7ef32a213847c84193229ed6641391b73e8f375cf378596297a2ef9c677ed34d",
-	},
-	{
-		name: "カッター",
-		danger: 40,
-		deathReason: "カッターが喉を突き破った",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgA9iLiGzBN2N_jGFgRE4h2W2ktOjgIz3wktfJQnZfUSoqey6_vrCep-t0O0iFMyY_eAScRtVxf0VpkrMG6xRUg0bGK_7eV6vFpokv-xoENhkvnHYOOD_lAmKXe03n_2YveGz9J3tPsnSiD/s1600/bunbougu_cutter.png",
-	},
-	{
-		name: "おはじき",
-		danger: 15,
-		deathReason: "おはじきが喉に詰まった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgy1V2Tel0fP3dNzCfmiPHWu1GelFNEXQkbrgYu7PrR9Ri5UA2WontqyzyVSbHxCIO3o3-VNJa6kMml4xAIaQfDMXkMhkEPQB9Ne48_tZEdneZYXyfQLNtr0xXLrFloAkAWj3YIcAVDlGUF/s1600/toy_ohajiki.png",
-	},
-	{
-		name: "バレーボール",
-		danger: 38,
-		deathReason: "バレーボールが喉に詰まった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjebatlM7TiMX4OjedW6GVeY0jtqSCHIBo6rcbHUXir1yiuuYighsRJLh5YSxNcDSE78Z0_22J2y_3OpJJFXfsINzAhrcrAYm3Be5OYNlGTupr5KK2g5rpKk8OROxHTotvNU-l5Po42vFBt/s800/sports_ball_volleyball_greenred.png",
-	},
-	{
-		name: "オムライス",
-		danger: 5,
-		deathReason: "食べきれなかったのでもったいないばあさんに殺された",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhg5nDb_mCwhuyWtSDadS6fFWmUKskJCha5EifBMoq68cjQDZ11qrrEbRvUApAUlslPxUMNSshjnXqQpSZz1SBgwWdBTD7-i4tCsU39fQukZDMjRHmB8V5UgTak5uhbV-RwF37CIRnRt9Ex/s800/food_omurice.png",
+		name: "トイレットペーパー",
+		danger: 16,
+		deathReason: "トイレットペーパーが喉に詰まった",
 	},
 	{
 		name: "スポンジ",
-		danger: 38,
-		deathReason: "体内の水分を全部吸われた",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjevwiJXcb9Qy6c1BiAgBPGJrE2CfN0bCE3L2E7Tj3lpf7YHxhgcq77Sl3U8dUZv5XD52N1QM8NoeG5r8U5RDpzcdEwff1RB_j5wa3G_rvUJeRSqwzPUFBG432WJy7Wq79yHtFD-cSJn7k/s800/cooking_sponge.png",
-	},
-	{
-		name: "石炭",
-		danger: 32,
-		deathReason: "石炭が胃の中で燃えた",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5Rof24HVGKbrk4o7UhfqnvnTo5ZCb1l3ozGBvnfUe7yMouGAZae5GWGw_wht_AHR14HjtfjtNMmPUq7ZiHG6N-SFmta1b6XT8Bzb6bOg3Fry5pYihxV6a2oZTYZ56E9hWnyDnhcQqrqQD/s800/nenryou_sekitan.png",
-	},
-	{
-		name: "木片",
-		danger: 22,
-		deathReason: "木片が刺さった",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhWC4CO14m0GEfo5QlG8PLOb-mHvw693uvmbF-aLnXDyeFcxIUL3K4UhMc0A_mVTsWTK0zpyhfnSjuTl53zkyqK1huCbqC12eGlbH9UUJAGYu1tjwZbPD0gissoUocj8Jtb_8LwODvcs2iC/s800/nenryou_maki.png",
-	},
-	{
-		name: "落ち葉",
-		danger: 16,
-		deathReason: "胃の中でダンゴムシが大量発生した",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1Ogzcfqnkb5qEeTr_gSDW5xN9DP3ABtiB3yErx9wJqCZEU_ZyiMpLhk7dvxevSwiXhW8AgVyy9aAxTT2iZ7PpiK3ioDQPkRQqTQtIKgkqRBG_lGX9U_nfiY2aoGzT8JSBJWyYY8Oweu-9/s800/ochiba9.png",
-	},
-	{
-		name: "芝生",
-		danger: 13,
-		deathReason: "喉がチクチクした",
-		image:
-			"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_sLzXW_ryGHZoOgGmDL7R9mHDfgkkgtqWoP-vuW8nVJJRaQ9pmQtCwM4TFYCPaqk2upqtkHhW-mdgf9DxmIK96nq6hHz8_SLOnMJ5kzOJNocU1PnKCDPPP6-xGl3usbZLGOHWAXpn8HQ/s800/kagu_carpet_maru.png",
-	},
-	{
-		name: "観葉植物",
-		danger: 15,
-		deathReason: "観葉植物に反撃された",
-		image: "",
-	},
-	{
-		name: "花びら",
-		danger: 10,
-		deathReason: "花びらを喉に詰まらせた",
-	},
-	{
-		name: "松ぼっくり",
-		danger: 35,
-		deathReason: "松ぼっくりを丸飲みした",
-	},
-	{
-		name: "どんぐり",
-		danger: 23,
-		deathReason: "どんぐりが喉に詰まった",
-	},
-	{
-		name: "小石",
 		danger: 25,
-		deathReason: "小石で歯が砕けた",
+		deathReason: "スポンジが胃液を全部吸い取った",
+	},
+	{
+		name: "たわし",
+		danger: 29,
+		deathReason: "たわしで喉が傷だらけになった",
+	},
+	{
+		name: "雑巾",
+		danger: 33,
+		deathReason: "雑巾の汚れで感染症になった",
+	},
+	{
+		name: "画鋲",
+		danger: 45,
+		deathReason: "画鋲が胃に刺さった",
+	},
+	{
+		name: "クリップ",
+		danger: 38,
+		deathReason: "クリップが喉に引っかかった",
+	},
+
+	{
+		name: "ホッチキスの芯",
+		danger: 42,
+		deathReason: "ホッチキスの芯が刺さった",
+	},
+	{
+		name: "安全ピン",
+		danger: 46,
+		deathReason: "安全ピンが安全じゃなかった",
+	},
+	{
+		name: "釘",
+		danger: 55,
+		deathReason: "釘が胃を貫通した",
+	},
+	{
+		name: "ネジ",
+		danger: 52,
+		deathReason: "ネジが胃に刺さった",
+	},
+	{
+		name: "ボルト",
+		danger: 50,
+		deathReason: "ボルトが胃に刺さった",
+	},
+	{
+		name: "ナット",
+		danger: 48,
+		deathReason: "ナットが喉に詰まった",
+	},
+	{
+		name: "ワッシャー",
+		danger: 44,
+		deathReason: "ワッシャーが喉に詰まった",
+	},
+	{
+		name: "画用紙",
+		danger: 17,
+		deathReason: "画用紙が喉に詰まった",
+	},
+	{
+		name: "折り紙",
+		danger: 16,
+		deathReason: "折り紙が喉に詰まった",
+	},
+	{
+		name: "新聞紙",
+		danger: 18,
+		deathReason: "新聞紙のインクで中毒になった",
+	},
+
+	{
+		name: "雑誌",
+		danger: 19,
+		deathReason: "雑誌が喉に詰まった",
+	},
+	{
+		name: "チラシ",
+		danger: 18,
+		deathReason: "チラシが喉に詰まった",
+	},
+	{
+		name: "パンフレット",
+		danger: 19,
+		deathReason: "パンフレットが喉に詰まった",
+	},
+	{
+		name: "カタログ",
+		danger: 20,
+		deathReason: "カタログが喉に詰まった",
+	},
+	{
+		name: "ポスター",
+		danger: 21,
+		deathReason: "ポスターが喉に詰まった",
+	},
+	{
+		name: "カレンダー",
+		danger: 22,
+		deathReason: "カレンダーが喉に詰まった",
+	},
+	{
+		name: "手帳",
+		danger: 23,
+		deathReason: "手帳が喉に詰まった",
+	},
+	{
+		name: "ノート",
+		danger: 24,
+		deathReason: "ノートが喉に詰まった",
 	},
 	{
 		name: "砂",
-		danger: 31,
-		deathReason: "砂を大量に吸い込んだ",
+		danger: 25,
+		deathReason: "砂を食べた",
+	},
+	{
+		name: "泥",
+		danger: 27,
+		deathReason: "泥を食べた",
+	},
+
+	{
+		name: "石",
+		danger: 35,
+		deathReason: "石を食べた",
 	},
 	{
 		name: "泥団子",
@@ -614,192 +592,286 @@ function createButtons(state: GameState) {
 	];
 }
 
-export const data = new SlashCommandBuilder()
-	.setName("survival")
-	.setDescription("サバイバルゲーム開始");
+const command = {
+	data: new SlashCommandBuilder()
+		.setName("survival")
+		.setDescription("サバイバルゲーム開始"),
 
-export async function execute(interaction: ChatInputCommandInteraction) {
-	const state: GameState = {
-		day: 1,
-		hunger: 50,
-		hp: 100,
-		currentFood: randomFood(),
-		mustEat: false,
-	};
+	async execute(interaction: ChatInputCommandInteraction) {
+		const sendEphemeral = async (
+			embed: EmbedBuilder,
+			components?: ActionRowBuilder<ButtonBuilder>[],
+		) => {
+			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const, components };
+			const editPayload = { embeds: [embed], components };
+			const followUpPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+				components,
+			};
 
-	const message = await interaction.reply({
-		embeds: [createEmbed(state)],
-		components: createButtons(state),
-		fetchReply: true,
-	});
-
-	const collector = message.createMessageComponentCollector({
-		componentType: ComponentType.Button,
-		time: 10 * 60 * 1000,
-	});
-
-	collector.on("collect", async (button) => {
-		if (button.user.id !== interaction.user.id) {
-			await button.reply({
-				content: "あなたのゲームではありません。",
-				ephemeral: true,
-			});
-			return;
-		}
-
-		if (button.customId === "eat") {
-			const roll = Math.random() * 100;
-
-			if (roll < state.currentFood.danger) {
-				collector.stop();
-				await button.deferUpdate();
-
-				const currentRecord = await prisma.survivalRanking.findUnique({
-					where: {
-						userId: interaction.user.id,
-					},
-				});
-
-				const newBest = Math.max(currentRecord?.bestDays ?? 0, state.day);
-
-				// 現在のTOP10
-				const top10 = await prisma.survivalRanking.findMany({
-					orderBy: {
-						bestDays: "desc",
-					},
-					take: 10,
-				});
-
-				// 10位
-				const tenthPlace = top10[9];
-
-				// TOP10が埋まっていて、10位以下なら保存しない
-				if (
-					top10.length >= 10 &&
-					(!currentRecord || currentRecord.bestDays < newBest) &&
-					newBest <= tenthPlace.bestDays
-				) {
-					return;
+			const tryEdit = async () => {
+				try {
+					return await interaction.editReply(editPayload);
+				} catch (error) {
+					if (
+						error instanceof Error &&
+						error.name === "InteractionNotReplied"
+					) {
+						return null;
+					}
+					throw error;
 				}
+			};
 
-				// 保存
-				await prisma.survivalRanking.upsert({
-					where: {
-						userId: interaction.user.id,
-					},
-					update: {
-						bestDays: newBest,
-						username: interaction.user.username,
-					},
-					create: {
-						userId: interaction.user.id,
-						username: interaction.user.username,
-						bestDays: newBest,
-					},
-				});
-
-				// 11位以下を削除
-				const ranking = await prisma.survivalRanking.findMany({
-					orderBy: {
-						bestDays: "desc",
-					},
-				});
-
-				if (ranking.length > 10) {
-					await prisma.survivalRanking.deleteMany({
-						where: {
-							userId: {
-								in: ranking.slice(10).map((r) => r.userId),
-							},
-						},
-					});
+			const tryReply = async () => {
+				try {
+					return await interaction.reply(replyPayload);
+				} catch (error) {
+					if ((error as { code?: number }).code === 40060) {
+						return null;
+					}
+					throw error;
 				}
-				const rankings = await prisma.survivalRanking.findMany({
-					select: {
-						username: true,
-						bestDays: true,
-					},
-					orderBy: {
-						bestDays: "desc",
-					},
-					take: 15,
-				});
-				await button.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setTitle("💀 GAME OVER")
-							.setDescription(
-								[
-									`生存日数: ${state.day}`,
-									"",
-									`死因: ${state.currentFood.deathReason}`,
-									`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
-								].join("\n"),
-							),
-					],
-					components: [],
-				});
+			};
 
+			const tryFollowUp = async () => {
+				try {
+					return await interaction.followUp(followUpPayload);
+				} catch {
+					return null;
+				}
+			};
+
+			if (interaction.deferred || interaction.replied) {
+				const edited = await tryEdit();
+				if (edited) {
+					return edited;
+				}
+				const replied = await tryReply();
+				if (replied) {
+					return replied;
+				}
+				await tryFollowUp();
 				return;
 			}
 
-			const hungerIncrease = calculateHungerIncrease();
-			const hpIncrease = calculateHpIncrease();
-
-			state.hunger = Math.min(state.hunger + hungerIncrease);
-			state.hp = Math.min(state.hp + hpIncrease);
-		}
-
-		if (button.customId === "skip") {
-			if (state.mustEat) {
-				collector.stop();
-
-				await button.deferUpdate();
-				await button.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setTitle("💀 GAME OVER")
-							.setDescription(
-								[
-									`生存日数: ${state.day}`,
-									"",
-									state.hunger === 0 ? "死因: 餓死" : "死因: 体力切れ",
-								].join("\n"),
-							),
-					],
-					components: [],
-				});
-
-				return;
+			const replied = await tryReply();
+			if (replied) {
+				return replied;
 			}
 
-			state.hunger -= 40;
-			state.hp -= 40;
-		}
+			const edited = await tryEdit();
+			if (edited) {
+				return edited;
+			}
 
-		state.hunger = Math.max(0, state.hunger);
-		state.hp = Math.max(0, state.hp);
+			await tryFollowUp();
+		};
 
-		state.mustEat = state.hunger === 0 || state.hp === 0;
+		const replyError = async (content: string) => {
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "エラー",
+					iconURL: ERROR_ICON_URL,
+				})
+				.setDescription(content)
+				.setColor(0xed4245)
+				.setTimestamp(new Date());
+			await sendEphemeral(embed);
+		};
 
-		state.day++;
-
-		if (!state.mustEat) {
-			const eventRoll = Math.random();
-
-			if (eventRoll < 0.15) {
-				state.hunger = Math.min(100, state.hunger + 50);
-			} else if (eventRoll < 0.2) {
-				state.hunger = Math.max(0, state.hunger - 30);
+		if (!interaction.deferred && !interaction.replied) {
+			try {
+				await interaction.deferReply();
+			} catch {
+				// If defer fails, continue.
 			}
 		}
 
-		state.currentFood = randomFood();
+		const state: GameState = {
+			day: 1,
+			hunger: 50,
+			hp: 100,
+			currentFood: randomFood(),
+			mustEat: false,
+		};
 
-		await button.deferUpdate();
-		await button.editReply({
+		const message = await interaction.editReply({
 			embeds: [createEmbed(state)],
 			components: createButtons(state),
 		});
-	});
-}
+
+		const collector = message.createMessageComponentCollector({
+			componentType: ComponentType.Button,
+			time: 10 * 60 * 1000,
+		});
+
+		collector.on("collect", async (button) => {
+			if (button.user.id !== interaction.user.id) {
+				await button.reply({
+					content: "あなたのゲームではありません。",
+					ephemeral: true,
+				});
+				return;
+			}
+
+			if (button.customId === "eat") {
+				const roll = Math.random() * 100;
+
+				if (roll < state.currentFood.danger) {
+					collector.stop();
+					await button.deferUpdate();
+
+					const currentRecord = await prisma.survivalRanking.findUnique({
+						where: {
+							userId: interaction.user.id,
+						},
+					});
+
+					const newBest = Math.max(currentRecord?.bestDays ?? 0, state.day);
+
+					// 現在のTOP10
+					const top10 = await prisma.survivalRanking.findMany({
+						orderBy: {
+							bestDays: "desc",
+						},
+						take: 10,
+					});
+
+					// 10位
+					const tenthPlace = top10[9];
+
+					// TOP10が埋まっていて、10位以下なら保存しない
+					if (
+						top10.length >= 10 &&
+						(!currentRecord || currentRecord.bestDays < newBest) &&
+						newBest <= tenthPlace.bestDays
+					) {
+						return;
+					}
+
+					// 保存
+					await prisma.survivalRanking.upsert({
+						where: {
+							userId: interaction.user.id,
+						},
+						update: {
+							bestDays: newBest,
+							username: interaction.user.username,
+						},
+						create: {
+							userId: interaction.user.id,
+							username: interaction.user.username,
+							bestDays: newBest,
+						},
+					});
+
+					// 11位以下を削除
+					const ranking = await prisma.survivalRanking.findMany({
+						orderBy: {
+							bestDays: "desc",
+						},
+					});
+
+					if (ranking.length > 10) {
+						await prisma.survivalRanking.deleteMany({
+							where: {
+								userId: {
+									in: ranking.slice(10).map((r) => r.userId),
+								},
+							},
+						});
+					}
+					const rankings = await prisma.survivalRanking.findMany({
+						select: {
+							username: true,
+							bestDays: true,
+						},
+						orderBy: {
+							bestDays: "desc",
+						},
+						take: 15,
+					});
+					await button.editReply({
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("💀 GAME OVER")
+								.setDescription(
+									[
+										`生存日数: ${state.day}`,
+										"",
+										`死因: ${state.currentFood.deathReason}`,
+										`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
+									].join("\n"),
+								),
+						],
+						components: [],
+					});
+
+					return;
+				}
+
+				const hungerIncrease = calculateHungerIncrease();
+				const hpIncrease = calculateHpIncrease();
+
+				state.hunger = Math.min(state.hunger + hungerIncrease);
+				state.hp = Math.min(state.hp + hpIncrease);
+			}
+
+			if (button.customId === "skip") {
+				if (state.mustEat) {
+					collector.stop();
+
+					await button.deferUpdate();
+					await button.editReply({
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("💀 GAME OVER")
+								.setDescription(
+									[
+										`生存日数: ${state.day}`,
+										"",
+										state.hunger === 0 ? "死因: 餓死" : "死因: 体力切れ",
+									].join("\n"),
+								),
+						],
+						components: [],
+					});
+
+					return;
+				}
+
+				state.hunger -= 40;
+				state.hp -= 40;
+			}
+
+			state.hunger = Math.max(0, state.hunger);
+			state.hp = Math.max(0, state.hp);
+
+			state.mustEat = state.hunger === 0 || state.hp === 0;
+
+			state.day++;
+
+			if (!state.mustEat) {
+				const eventRoll = Math.random();
+
+				if (eventRoll < 0.15) {
+					state.hunger = Math.min(100, state.hunger + 50);
+				} else if (eventRoll < 0.2) {
+					state.hunger = Math.max(0, state.hunger - 30);
+				}
+			}
+
+			state.currentFood = randomFood();
+
+			await button.deferUpdate();
+			await button.editReply({
+				embeds: [createEmbed(state)],
+				components: createButtons(state),
+			});
+		});
+	},
+};
+
+export default command;
