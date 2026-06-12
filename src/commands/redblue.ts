@@ -7,7 +7,6 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { SUCCESS_ICON_URL } from "@/utils/embedIcons";
 
 type GameData = {
 	streak: number;
@@ -21,7 +20,7 @@ const command = {
 		.setDescription("赤青ゲームを開始します"),
 
 	async execute(interaction: ChatInputCommandInteraction) {
-		const sendEphemeral = async (
+		const _sendEphemeral = async (
 			embed: EmbedBuilder,
 			components?: ActionRowBuilder<ButtonBuilder>[],
 		) => {
