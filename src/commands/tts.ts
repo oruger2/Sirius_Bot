@@ -3,7 +3,6 @@ import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	type GuildTextBasedChannel,
-	MessageFlags,
 	PermissionsBitField,
 	SlashCommandBuilder,
 	type VoiceBasedChannel,

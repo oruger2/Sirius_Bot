@@ -2,7 +2,6 @@ import * as vm from "node:vm";
 import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
-	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
