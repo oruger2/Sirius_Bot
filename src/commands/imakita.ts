@@ -1,7 +1,6 @@
 import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
-	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -55,24 +54,103 @@ const buildMessageBody = (message: {
 const truncate = (text: string, maxLength: number) =>
 	text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
 
-export default {
+const command = {
 	data: new SlashCommandBuilder()
 		.setName("imakita")
 		.setDescription("今話している内容をAIで簡潔にまとめます")
 		.setDefaultMemberPermissions(PermissionFlagsBits.ReadMessageHistory),
 
 	async execute(interaction: ChatInputCommandInteraction) {
+		const sendEphemeral = async (embed: EmbedBuilder) => {
+			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+			const editPayload = { embeds: [embed] };
+			const followUpPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+			};
+
+			const tryEdit = async () => {
+				try {
+					return await interaction.editReply(editPayload);
+				} catch (error) {
+					if (
+						error instanceof Error &&
+						error.name === "InteractionNotReplied"
+					) {
+						return null;
+					}
+					throw error;
+				}
+			};
+
+			const tryReply = async () => {
+				try {
+					return await interaction.reply(replyPayload);
+				} catch (error) {
+					if ((error as { code?: number }).code === 40060) {
+						return null;
+					}
+					throw error;
+				}
+			};
+
+			const tryFollowUp = async () => {
+				try {
+					return await interaction.followUp(followUpPayload);
+				} catch {
+					return null;
+				}
+			};
+
+			if (interaction.deferred || interaction.replied) {
+				const edited = await tryEdit();
+				if (edited) {
+					return edited;
+				}
+				const replied = await tryReply();
+				if (replied) {
+					return replied;
+				}
+				await tryFollowUp();
+				return;
+			}
+
+			const replied = await tryReply();
+			if (replied) {
+				return replied;
+			}
+
+			const edited = await tryEdit();
+			if (edited) {
+				return edited;
+			}
+
+			await tryFollowUp();
+		};
+
+		const replyError = async (content: string) => {
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "エラー",
+					iconURL: ERROR_ICON_URL,
+				})
+				.setDescription(content)
+				.setColor(0xed4245)
+				.setTimestamp(new Date());
+			await sendEphemeral(embed);
+		};
+
 		if (!interaction.deferred && !interaction.replied) {
-			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+			try {
+				await interaction.deferReply({ flags: ["Ephemeral"] as const });
+			} catch {
+				// If defer fails, continue and attempt a normal reply in sendEphemeral.
+			}
 		}
 
 		const channel = interaction.channel;
 		if (!channel?.isTextBased() || channel.isDMBased()) {
-			const embed = new EmbedBuilder()
-				.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-				.setColor(0xed4245)
-				.setDescription("❌ このコマンドはテキストチャンネルでのみ使えます。");
-			await interaction.editReply({ embeds: [embed] });
+			await replyError("❌ このコマンドはテキストチャンネルでのみ使えます。");
 			return;
 		}
 
@@ -107,13 +185,9 @@ export default {
 				.filter((line): line is string => Boolean(line));
 
 			if (transcriptLines.length === 0) {
-				const embed = new EmbedBuilder()
-					.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-					.setColor(0xed4245)
-					.setDescription(
-						"❌ 直近15分以内の会話が見つかりませんでした。メッセージが少し増えてから試してください。",
-					);
-				await interaction.editReply({ embeds: [embed] });
+				await replyError(
+					"❌ 直近15分以内の会話が見つかりませんでした。メッセージが少し増えてから試してください。",
+				);
 				return;
 			}
 
@@ -138,14 +212,14 @@ export default {
 						{
 							role: "system",
 							content: `現在の日時は ${now} です。
-あなたはDiscord会話の要約係です。
-与えられた会話だけを根拠に、日本語で簡潔に要約してください。
-推測で話を補わず、不明な点は不明と書いてください。
-出力は次の形式にしてください。
-話題: 1文
-要点:
-- 箇条書きで最大3点
-必要なら最後に「未解決: ...」を1行だけ追加`,
+	あなたはDiscord会話の要約係です。
+	与えられた会話だけを根拠に、日本語で簡潔に要約してください。
+	推測で話を補わず、不明な点は不明と書いてください。
+	出力は次の形式にしてください。
+	話題: 1文
+	要点:
+	- 箇条書きで最大3点
+	必要なら最後に「未解決: ...」を1行だけ追加`,
 						},
 						{
 							role: "user",
@@ -178,18 +252,14 @@ export default {
 				})
 				.setTimestamp();
 
-			await interaction.editReply({ embeds: [embed] });
+			await sendEphemeral(embed);
 		} catch (error) {
 			console.error("Imakita Error:", error);
-
-			const embed = new EmbedBuilder()
-				.setAuthor({ name: "エラー", iconURL: ERROR_ICON_URL })
-				.setColor(0xed4245)
-				.setDescription(
-					"❌ 会話の取得またはAI要約に失敗しました。Botにメッセージ履歴閲覧権限があるかも確認してください。",
-				);
-
-			await interaction.editReply({ embeds: [embed] });
+			await replyError(
+				"❌ 会話の取得またはAI要約に失敗しました。Botにメッセージ履歴閲覧権限があるかも確認してください。",
+			);
 		}
 	},
 };
+
+export default command;

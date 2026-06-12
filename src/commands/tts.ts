@@ -3,7 +3,6 @@ import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	type GuildTextBasedChannel,
-	MessageFlags,
 	PermissionsBitField,
 	SlashCommandBuilder,
 	type VoiceBasedChannel,
@@ -15,33 +14,6 @@ import {
 } from "@/tts/session";
 import { connectGuildSpeech, disconnectGuildSpeech } from "@/tts/voice";
 import { ERROR_ICON_URL, SUCCESS_ICON_URL } from "@/utils/embedIcons";
-
-const buildEmbed = (
-	title: string,
-	description: string,
-	color: number,
-	iconURL: string,
-) =>
-	new EmbedBuilder()
-		.setAuthor({ name: title, iconURL })
-		.setDescription(description)
-		.setColor(color)
-		.setTimestamp(new Date());
-
-const replyEmbed = async (
-	interaction: ChatInputCommandInteraction,
-	embed: EmbedBuilder,
-) => {
-	if (interaction.deferred || interaction.replied) {
-		await interaction.editReply({ embeds: [embed] });
-		return;
-	}
-
-	await interaction.reply({
-		embeds: [embed],
-		flags: MessageFlags.Ephemeral,
-	});
-};
 
 const isVoiceChannel = (channel: unknown): channel is VoiceBasedChannel =>
 	Boolean(
@@ -99,34 +71,101 @@ const command = {
 		),
 
 	async execute(interaction: ChatInputCommandInteraction) {
-		if (!interaction.inGuild()) {
-			await replyEmbed(
-				interaction,
-				buildEmbed(
-					"エラー",
-					"❌ サーバー内で実行してください。",
-					0xed4245,
-					ERROR_ICON_URL,
-				),
-			);
-			return;
-		}
+		const sendEphemeral = async (embed: EmbedBuilder) => {
+			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+			const editPayload = { embeds: [embed] };
+			const followUpPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+			};
+
+			const tryEdit = async () => {
+				try {
+					return await interaction.editReply(editPayload);
+				} catch (error) {
+					if (
+						error instanceof Error &&
+						error.name === "InteractionNotReplied"
+					) {
+						return null;
+					}
+					throw error;
+				}
+			};
+
+			const tryReply = async () => {
+				try {
+					return await interaction.reply(replyPayload);
+				} catch (error) {
+					if ((error as { code?: number }).code === 40060) {
+						return null;
+					}
+					throw error;
+				}
+			};
+
+			const tryFollowUp = async () => {
+				try {
+					return await interaction.followUp(followUpPayload);
+				} catch {
+					return null;
+				}
+			};
+
+			if (interaction.deferred || interaction.replied) {
+				const edited = await tryEdit();
+				if (edited) {
+					return edited;
+				}
+				const replied = await tryReply();
+				if (replied) {
+					return replied;
+				}
+				await tryFollowUp();
+				return;
+			}
+
+			const replied = await tryReply();
+			if (replied) {
+				return replied;
+			}
+
+			const edited = await tryEdit();
+			if (edited) {
+				return edited;
+			}
+
+			await tryFollowUp();
+		};
+
+		const replyError = async (content: string) => {
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "エラー",
+					iconURL: ERROR_ICON_URL,
+				})
+				.setDescription(content)
+				.setColor(0xed4245)
+				.setTimestamp(new Date());
+			await sendEphemeral(embed);
+		};
 
 		if (!interaction.deferred && !interaction.replied) {
-			await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+			try {
+				await interaction.deferReply({ flags: ["Ephemeral"] as const });
+			} catch {
+				// If defer fails, continue and attempt a normal reply in sendEphemeral.
+			}
+		}
+
+		if (!interaction.inGuild()) {
+			await replyError("❌ サーバー内で実行してください。");
+			return;
 		}
 
 		const guild = interaction.guild;
 		if (!guild || !interaction.guildId) {
-			await replyEmbed(
-				interaction,
-				buildEmbed(
-					"エラー",
-					"❌ サーバー情報を取得できませんでした。",
-					0xed4245,
-					ERROR_ICON_URL,
-				),
-			);
+			await replyError("❌ サーバー情報を取得できませんでした。");
 			return;
 		}
 
@@ -140,29 +179,13 @@ const command = {
 			);
 
 			if (!isTextChannel(textChannel) || !isVoiceChannel(voiceChannel)) {
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						"❌ 指定されたチャンネルを取得できませんでした。",
-						0xed4245,
-						ERROR_ICON_URL,
-					),
-				);
+				await replyError("❌ 指定されたチャンネルを取得できませんでした。");
 				return;
 			}
 
 			const botMember = guild.members.me;
 			if (!botMember) {
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						"❌ Botメンバー情報を取得できませんでした。",
-						0xed4245,
-						ERROR_ICON_URL,
-					),
-				);
+				await replyError("❌ Botメンバー情報を取得できませんでした。");
 				return;
 			}
 
@@ -171,14 +194,8 @@ const command = {
 					.permissionsIn(textChannel.id)
 					.has(PermissionsBitField.Flags.ViewChannel)
 			) {
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`,
-						0xed4245,
-						ERROR_ICON_URL,
-					),
+				await replyError(
+					`❌ Botが <#${textChannel.id}> を閲覧する権限がありません。`,
 				);
 				return;
 			}
@@ -191,14 +208,8 @@ const command = {
 						PermissionsBitField.Flags.Speak,
 					])
 			) {
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
-						0xed4245,
-						ERROR_ICON_URL,
-					),
+				await replyError(
+					`❌ Botが <#${voiceChannel.id}> に接続または発言する権限がありません。`,
 				);
 				return;
 			}
@@ -207,14 +218,8 @@ const command = {
 				(member) => !member.user.bot,
 			).size;
 			if (humanCount === 0) {
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
-						0xed4245,
-						ERROR_ICON_URL,
-					),
+				await replyError(
+					`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
 				);
 				return;
 			}
@@ -227,14 +232,8 @@ const command = {
 			const connected = await connectGuildSpeech(guild, voiceChannel.id);
 			if (!connected) {
 				clearGuildTtsSession(interaction.guildId);
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						`❌ <#${voiceChannel.id}> への接続に失敗しました。権限と接続状態を確認してください。`,
-						0xed4245,
-						ERROR_ICON_URL,
-					),
+				await replyError(
+					`❌ <#${voiceChannel.id}> への接続に失敗しました。権限と接続状態を確認してください。`,
 				);
 				return;
 			}
@@ -245,30 +244,23 @@ const command = {
 			if (postConnectHumanCount === 0) {
 				clearGuildTtsSession(interaction.guildId);
 				disconnectGuildSpeech(interaction.guildId);
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"エラー",
-						`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
-						0xed4245,
-						ERROR_ICON_URL,
-					),
+				await replyError(
+					`❌ <#${voiceChannel.id}> に参加中のユーザーがいません。誰かが入室した状態で実行してください。`,
 				);
 				return;
 			}
 
-			await replyEmbed(
-				interaction,
-				buildEmbed(
-					"TTS設定完了",
-					`読み上げ元: <#${textChannel.id}>
-読み上げ先VC: <#${voiceChannel.id}>
-
-この設定は一時的です。Bot再起動またはVC無人で自動解除されます。`,
-					0x57f287,
-					SUCCESS_ICON_URL,
-				),
-			);
+			const successEmbed = new EmbedBuilder()
+				.setAuthor({
+					name: "TTS設定完了",
+					iconURL: SUCCESS_ICON_URL,
+				})
+				.setDescription(
+					`読み上げ元: <#${textChannel.id}>\n読み上げ先VC: <#${voiceChannel.id}>\n\nこの設定は一時的です。Bot再起動またはVC無人で自動解除されます。`,
+				)
+				.setColor(0x57f287)
+				.setTimestamp(new Date());
+			await sendEphemeral(successEmbed);
 			return;
 		}
 
@@ -276,43 +268,36 @@ const command = {
 			clearGuildTtsSession(interaction.guildId);
 			disconnectGuildSpeech(interaction.guildId);
 
-			await replyEmbed(
-				interaction,
-				buildEmbed(
-					"TTS停止",
-					"読み上げを停止し、設定を解除しました。",
-					0xffa500,
-					SUCCESS_ICON_URL,
-				),
-			);
+			const successEmbed = new EmbedBuilder()
+				.setAuthor({
+					name: "TTS停止",
+					iconURL: SUCCESS_ICON_URL,
+				})
+				.setDescription("読み上げを停止し、設定を解除しました。")
+				.setColor(0xffa500)
+				.setTimestamp(new Date());
+			await sendEphemeral(successEmbed);
 			return;
 		}
 
 		if (subcommand === "status") {
 			const config = getGuildTtsSession(interaction.guildId);
 			if (!config) {
-				await replyEmbed(
-					interaction,
-					buildEmbed(
-						"TTS未開始",
-						"`/tts set` で一時読み上げを開始してください。",
-						0xed4245,
-						ERROR_ICON_URL,
-					),
-				);
+				await replyError("`/tts set` で一時読み上げを開始してください。");
 				return;
 			}
 
-			await replyEmbed(
-				interaction,
-				buildEmbed(
-					"TTS設定状況",
-					`読み上げ元: <#${config.textChannelId}>
-読み上げ先VC: <#${config.voiceChannelId}>`,
-					0x5865f2,
-					SUCCESS_ICON_URL,
-				),
-			);
+			const statusEmbed = new EmbedBuilder()
+				.setAuthor({
+					name: "TTS設定状況",
+					iconURL: SUCCESS_ICON_URL,
+				})
+				.setDescription(
+					`読み上げ元: <#${config.textChannelId}>\n読み上げ先VC: <#${config.voiceChannelId}>`,
+				)
+				.setColor(0x5865f2)
+				.setTimestamp(new Date());
+			await sendEphemeral(statusEmbed);
 		}
 	},
 };
