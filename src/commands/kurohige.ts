@@ -216,10 +216,9 @@ const command = {
 		// 3. グローバルマッチングモード
 		if (mode === "global") {
 			if (globalQueue && globalQueue.userId !== user1.id) {
-				const opponent = globalQueue.interaction;
-				globalQueue = null;
+			const opponent = globalQueue.interaction;
 
-				const matchEmbed = new EmbedBuilder()
+			const matchEmbed = new EmbedBuilder()
 					.setTitle("🌐 グローバルマッチング成立！")
 					.setDescription(
 						`マッチングが完了しました！\n対戦相手: ${opponent.user} vs ${user1}`,
@@ -227,14 +226,24 @@ const command = {
 					.setColor(0x57f287)
 					.setTimestamp(new Date());
 
-				// 両方のチャンネルでマッチングを報告
+			// 両方のチャンネルでマッチングを報告
+			try {
 				await opponent.followUp({ embeds: [matchEmbed] });
 				const msg = (await interaction.followUp({
 					embeds: [matchEmbed],
 				})) as Message;
 
+				// 通知成功後にキューをクリア
+				globalQueue = null;
+
 				// 今回呼び出された側のコンテキスト上でゲームを開始
 				await startGame(interaction, msg, opponent.user, user1, false);
+			} catch (error) {
+				// 通知失敗時はキューを保持
+				await replyError(
+					"❌ マッチング通知の送信に失敗しました。もう一度お試しください。",
+				);
+			}
 			} else {
 				globalQueue = { userId: user1.id, interaction };
 				const waitEmbed = new EmbedBuilder()

@@ -746,16 +746,18 @@ const command = {
 					// 10位
 					const tenthPlace = top10[9];
 
-					// TOP10が埋まっていて、10位以下なら保存しない
-					if (
+				// TOP10が埋まっていて、10位以下ならスキップ
+				const shouldUpdateLeaderboard = !(
 						top10.length >= 10 &&
 						(!currentRecord || currentRecord.bestDays < newBest) &&
 						newBest <= tenthPlace.bestDays
 					) {
-						return;
+				);
+
 					}
 
-					// 保存
+				// 保存
+				if (shouldUpdateLeaderboard) {
 					await prisma.survivalRanking.upsert({
 						where: {
 							userId: interaction.user.id,
@@ -785,30 +787,30 @@ const command = {
 									in: ranking.slice(10).map((r) => r.userId),
 								},
 							},
-						});
-					}
-					const rankings = await prisma.survivalRanking.findMany({
-						select: {
-							username: true,
-							bestDays: true,
-						},
-						orderBy: {
-							bestDays: "desc",
-						},
-						take: 15,
 					});
-					await button.editReply({
-						embeds: [
-							new EmbedBuilder()
-								.setTitle("💀 GAME OVER")
-								.setDescription(
-									[
-										`生存日数: ${state.day}`,
-										"",
-										`死因: ${state.currentFood.deathReason}`,
-										`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
-									].join("\n"),
-								),
+				}
+				const rankings = await prisma.survivalRanking.findMany({
+					select: {
+						username: true,
+						bestDays: true,
+					},
+					orderBy: {
+						bestDays: "desc",
+					},
+					take: 15,
+				});
+				await button.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("💀 GAME OVER")
+							.setDescription(
+								[
+									`生存日数: ${state.day}`,
+									"",
+									`死因: ${state.currentFood.deathReason}`,
+									`\n\n🏆ランキング🏆\n${rankings.map((r, i) => `${i + 1}. ${r.username} - ${r.bestDays}日`).join("\n")}`,
+								].join("\n"),
+							),
 						],
 						components: [],
 					});
@@ -819,8 +821,8 @@ const command = {
 				const hungerIncrease = calculateHungerIncrease();
 				const hpIncrease = calculateHpIncrease();
 
-				state.hunger = Math.min(state.hunger + hungerIncrease);
-				state.hp = Math.min(state.hp + hpIncrease);
+				state.hunger = Math.min(state.hunger + hungerIncrease, 100);
+				state.hp = Math.min(state.hp + hpIncrease, 100);
 			}
 
 			if (button.customId === "skip") {
