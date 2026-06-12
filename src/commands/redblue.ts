@@ -96,7 +96,6 @@ const command = {
 			await tryFollowUp();
 		};
 
-
 		if (!interaction.deferred && !interaction.replied) {
 			try {
 				await interaction.deferReply();

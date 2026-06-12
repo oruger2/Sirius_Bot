@@ -751,10 +751,8 @@ const command = {
 						top10.length >= 10 &&
 						(!currentRecord || currentRecord.bestDays < newBest) &&
 						newBest <= tenthPlace.bestDays
-					) {
+					) 
 				);
-
-					}
 
 				// 保存
 				if (shouldUpdateLeaderboard) {
