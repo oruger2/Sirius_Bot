@@ -29,12 +29,16 @@ export default {
 
 		// 除外ロールのチェック
 		const ignoredRoles = setting.ignoredRoles.split(",").filter(Boolean);
-		if (message.member?.roles.cache.some((role) => ignoredRoles.includes(role.id)))
+		if (
+			message.member?.roles.cache.some((role) => ignoredRoles.includes(role.id))
+		)
 			return;
 
 		// 管理者やモデレーター権限を持つユーザーは除外
 		if (
-			message.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
+			message.member?.permissions.has(
+				PermissionsBitField.Flags.Administrator,
+			) ||
 			message.member?.permissions.has(PermissionsBitField.Flags.ManageMessages)
 		) {
 			return;
@@ -71,8 +75,16 @@ export default {
 						const reportEmbed = new EmbedBuilder()
 							.setTitle("📢 招待リンク検知報告")
 							.addFields(
-								{ name: "ユーザー", value: `${message.author} (${message.author.id})`, inline: true },
-								{ name: "チャンネル", value: `${message.channel} (${message.channelId})`, inline: true },
+								{
+									name: "ユーザー",
+									value: `${message.author} (${message.author.id})`,
+									inline: true,
+								},
+								{
+									name: "チャンネル",
+									value: `${message.channel} (${message.channelId})`,
+									inline: true,
+								},
 								{ name: "内容", value: message.content || "内容なし" },
 							)
 							.setColor("Orange")
