@@ -4,6 +4,7 @@ import {
 	type Message,
 	PermissionsBitField,
 } from "discord.js";
+import { prisma } from "@/database/db";
 
 type MessageMetadata = {
 	timestamp: number;
@@ -31,6 +32,23 @@ export default {
 
 	async execute(message: Message): Promise<void> {
 		if (!message.guild || message.author.bot) return;
+
+		// サーバー設定の取得
+		const setting = await prisma.serverSetting.findUnique({
+			where: { serverId: message.guild.id },
+		});
+
+		// 設定がない、またはスパムブロックが無効な場合は何もしない
+		if (!setting || !setting.spamBlockEnabled) return;
+
+		// 除外チャンネルのチェック
+		const ignoredChannels = setting.ignoredChannels.split(",").filter(Boolean);
+		if (ignoredChannels.includes(message.channelId)) return;
+
+		// 除外ロールのチェック
+		const ignoredRoles = setting.ignoredRoles.split(",").filter(Boolean);
+		if (message.member?.roles.cache.some((role) => ignoredRoles.includes(role.id)))
+			return;
 
 		const compositeKey = `${message.author.id}:${message.guild.id}:${message.channelId}`;
 		const now = Date.now();
@@ -88,6 +106,24 @@ export default {
 						content: `${member}`,
 						embeds: [embed],
 					});
+
+				// 報告先チャンネルへの通知
+				if (setting.spamReportChannelId) {
+					const reportChannel = await message.client.channels
+						.fetch(setting.spamReportChannelId)
+						.catch(() => null);
+					if (reportChannel?.isTextBased()) {
+						const reportEmbed = new EmbedBuilder()
+							.setTitle("📢 スパム検知報告")
+							.addFields(
+								{ name: "ユーザー", value: `${member} (${member.id})`, inline: true },
+								{ name: "チャンネル", value: `${message.channel} (${message.channelId})`, inline: true },
+							)
+							.setColor("Orange")
+							.setTimestamp();
+						await reportChannel.send({ embeds: [reportEmbed] }).catch(() => {});
+					}
+				}
 
 				userMessages.delete(compositeKey);
 			} catch (error) {

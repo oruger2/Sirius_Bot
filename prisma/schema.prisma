@@ -29,6 +29,10 @@ model ServerSetting {
   spamReportChannelId   String?
   inviteReportChannelId String?
 
+  // 除外設定（カンマ区切りのID）
+  ignoredRoles    String @default("")
+  ignoredChannels String @default("")
+
   // メタ情報（任意）
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
