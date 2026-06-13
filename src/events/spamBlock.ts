@@ -47,7 +47,9 @@ export default {
 
 		// 除外ロールのチェック
 		const ignoredRoles = setting.ignoredRoles.split(",").filter(Boolean);
-		if (message.member?.roles.cache.some((role) => ignoredRoles.includes(role.id)))
+		if (
+			message.member?.roles.cache.some((role) => ignoredRoles.includes(role.id))
+		)
 			return;
 
 		const compositeKey = `${message.author.id}:${message.guild.id}:${message.channelId}`;
@@ -116,8 +118,16 @@ export default {
 						const reportEmbed = new EmbedBuilder()
 							.setTitle("📢 スパム検知報告")
 							.addFields(
-								{ name: "ユーザー", value: `${member} (${member.id})`, inline: true },
-								{ name: "チャンネル", value: `${message.channel} (${message.channelId})`, inline: true },
+								{
+									name: "ユーザー",
+									value: `${member} (${member.id})`,
+									inline: true,
+								},
+								{
+									name: "チャンネル",
+									value: `${message.channel} (${message.channelId})`,
+									inline: true,
+								},
 							)
 							.setColor("Orange")
 							.setTimestamp();
