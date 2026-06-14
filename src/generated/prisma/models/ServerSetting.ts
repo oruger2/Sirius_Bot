@@ -31,6 +31,8 @@ export type ServerSettingMinAggregateOutputType = {
   inviteBlockEnabled: boolean | null
   spamReportChannelId: string | null
   inviteReportChannelId: string | null
+  ignoredRoles: string | null
+  ignoredChannels: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -42,6 +44,8 @@ export type ServerSettingMaxAggregateOutputType = {
   inviteBlockEnabled: boolean | null
   spamReportChannelId: string | null
   inviteReportChannelId: string | null
+  ignoredRoles: string | null
+  ignoredChannels: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -53,6 +57,8 @@ export type ServerSettingCountAggregateOutputType = {
   inviteBlockEnabled: number
   spamReportChannelId: number
   inviteReportChannelId: number
+  ignoredRoles: number
+  ignoredChannels: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -66,6 +72,8 @@ export type ServerSettingMinAggregateInputType = {
   inviteBlockEnabled?: true
   spamReportChannelId?: true
   inviteReportChannelId?: true
+  ignoredRoles?: true
+  ignoredChannels?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -77,6 +85,8 @@ export type ServerSettingMaxAggregateInputType = {
   inviteBlockEnabled?: true
   spamReportChannelId?: true
   inviteReportChannelId?: true
+  ignoredRoles?: true
+  ignoredChannels?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -88,6 +98,8 @@ export type ServerSettingCountAggregateInputType = {
   inviteBlockEnabled?: true
   spamReportChannelId?: true
   inviteReportChannelId?: true
+  ignoredRoles?: true
+  ignoredChannels?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -172,6 +184,8 @@ export type ServerSettingGroupByOutputType = {
   inviteBlockEnabled: boolean
   spamReportChannelId: string | null
   inviteReportChannelId: string | null
+  ignoredRoles: string
+  ignoredChannels: string
   createdAt: Date
   updatedAt: Date
   _count: ServerSettingCountAggregateOutputType | null
@@ -204,6 +218,8 @@ export type ServerSettingWhereInput = {
   inviteBlockEnabled?: Prisma.BoolFilter<"ServerSetting"> | boolean
   spamReportChannelId?: Prisma.StringNullableFilter<"ServerSetting"> | string | null
   inviteReportChannelId?: Prisma.StringNullableFilter<"ServerSetting"> | string | null
+  ignoredRoles?: Prisma.StringFilter<"ServerSetting"> | string
+  ignoredChannels?: Prisma.StringFilter<"ServerSetting"> | string
   createdAt?: Prisma.DateTimeFilter<"ServerSetting"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ServerSetting"> | Date | string
 }
@@ -215,6 +231,8 @@ export type ServerSettingOrderByWithRelationInput = {
   inviteBlockEnabled?: Prisma.SortOrder
   spamReportChannelId?: Prisma.SortOrderInput | Prisma.SortOrder
   inviteReportChannelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  ignoredRoles?: Prisma.SortOrder
+  ignoredChannels?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _relevance?: Prisma.ServerSettingOrderByRelevanceInput
@@ -230,6 +248,8 @@ export type ServerSettingWhereUniqueInput = Prisma.AtLeast<{
   inviteBlockEnabled?: Prisma.BoolFilter<"ServerSetting"> | boolean
   spamReportChannelId?: Prisma.StringNullableFilter<"ServerSetting"> | string | null
   inviteReportChannelId?: Prisma.StringNullableFilter<"ServerSetting"> | string | null
+  ignoredRoles?: Prisma.StringFilter<"ServerSetting"> | string
+  ignoredChannels?: Prisma.StringFilter<"ServerSetting"> | string
   createdAt?: Prisma.DateTimeFilter<"ServerSetting"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ServerSetting"> | Date | string
 }, "id" | "serverId">
@@ -241,6 +261,8 @@ export type ServerSettingOrderByWithAggregationInput = {
   inviteBlockEnabled?: Prisma.SortOrder
   spamReportChannelId?: Prisma.SortOrderInput | Prisma.SortOrder
   inviteReportChannelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  ignoredRoles?: Prisma.SortOrder
+  ignoredChannels?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ServerSettingCountOrderByAggregateInput
@@ -258,6 +280,8 @@ export type ServerSettingScalarWhereWithAggregatesInput = {
   inviteBlockEnabled?: Prisma.BoolWithAggregatesFilter<"ServerSetting"> | boolean
   spamReportChannelId?: Prisma.StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
   inviteReportChannelId?: Prisma.StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+  ignoredRoles?: Prisma.StringWithAggregatesFilter<"ServerSetting"> | string
+  ignoredChannels?: Prisma.StringWithAggregatesFilter<"ServerSetting"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ServerSetting"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ServerSetting"> | Date | string
 }
@@ -269,6 +293,8 @@ export type ServerSettingCreateInput = {
   inviteBlockEnabled?: boolean
   spamReportChannelId?: string | null
   inviteReportChannelId?: string | null
+  ignoredRoles?: string
+  ignoredChannels?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -280,6 +306,8 @@ export type ServerSettingUncheckedCreateInput = {
   inviteBlockEnabled?: boolean
   spamReportChannelId?: string | null
   inviteReportChannelId?: string | null
+  ignoredRoles?: string
+  ignoredChannels?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -291,6 +319,8 @@ export type ServerSettingUpdateInput = {
   inviteBlockEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spamReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inviteReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ignoredRoles?: Prisma.StringFieldUpdateOperationsInput | string
+  ignoredChannels?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -302,6 +332,8 @@ export type ServerSettingUncheckedUpdateInput = {
   inviteBlockEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spamReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inviteReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ignoredRoles?: Prisma.StringFieldUpdateOperationsInput | string
+  ignoredChannels?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -313,6 +345,8 @@ export type ServerSettingCreateManyInput = {
   inviteBlockEnabled?: boolean
   spamReportChannelId?: string | null
   inviteReportChannelId?: string | null
+  ignoredRoles?: string
+  ignoredChannels?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -324,6 +358,8 @@ export type ServerSettingUpdateManyMutationInput = {
   inviteBlockEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spamReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inviteReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ignoredRoles?: Prisma.StringFieldUpdateOperationsInput | string
+  ignoredChannels?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -335,6 +371,8 @@ export type ServerSettingUncheckedUpdateManyInput = {
   inviteBlockEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spamReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inviteReportChannelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ignoredRoles?: Prisma.StringFieldUpdateOperationsInput | string
+  ignoredChannels?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -352,6 +390,8 @@ export type ServerSettingCountOrderByAggregateInput = {
   inviteBlockEnabled?: Prisma.SortOrder
   spamReportChannelId?: Prisma.SortOrder
   inviteReportChannelId?: Prisma.SortOrder
+  ignoredRoles?: Prisma.SortOrder
+  ignoredChannels?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -363,6 +403,8 @@ export type ServerSettingMaxOrderByAggregateInput = {
   inviteBlockEnabled?: Prisma.SortOrder
   spamReportChannelId?: Prisma.SortOrder
   inviteReportChannelId?: Prisma.SortOrder
+  ignoredRoles?: Prisma.SortOrder
+  ignoredChannels?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -374,6 +416,8 @@ export type ServerSettingMinOrderByAggregateInput = {
   inviteBlockEnabled?: Prisma.SortOrder
   spamReportChannelId?: Prisma.SortOrder
   inviteReportChannelId?: Prisma.SortOrder
+  ignoredRoles?: Prisma.SortOrder
+  ignoredChannels?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -395,6 +439,8 @@ export type ServerSettingSelect<ExtArgs extends runtime.Types.Extensions.Interna
   inviteBlockEnabled?: boolean
   spamReportChannelId?: boolean
   inviteReportChannelId?: boolean
+  ignoredRoles?: boolean
+  ignoredChannels?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["serverSetting"]>
@@ -408,11 +454,13 @@ export type ServerSettingSelectScalar = {
   inviteBlockEnabled?: boolean
   spamReportChannelId?: boolean
   inviteReportChannelId?: boolean
+  ignoredRoles?: boolean
+  ignoredChannels?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ServerSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "serverId" | "spamBlockEnabled" | "inviteBlockEnabled" | "spamReportChannelId" | "inviteReportChannelId" | "createdAt" | "updatedAt", ExtArgs["result"]["serverSetting"]>
+export type ServerSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "serverId" | "spamBlockEnabled" | "inviteBlockEnabled" | "spamReportChannelId" | "inviteReportChannelId" | "ignoredRoles" | "ignoredChannels" | "createdAt" | "updatedAt", ExtArgs["result"]["serverSetting"]>
 
 export type $ServerSettingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ServerSetting"
@@ -424,6 +472,8 @@ export type $ServerSettingPayload<ExtArgs extends runtime.Types.Extensions.Inter
     inviteBlockEnabled: boolean
     spamReportChannelId: string | null
     inviteReportChannelId: string | null
+    ignoredRoles: string
+    ignoredChannels: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["serverSetting"]>
@@ -801,6 +851,8 @@ export interface ServerSettingFieldRefs {
   readonly inviteBlockEnabled: Prisma.FieldRef<"ServerSetting", 'Boolean'>
   readonly spamReportChannelId: Prisma.FieldRef<"ServerSetting", 'String'>
   readonly inviteReportChannelId: Prisma.FieldRef<"ServerSetting", 'String'>
+  readonly ignoredRoles: Prisma.FieldRef<"ServerSetting", 'String'>
+  readonly ignoredChannels: Prisma.FieldRef<"ServerSetting", 'String'>
   readonly createdAt: Prisma.FieldRef<"ServerSetting", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ServerSetting", 'DateTime'>
 }

@@ -593,6 +593,8 @@ export const ServerSettingScalarFieldEnum = {
   inviteBlockEnabled: 'inviteBlockEnabled',
   spamReportChannelId: 'spamReportChannelId',
   inviteReportChannelId: 'inviteReportChannelId',
+  ignoredRoles: 'ignoredRoles',
+  ignoredChannels: 'ignoredChannels',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -628,7 +630,9 @@ export const ServerSettingOrderByRelevanceFieldEnum = {
   id: 'id',
   serverId: 'serverId',
   spamReportChannelId: 'spamReportChannelId',
-  inviteReportChannelId: 'inviteReportChannelId'
+  inviteReportChannelId: 'inviteReportChannelId',
+  ignoredRoles: 'ignoredRoles',
+  ignoredChannels: 'ignoredChannels'
 } as const
 
 export type ServerSettingOrderByRelevanceFieldEnum = (typeof ServerSettingOrderByRelevanceFieldEnum)[keyof typeof ServerSettingOrderByRelevanceFieldEnum]
