@@ -237,26 +237,66 @@ const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
 		},
 	);
 
-	app.get("/api/commands", async (req: Request, res: Response) => {
-		void req;
+		app.get("/api/commands", async (req: Request, res: Response) => {
+			void req;
 
-		try {
-			const commands = await rest.get(
-				Routes.applicationCommands(applicationId),
-			);
-			return res.status(200).json(commands);
-		} catch (error) {
-			console.error("Fetch error:", error);
-			return res
-				.status(500)
-				.json({ error: "Failed to fetch commands from Discord" });
-		}
-	});
+			try {
+				const commands = await rest.get(
+					Routes.applicationCommands(applicationId),
+				);
+				return res.status(200).json(commands);
+			} catch (error) {
+				console.error("Fetch error:", error);
+				return res
+					.status(500)
+					.json({ error: "Failed to fetch commands from Discord" });
+			}
+		});
 
-	app.listen(process.env.PORT || 3000, () => {
-		console.log("Web server started");
-	});
-};
+		app.get("/api/guilds/:id/metadata", async (req: Request<{ id: string }>, res: Response) => {
+			const guildId = req.params.id;
+			try {
+				if (!client.shard) {
+					const guild = client.guilds.cache.get(guildId);
+					if (!guild) return res.status(404).json({ error: "Guild not found" });
+					return res.json({
+						channels: guild.channels.cache
+							.filter(c => c.type === 0 || c.type === 5)
+							.map(c => ({ id: c.id, name: c.name })),
+						roles: guild.roles.cache
+							.filter(r => r.name !== "@everyone")
+							.map(r => ({ id: r.id, name: r.name }))
+					});
+				}
+
+				const results = await client.shard.broadcastEval(
+					(c, { targetGuildId }) => {
+						const guild = c.guilds.cache.get(targetGuildId);
+						if (!guild) return null;
+						return {
+							channels: guild.channels.cache
+								.filter(ch => ch.type === 0 || ch.type === 5)
+								.map(ch => ({ id: ch.id, name: ch.name })),
+							roles: guild.roles.cache
+								.filter(r => r.name !== "@everyone")
+								.map(r => ({ id: r.id, name: r.name }))
+						};
+					},
+					{ context: { targetGuildId: guildId } }
+				);
+
+				const data = results.find(r => r !== null);
+				if (!data) return res.status(404).json({ error: "Guild not found" });
+				return res.json(data);
+			} catch (err: unknown) {
+				return res.status(500).json({ error: "Internal server error" });
+			}
+		});
+
+		app.listen(process.env.PORT || 3000, () => {
+			console.log("Web server started");
+		});
+	};
 
 async function loadCommands(client: ExtendedClient) {
 	const commandPath = path.join(__dirname, "commands");
