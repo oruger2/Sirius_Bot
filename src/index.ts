@@ -12,6 +12,7 @@ import {
 } from "discord.js";
 import * as dotenv from "dotenv";
 import express, { type Request, type Response } from "express";
+import cors from "cors";
 import { initErrorReporting } from "@/utils/errorWebhook";
 import { ensureJsonDataDir } from "@/utils/jsonFileStore";
 
@@ -124,8 +125,9 @@ const createClient = () =>
 		partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 	});
 
-const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
-	const app = express();
+	const setupApiRoutes = (client: ExtendedClient, rest: REST) => {
+		const app = express();
+		app.use(cors());
 
 	app.get("/api/guilds", async (req: Request, res: Response) => {
 		void req;
