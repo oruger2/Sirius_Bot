@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma/client"
 }
 
 datasource db {
@@ -8,47 +7,31 @@ datasource db {
 }
 
 model ServerSetting {
-  id String @id @default(cuid())
-
-  // DiscordサーバーID
-  serverId String @unique
-
-  // オプトアウト設定
-  spamBlockEnabled    Boolean @default(true)
-  inviteBlockEnabled  Boolean @default(true)
-
-  // 報告先チャンネル
+  id                    String   @id @default(cuid())
+  serverId              String   @unique
+  spamBlockEnabled      Boolean  @default(true)
+  inviteBlockEnabled    Boolean  @default(true)
   spamReportChannelId   String?
   inviteReportChannelId String?
-
-  // 除外設定（スパムブロック用）
-  spamIgnoredRoles    String @default("") @db.Text
-  spamIgnoredChannels String @default("") @db.Text
-
-  // 除外設定（招待リンクブロック用）
-  inviteIgnoredRoles    String @default("") @db.Text
-  inviteIgnoredChannels String @default("") @db.Text
-
-  // ハニーポット設定
-  honeypotEnabled    Boolean @default(false)
-  honeypotChannelId  String?
-  honeypotReportId   String?
-  honeypotIgnoreRole String @default("") @db.Text
-
-  // 互換性のために残す
-  ignoredRoles    String @default("") @db.Text
-  ignoredChannels String @default("") @db.Text
-
-  // メタ情報
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  ignoredChannels       String?  @db.Text
+  ignoredRoles          String?  @db.Text
+  spamIgnoredRoles      String?  @db.Text
+  spamIgnoredChannels   String?  @db.Text
+  inviteIgnoredRoles    String?  @db.Text
+  inviteIgnoredChannels String?  @db.Text
+  honeypotChannelId     String?
+  honeypotEnabled       Boolean  @default(false)
+  honeypotIgnoreRole    String?  @db.Text
+  honeypotReportId      String?
 }
 
 model Account {
-  id                    String    @id @default(cuid())
-  userId                String
-  providerId            String
-  accountId             String
+  id                    String    @id @default(cuid()) @db.VarChar(255)
+  userId                String    @db.VarChar(255)
+  providerId            String    @db.VarChar(255)
+  accountId             String    @db.VarChar(255)
   accessToken           String?   @db.Text
   refreshToken          String?   @db.Text
   expiresAt             DateTime? @db.DateTime(0)
@@ -66,13 +49,13 @@ model Account {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
+  id        String   @id @default(cuid()) @db.VarChar(255)
+  userId    String   @db.VarChar(255)
+  token     String   @unique @db.VarChar(255)
   expiresAt DateTime
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  ipAddress String?  @db.VarChar(255)
+  userAgent String?  @db.VarChar(255)
+  createdAt DateTime  @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -81,11 +64,11 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
+  id            String    @id @default(cuid()) @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  email         String    @unique @db.VarChar(255)
   emailVerified Boolean
-  image         String?
+  image         String?   @db.VarChar(255)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -95,12 +78,19 @@ model User {
 }
 
 model Verification {
-  id         String    @id @default(cuid())
-  identifier String
+  id         String    @id @default(cuid()) @db.VarChar(255)
+  identifier String    @db.VarChar(255)
   value      String    @db.Text
   expiresAt  DateTime
-  createdAt  DateTime? @default(now())
+  createdAt  DateTime?
   updatedAt  DateTime? @updatedAt
 
   @@map("verification")
+}
+
+model SurvivalRanking {
+  userId    String   @id
+  username  String
+  bestDays  Int      @default(0)
+  updatedAt DateTime
 }
