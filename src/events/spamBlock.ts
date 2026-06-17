@@ -41,14 +41,18 @@ export default {
 			// 設定がない、またはスパムブロックが無効な場合は何もしない
 			if (!setting || !setting.spamBlockEnabled) return;
 
-		// 除外チャンネルのチェック
-		const ignoredChannels = setting.ignoredChannels.split(",").filter(Boolean);
-		if (ignoredChannels.includes(message.channelId)) return;
+		// 除外チャンネルのチェック（新フィールド優先、旧フィールドにフォールバック）
+		const spamIgnoredChannels = (setting.spamIgnoredChannels || setting.ignoredChannels || "")
+			.split(",")
+			.filter(Boolean);
+		if (spamIgnoredChannels.includes(message.channelId)) return;
 
-		// 除外ロールのチェック
-		const ignoredRoles = setting.ignoredRoles.split(",").filter(Boolean);
+		// 除外ロールのチェック（新フィールド優先、旧フィールドにフォールバック）
+		const spamIgnoredRoles = (setting.spamIgnoredRoles || setting.ignoredRoles || "")
+			.split(",")
+			.filter(Boolean);
 		if (
-			message.member?.roles.cache.some((role) => ignoredRoles.includes(role.id))
+			message.member?.roles.cache.some((role) => spamIgnoredRoles.includes(role.id))
 		)
 			return;
 
