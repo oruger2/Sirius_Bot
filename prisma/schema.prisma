@@ -1,18 +1,10 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma/client"
 }
 
 datasource db {
   provider = "mysql"
-}
-
-model SurvivalRanking {
-  userId    String   @id
-  username  String
-  bestDays  Int      @default(0)
-
-  updatedAt DateTime @updatedAt
 }
 
 model ServerSetting {
@@ -37,11 +29,78 @@ model ServerSetting {
   inviteIgnoredRoles    String @default("") @db.Text
   inviteIgnoredChannels String @default("") @db.Text
 
-  // 互換性のために残す（旧フィールド）
+  // ハニーポット設定
+  honeypotEnabled    Boolean @default(false)
+  honeypotChannelId  String?
+  honeypotReportId   String?
+  honeypotIgnoreRole String @default("") @db.Text
+
+  // 互換性のために残す
   ignoredRoles    String @default("") @db.Text
   ignoredChannels String @default("") @db.Text
 
   // メタ情報
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  providerId            String
+  accountId             String
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  expiresAt             DateTime? @db.DateTime(0)
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String    @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@map("verification")
 }

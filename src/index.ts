@@ -289,13 +289,62 @@ const createClient = () =>
 
 				const data = results.find(r => r !== null);
 				if (!data) return res.status(404).json({ error: "Guild not found" });
-				return res.json(data);
-			} catch (err: unknown) {
-				return res.status(500).json({ error: "Internal server error" });
-			}
-		});
+					return res.json(data);
+				} catch (err: unknown) {
+					return res.status(500).json({ error: "Internal server error" });
+				}
+			});
 
-		app.listen(process.env.PORT || 3000, () => {
+			app.post("/api/guilds/:id/honeypot-notice", express.json(), async (req: Request<{ id: string }>, res: Response) => {
+				const guildId = req.params.id;
+				const { channelId } = req.body;
+				
+				if (!channelId) return res.status(400).json({ error: "Missing channelId" });
+
+				try {
+					const sendNotice = async (c: Client, gId: string, cId: string) => {
+						const guild = c.guilds.cache.get(gId);
+						if (!guild) return false;
+						const channel = await guild.channels.fetch(cId).catch(() => null);
+						if (channel?.isTextBased() && "send" in channel) {
+							await channel.send({
+								content: "⚠️ **ハニーポット設定の更新**\nこのチャンネルにメッセージを送信すると、自動的にBANされるようになりました。ご注意ください。"
+							});
+							return true;
+						}
+						return false;
+					};
+
+					if (!client.shard) {
+						const success = await sendNotice(client, guildId, channelId);
+						return res.json({ success });
+					}
+
+					const results = await client.shard.broadcastEval(
+						async (c, { gId, cId }) => {
+							const guild = c.guilds.cache.get(gId);
+							if (!guild) return false;
+							const channel = await guild.channels.fetch(cId).catch(() => null);
+							if (channel?.isTextBased() && "send" in channel) {
+								await channel.send({
+									content: "⚠️ **ハニーポット設定の更新**\nこのチャンネルにメッセージを送信すると、自動的にBANされるようになりました。ご注意ください。"
+								});
+								return true;
+							}
+							return false;
+						},
+						{ context: { gId: guildId, cId: channelId } }
+					);
+
+					const success = results.some(r => r === true);
+					return res.json({ success });
+				} catch (err: unknown) {
+					console.error("Honeypot notice error:", err);
+					return res.status(500).json({ error: "Internal server error" });
+				}
+			});
+
+			app.listen(process.env.PORT || 3000, () => {
 			console.log("Web server started");
 		});
 	};
