@@ -748,13 +748,11 @@ const command = {
 							update: {
 								bestDays: newBest,
 								username: interaction.user.username,
-								updatedAt: new Date(),
 							},
 							create: {
 								userId: interaction.user.id,
 								username: interaction.user.username,
 								bestDays: newBest,
-								updatedAt: new Date(),
 							},
 						});
 
