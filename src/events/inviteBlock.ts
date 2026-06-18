@@ -15,26 +15,36 @@ export default {
 	async execute(message: Message): Promise<void> {
 		if (!message.guild || message.author.bot) return;
 
-			// サーバー設定の取得（ダッシュボードからの設定を反映）
-			const setting = await prisma.serverSetting.findUnique({
-				where: { serverId: message.guild.id },
-			});
+		// サーバー設定の取得（ダッシュボードからの設定を反映）
+		const setting = await prisma.serverSetting.findUnique({
+			where: { serverId: message.guild.id },
+		});
 
-			// 設定がない、または招待リンクブロックが無効な場合は何もしない
-			if (!setting || !setting.inviteBlockEnabled) return;
+		// 設定がない、または招待リンクブロックが無効な場合は何もしない
+		if (!setting || !setting.inviteBlockEnabled) return;
 
 		// 除外チャンネルのチェック（新フィールド優先、旧フィールドにフォールバック）
-		const inviteIgnoredChannels = (setting.inviteIgnoredChannels || setting.ignoredChannels || "")
+		const inviteIgnoredChannels = (
+			setting.inviteIgnoredChannels ||
+			setting.ignoredChannels ||
+			""
+		)
 			.split(",")
 			.filter(Boolean);
 		if (inviteIgnoredChannels.includes(message.channelId)) return;
 
 		// 除外ロールのチェック（新フィールド優先、旧フィールドにフォールバック）
-		const inviteIgnoredRoles = (setting.inviteIgnoredRoles || setting.ignoredRoles || "")
+		const inviteIgnoredRoles = (
+			setting.inviteIgnoredRoles ||
+			setting.ignoredRoles ||
+			""
+		)
 			.split(",")
 			.filter(Boolean);
 		if (
-			message.member?.roles.cache.some((role) => inviteIgnoredRoles.includes(role.id))
+			message.member?.roles.cache.some((role) =>
+				inviteIgnoredRoles.includes(role.id),
+			)
 		)
 			return;
 
@@ -75,7 +85,7 @@ export default {
 					const reportChannel = await message.client.channels
 						.fetch(setting.inviteReportChannelId)
 						.catch(() => null);
-						if (reportChannel?.isTextBased() && "send" in reportChannel) {
+					if (reportChannel?.isTextBased() && "send" in reportChannel) {
 						const reportEmbed = new EmbedBuilder()
 							.setTitle("📢 招待リンク検知報告")
 							.addFields(

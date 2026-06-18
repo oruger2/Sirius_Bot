@@ -33,26 +33,36 @@ export default {
 	async execute(message: Message): Promise<void> {
 		if (!message.guild || message.author.bot) return;
 
-			// サーバー設定の取得（ダッシュボードからの設定を反映）
-			const setting = await prisma.serverSetting.findUnique({
-				where: { serverId: message.guild.id },
-			});
+		// サーバー設定の取得（ダッシュボードからの設定を反映）
+		const setting = await prisma.serverSetting.findUnique({
+			where: { serverId: message.guild.id },
+		});
 
-			// 設定がない、またはスパムブロックが無効な場合は何もしない
-			if (!setting || !setting.spamBlockEnabled) return;
+		// 設定がない、またはスパムブロックが無効な場合は何もしない
+		if (!setting || !setting.spamBlockEnabled) return;
 
 		// 除外チャンネルのチェック（新フィールド優先、旧フィールドにフォールバック）
-		const spamIgnoredChannels = (setting.spamIgnoredChannels || setting.ignoredChannels || "")
+		const spamIgnoredChannels = (
+			setting.spamIgnoredChannels ||
+			setting.ignoredChannels ||
+			""
+		)
 			.split(",")
 			.filter(Boolean);
 		if (spamIgnoredChannels.includes(message.channelId)) return;
 
 		// 除外ロールのチェック（新フィールド優先、旧フィールドにフォールバック）
-		const spamIgnoredRoles = (setting.spamIgnoredRoles || setting.ignoredRoles || "")
+		const spamIgnoredRoles = (
+			setting.spamIgnoredRoles ||
+			setting.ignoredRoles ||
+			""
+		)
 			.split(",")
 			.filter(Boolean);
 		if (
-			message.member?.roles.cache.some((role) => spamIgnoredRoles.includes(role.id))
+			message.member?.roles.cache.some((role) =>
+				spamIgnoredRoles.includes(role.id),
+			)
 		)
 			return;
 
@@ -118,7 +128,7 @@ export default {
 					const reportChannel = await message.client.channels
 						.fetch(setting.spamReportChannelId)
 						.catch(() => null);
-						if (reportChannel?.isTextBased() && "send" in reportChannel) {
+					if (reportChannel?.isTextBased() && "send" in reportChannel) {
 						const reportEmbed = new EmbedBuilder()
 							.setTitle("📢 スパム検知報告")
 							.addFields(
