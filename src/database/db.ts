@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import { PrismaClient } from "../generated/prisma/client/index.js";
+import { PrismaClient } from "../generated/prisma/client";
 
 const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
