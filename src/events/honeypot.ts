@@ -17,11 +17,24 @@ export default {
 			where: { serverId: message.guild.id },
 		})) as any;
 
+		// デバッグログ
+		console.log(`[Honeypot Debug] Guild: ${message.guild.id}, Channel: ${message.channelId}`);
+		if (setting) {
+			console.log(`[Honeypot Debug] Enabled: ${setting.honeypotEnabled}, TargetChannel: ${setting.honeypotChannelId}`);
+		} else {
+			console.log(`[Honeypot Debug] No setting found for guild ${message.guild.id}`);
+		}
+
 		// 設定がない、またはハニーポットが無効な場合は何もしない
 		if (!setting || !setting.honeypotEnabled || !setting.honeypotChannelId) return;
 
 		// 対象チャンネル以外は無視
-		if (message.channelId !== setting.honeypotChannelId) return;
+		if (message.channelId !== setting.honeypotChannelId) {
+			console.log(`[Honeypot Debug] Channel mismatch: ${message.channelId} !== ${setting.honeypotChannelId}`);
+			return;
+		}
+		
+		console.log(`[Honeypot Debug] Match! Processing for user: ${message.author.id}`);
 
 		// 除外ロールのチェック
 		const honeypotIgnoreRoles = (setting.honeypotIgnoreRole || "")
@@ -33,13 +46,18 @@ export default {
 			return;
 
 		const member = message.member;
-		if (!member) return;
+		if (!member) {
+			console.log(`[Honeypot Debug] No member found for message ${message.id}`);
+			return;
+		}
 
 		// 管理者やBot自身はBANしない
+		console.log(`[Honeypot Debug] Checking permissions for ${member.user.tag}. Bannable: ${member.bannable}, Admin: ${member.permissions.has(PermissionsBitField.Flags.Administrator)}`);
 		if (
 			!member.bannable ||
 			member.permissions.has(PermissionsBitField.Flags.Administrator)
 		) {
+			console.log(`[Honeypot Debug] Skip BAN: Member is not bannable or is an administrator.`);
 			return;
 		}
 
