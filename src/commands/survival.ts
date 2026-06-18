@@ -753,6 +753,7 @@ const command = {
 								userId: interaction.user.id,
 								username: interaction.user.username,
 								bestDays: newBest,
+								updatedAt: new Date(),
 							},
 						});
 
