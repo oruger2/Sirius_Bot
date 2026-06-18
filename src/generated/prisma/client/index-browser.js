@@ -127,18 +127,18 @@ exports.Prisma.ServerSettingScalarFieldEnum = {
   inviteBlockEnabled: 'inviteBlockEnabled',
   spamReportChannelId: 'spamReportChannelId',
   inviteReportChannelId: 'inviteReportChannelId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  ignoredChannels: 'ignoredChannels',
+  ignoredRoles: 'ignoredRoles',
   spamIgnoredRoles: 'spamIgnoredRoles',
   spamIgnoredChannels: 'spamIgnoredChannels',
   inviteIgnoredRoles: 'inviteIgnoredRoles',
   inviteIgnoredChannels: 'inviteIgnoredChannels',
-  honeypotEnabled: 'honeypotEnabled',
   honeypotChannelId: 'honeypotChannelId',
-  honeypotReportId: 'honeypotReportId',
+  honeypotEnabled: 'honeypotEnabled',
   honeypotIgnoreRole: 'honeypotIgnoreRole',
-  ignoredRoles: 'ignoredRoles',
-  ignoredChannels: 'ignoredChannels',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  honeypotReportId: 'honeypotReportId'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -188,6 +188,13 @@ exports.Prisma.VerificationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SurvivalRankingScalarFieldEnum = {
+  userId: 'userId',
+  username: 'username',
+  bestDays: 'bestDays',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -203,15 +210,15 @@ exports.Prisma.ServerSettingOrderByRelevanceFieldEnum = {
   serverId: 'serverId',
   spamReportChannelId: 'spamReportChannelId',
   inviteReportChannelId: 'inviteReportChannelId',
+  ignoredChannels: 'ignoredChannels',
+  ignoredRoles: 'ignoredRoles',
   spamIgnoredRoles: 'spamIgnoredRoles',
   spamIgnoredChannels: 'spamIgnoredChannels',
   inviteIgnoredRoles: 'inviteIgnoredRoles',
   inviteIgnoredChannels: 'inviteIgnoredChannels',
   honeypotChannelId: 'honeypotChannelId',
-  honeypotReportId: 'honeypotReportId',
   honeypotIgnoreRole: 'honeypotIgnoreRole',
-  ignoredRoles: 'ignoredRoles',
-  ignoredChannels: 'ignoredChannels'
+  honeypotReportId: 'honeypotReportId'
 };
 
 exports.Prisma.AccountOrderByRelevanceFieldEnum = {
@@ -247,13 +254,19 @@ exports.Prisma.VerificationOrderByRelevanceFieldEnum = {
   value: 'value'
 };
 
+exports.Prisma.SurvivalRankingOrderByRelevanceFieldEnum = {
+  userId: 'userId',
+  username: 'username'
+};
+
 
 exports.Prisma.ModelName = {
   ServerSetting: 'ServerSetting',
   Account: 'Account',
   Session: 'Session',
   User: 'User',
-  Verification: 'Verification'
+  Verification: 'Verification',
+  SurvivalRanking: 'SurvivalRanking'
 };
 
 /**

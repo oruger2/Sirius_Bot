@@ -38,6 +38,11 @@ export type User = $Result.DefaultSelection<Prisma.$UserPayload>
  * 
  */
 export type Verification = $Result.DefaultSelection<Prisma.$VerificationPayload>
+/**
+ * Model SurvivalRanking
+ * 
+ */
+export type SurvivalRanking = $Result.DefaultSelection<Prisma.$SurvivalRankingPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -209,6 +214,16 @@ export class PrismaClient<
     * ```
     */
   get verification(): Prisma.VerificationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.survivalRanking`: Exposes CRUD operations for the **SurvivalRanking** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SurvivalRankings
+    * const survivalRankings = await prisma.survivalRanking.findMany()
+    * ```
+    */
+  get survivalRanking(): Prisma.SurvivalRankingDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -647,7 +662,8 @@ export namespace Prisma {
     Account: 'Account',
     Session: 'Session',
     User: 'User',
-    Verification: 'Verification'
+    Verification: 'Verification',
+    SurvivalRanking: 'SurvivalRanking'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -663,7 +679,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "serverSetting" | "account" | "session" | "user" | "verification"
+      modelProps: "serverSetting" | "account" | "session" | "user" | "verification" | "survivalRanking"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -997,6 +1013,72 @@ export namespace Prisma {
           }
         }
       }
+      SurvivalRanking: {
+        payload: Prisma.$SurvivalRankingPayload<ExtArgs>
+        fields: Prisma.SurvivalRankingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SurvivalRankingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SurvivalRankingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>
+          }
+          findFirst: {
+            args: Prisma.SurvivalRankingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SurvivalRankingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>
+          }
+          findMany: {
+            args: Prisma.SurvivalRankingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>[]
+          }
+          create: {
+            args: Prisma.SurvivalRankingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>
+          }
+          createMany: {
+            args: Prisma.SurvivalRankingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.SurvivalRankingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>
+          }
+          update: {
+            args: Prisma.SurvivalRankingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>
+          }
+          deleteMany: {
+            args: Prisma.SurvivalRankingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SurvivalRankingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SurvivalRankingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SurvivalRankingPayload>
+          }
+          aggregate: {
+            args: Prisma.SurvivalRankingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSurvivalRanking>
+          }
+          groupBy: {
+            args: Prisma.SurvivalRankingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SurvivalRankingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SurvivalRankingCountArgs<ExtArgs>
+            result: $Utils.Optional<SurvivalRankingCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1110,6 +1192,7 @@ export namespace Prisma {
     session?: SessionOmit
     user?: UserOmit
     verification?: VerificationOmit
+    survivalRanking?: SurvivalRankingOmit
   }
 
   /* Types for Logging */
@@ -1246,18 +1329,18 @@ export namespace Prisma {
     inviteBlockEnabled: boolean | null
     spamReportChannelId: string | null
     inviteReportChannelId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    ignoredChannels: string | null
+    ignoredRoles: string | null
     spamIgnoredRoles: string | null
     spamIgnoredChannels: string | null
     inviteIgnoredRoles: string | null
     inviteIgnoredChannels: string | null
-    honeypotEnabled: boolean | null
     honeypotChannelId: string | null
-    honeypotReportId: string | null
+    honeypotEnabled: boolean | null
     honeypotIgnoreRole: string | null
-    ignoredRoles: string | null
-    ignoredChannels: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
+    honeypotReportId: string | null
   }
 
   export type ServerSettingMaxAggregateOutputType = {
@@ -1267,18 +1350,18 @@ export namespace Prisma {
     inviteBlockEnabled: boolean | null
     spamReportChannelId: string | null
     inviteReportChannelId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    ignoredChannels: string | null
+    ignoredRoles: string | null
     spamIgnoredRoles: string | null
     spamIgnoredChannels: string | null
     inviteIgnoredRoles: string | null
     inviteIgnoredChannels: string | null
-    honeypotEnabled: boolean | null
     honeypotChannelId: string | null
-    honeypotReportId: string | null
+    honeypotEnabled: boolean | null
     honeypotIgnoreRole: string | null
-    ignoredRoles: string | null
-    ignoredChannels: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
+    honeypotReportId: string | null
   }
 
   export type ServerSettingCountAggregateOutputType = {
@@ -1288,18 +1371,18 @@ export namespace Prisma {
     inviteBlockEnabled: number
     spamReportChannelId: number
     inviteReportChannelId: number
+    createdAt: number
+    updatedAt: number
+    ignoredChannels: number
+    ignoredRoles: number
     spamIgnoredRoles: number
     spamIgnoredChannels: number
     inviteIgnoredRoles: number
     inviteIgnoredChannels: number
-    honeypotEnabled: number
     honeypotChannelId: number
-    honeypotReportId: number
+    honeypotEnabled: number
     honeypotIgnoreRole: number
-    ignoredRoles: number
-    ignoredChannels: number
-    createdAt: number
-    updatedAt: number
+    honeypotReportId: number
     _all: number
   }
 
@@ -1311,18 +1394,18 @@ export namespace Prisma {
     inviteBlockEnabled?: true
     spamReportChannelId?: true
     inviteReportChannelId?: true
+    createdAt?: true
+    updatedAt?: true
+    ignoredChannels?: true
+    ignoredRoles?: true
     spamIgnoredRoles?: true
     spamIgnoredChannels?: true
     inviteIgnoredRoles?: true
     inviteIgnoredChannels?: true
-    honeypotEnabled?: true
     honeypotChannelId?: true
-    honeypotReportId?: true
+    honeypotEnabled?: true
     honeypotIgnoreRole?: true
-    ignoredRoles?: true
-    ignoredChannels?: true
-    createdAt?: true
-    updatedAt?: true
+    honeypotReportId?: true
   }
 
   export type ServerSettingMaxAggregateInputType = {
@@ -1332,18 +1415,18 @@ export namespace Prisma {
     inviteBlockEnabled?: true
     spamReportChannelId?: true
     inviteReportChannelId?: true
+    createdAt?: true
+    updatedAt?: true
+    ignoredChannels?: true
+    ignoredRoles?: true
     spamIgnoredRoles?: true
     spamIgnoredChannels?: true
     inviteIgnoredRoles?: true
     inviteIgnoredChannels?: true
-    honeypotEnabled?: true
     honeypotChannelId?: true
-    honeypotReportId?: true
+    honeypotEnabled?: true
     honeypotIgnoreRole?: true
-    ignoredRoles?: true
-    ignoredChannels?: true
-    createdAt?: true
-    updatedAt?: true
+    honeypotReportId?: true
   }
 
   export type ServerSettingCountAggregateInputType = {
@@ -1353,18 +1436,18 @@ export namespace Prisma {
     inviteBlockEnabled?: true
     spamReportChannelId?: true
     inviteReportChannelId?: true
+    createdAt?: true
+    updatedAt?: true
+    ignoredChannels?: true
+    ignoredRoles?: true
     spamIgnoredRoles?: true
     spamIgnoredChannels?: true
     inviteIgnoredRoles?: true
     inviteIgnoredChannels?: true
-    honeypotEnabled?: true
     honeypotChannelId?: true
-    honeypotReportId?: true
+    honeypotEnabled?: true
     honeypotIgnoreRole?: true
-    ignoredRoles?: true
-    ignoredChannels?: true
-    createdAt?: true
-    updatedAt?: true
+    honeypotReportId?: true
     _all?: true
   }
 
@@ -1447,18 +1530,18 @@ export namespace Prisma {
     inviteBlockEnabled: boolean
     spamReportChannelId: string | null
     inviteReportChannelId: string | null
-    spamIgnoredRoles: string
-    spamIgnoredChannels: string
-    inviteIgnoredRoles: string
-    inviteIgnoredChannels: string
-    honeypotEnabled: boolean
-    honeypotChannelId: string | null
-    honeypotReportId: string | null
-    honeypotIgnoreRole: string
-    ignoredRoles: string
-    ignoredChannels: string
     createdAt: Date
     updatedAt: Date
+    ignoredChannels: string | null
+    ignoredRoles: string | null
+    spamIgnoredRoles: string | null
+    spamIgnoredChannels: string | null
+    inviteIgnoredRoles: string | null
+    inviteIgnoredChannels: string | null
+    honeypotChannelId: string | null
+    honeypotEnabled: boolean
+    honeypotIgnoreRole: string | null
+    honeypotReportId: string | null
     _count: ServerSettingCountAggregateOutputType | null
     _min: ServerSettingMinAggregateOutputType | null
     _max: ServerSettingMaxAggregateOutputType | null
@@ -1485,18 +1568,18 @@ export namespace Prisma {
     inviteBlockEnabled?: boolean
     spamReportChannelId?: boolean
     inviteReportChannelId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    ignoredChannels?: boolean
+    ignoredRoles?: boolean
     spamIgnoredRoles?: boolean
     spamIgnoredChannels?: boolean
     inviteIgnoredRoles?: boolean
     inviteIgnoredChannels?: boolean
-    honeypotEnabled?: boolean
     honeypotChannelId?: boolean
-    honeypotReportId?: boolean
+    honeypotEnabled?: boolean
     honeypotIgnoreRole?: boolean
-    ignoredRoles?: boolean
-    ignoredChannels?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
+    honeypotReportId?: boolean
   }, ExtArgs["result"]["serverSetting"]>
 
 
@@ -1508,21 +1591,21 @@ export namespace Prisma {
     inviteBlockEnabled?: boolean
     spamReportChannelId?: boolean
     inviteReportChannelId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    ignoredChannels?: boolean
+    ignoredRoles?: boolean
     spamIgnoredRoles?: boolean
     spamIgnoredChannels?: boolean
     inviteIgnoredRoles?: boolean
     inviteIgnoredChannels?: boolean
-    honeypotEnabled?: boolean
     honeypotChannelId?: boolean
-    honeypotReportId?: boolean
+    honeypotEnabled?: boolean
     honeypotIgnoreRole?: boolean
-    ignoredRoles?: boolean
-    ignoredChannels?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
+    honeypotReportId?: boolean
   }
 
-  export type ServerSettingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "serverId" | "spamBlockEnabled" | "inviteBlockEnabled" | "spamReportChannelId" | "inviteReportChannelId" | "spamIgnoredRoles" | "spamIgnoredChannels" | "inviteIgnoredRoles" | "inviteIgnoredChannels" | "honeypotEnabled" | "honeypotChannelId" | "honeypotReportId" | "honeypotIgnoreRole" | "ignoredRoles" | "ignoredChannels" | "createdAt" | "updatedAt", ExtArgs["result"]["serverSetting"]>
+  export type ServerSettingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "serverId" | "spamBlockEnabled" | "inviteBlockEnabled" | "spamReportChannelId" | "inviteReportChannelId" | "createdAt" | "updatedAt" | "ignoredChannels" | "ignoredRoles" | "spamIgnoredRoles" | "spamIgnoredChannels" | "inviteIgnoredRoles" | "inviteIgnoredChannels" | "honeypotChannelId" | "honeypotEnabled" | "honeypotIgnoreRole" | "honeypotReportId", ExtArgs["result"]["serverSetting"]>
 
   export type $ServerSettingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ServerSetting"
@@ -1534,18 +1617,18 @@ export namespace Prisma {
       inviteBlockEnabled: boolean
       spamReportChannelId: string | null
       inviteReportChannelId: string | null
-      spamIgnoredRoles: string
-      spamIgnoredChannels: string
-      inviteIgnoredRoles: string
-      inviteIgnoredChannels: string
-      honeypotEnabled: boolean
-      honeypotChannelId: string | null
-      honeypotReportId: string | null
-      honeypotIgnoreRole: string
-      ignoredRoles: string
-      ignoredChannels: string
       createdAt: Date
       updatedAt: Date
+      ignoredChannels: string | null
+      ignoredRoles: string | null
+      spamIgnoredRoles: string | null
+      spamIgnoredChannels: string | null
+      inviteIgnoredRoles: string | null
+      inviteIgnoredChannels: string | null
+      honeypotChannelId: string | null
+      honeypotEnabled: boolean
+      honeypotIgnoreRole: string | null
+      honeypotReportId: string | null
     }, ExtArgs["result"]["serverSetting"]>
     composites: {}
   }
@@ -1921,18 +2004,18 @@ export namespace Prisma {
     readonly inviteBlockEnabled: FieldRef<"ServerSetting", 'Boolean'>
     readonly spamReportChannelId: FieldRef<"ServerSetting", 'String'>
     readonly inviteReportChannelId: FieldRef<"ServerSetting", 'String'>
+    readonly createdAt: FieldRef<"ServerSetting", 'DateTime'>
+    readonly updatedAt: FieldRef<"ServerSetting", 'DateTime'>
+    readonly ignoredChannels: FieldRef<"ServerSetting", 'String'>
+    readonly ignoredRoles: FieldRef<"ServerSetting", 'String'>
     readonly spamIgnoredRoles: FieldRef<"ServerSetting", 'String'>
     readonly spamIgnoredChannels: FieldRef<"ServerSetting", 'String'>
     readonly inviteIgnoredRoles: FieldRef<"ServerSetting", 'String'>
     readonly inviteIgnoredChannels: FieldRef<"ServerSetting", 'String'>
-    readonly honeypotEnabled: FieldRef<"ServerSetting", 'Boolean'>
     readonly honeypotChannelId: FieldRef<"ServerSetting", 'String'>
-    readonly honeypotReportId: FieldRef<"ServerSetting", 'String'>
+    readonly honeypotEnabled: FieldRef<"ServerSetting", 'Boolean'>
     readonly honeypotIgnoreRole: FieldRef<"ServerSetting", 'String'>
-    readonly ignoredRoles: FieldRef<"ServerSetting", 'String'>
-    readonly ignoredChannels: FieldRef<"ServerSetting", 'String'>
-    readonly createdAt: FieldRef<"ServerSetting", 'DateTime'>
-    readonly updatedAt: FieldRef<"ServerSetting", 'DateTime'>
+    readonly honeypotReportId: FieldRef<"ServerSetting", 'String'>
   }
     
 
@@ -6168,6 +6251,916 @@ export namespace Prisma {
 
 
   /**
+   * Model SurvivalRanking
+   */
+
+  export type AggregateSurvivalRanking = {
+    _count: SurvivalRankingCountAggregateOutputType | null
+    _avg: SurvivalRankingAvgAggregateOutputType | null
+    _sum: SurvivalRankingSumAggregateOutputType | null
+    _min: SurvivalRankingMinAggregateOutputType | null
+    _max: SurvivalRankingMaxAggregateOutputType | null
+  }
+
+  export type SurvivalRankingAvgAggregateOutputType = {
+    bestDays: number | null
+  }
+
+  export type SurvivalRankingSumAggregateOutputType = {
+    bestDays: number | null
+  }
+
+  export type SurvivalRankingMinAggregateOutputType = {
+    userId: string | null
+    username: string | null
+    bestDays: number | null
+    updatedAt: Date | null
+  }
+
+  export type SurvivalRankingMaxAggregateOutputType = {
+    userId: string | null
+    username: string | null
+    bestDays: number | null
+    updatedAt: Date | null
+  }
+
+  export type SurvivalRankingCountAggregateOutputType = {
+    userId: number
+    username: number
+    bestDays: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SurvivalRankingAvgAggregateInputType = {
+    bestDays?: true
+  }
+
+  export type SurvivalRankingSumAggregateInputType = {
+    bestDays?: true
+  }
+
+  export type SurvivalRankingMinAggregateInputType = {
+    userId?: true
+    username?: true
+    bestDays?: true
+    updatedAt?: true
+  }
+
+  export type SurvivalRankingMaxAggregateInputType = {
+    userId?: true
+    username?: true
+    bestDays?: true
+    updatedAt?: true
+  }
+
+  export type SurvivalRankingCountAggregateInputType = {
+    userId?: true
+    username?: true
+    bestDays?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SurvivalRankingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SurvivalRanking to aggregate.
+     */
+    where?: SurvivalRankingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SurvivalRankings to fetch.
+     */
+    orderBy?: SurvivalRankingOrderByWithRelationInput | SurvivalRankingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SurvivalRankingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SurvivalRankings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SurvivalRankings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SurvivalRankings
+    **/
+    _count?: true | SurvivalRankingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SurvivalRankingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SurvivalRankingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SurvivalRankingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SurvivalRankingMaxAggregateInputType
+  }
+
+  export type GetSurvivalRankingAggregateType<T extends SurvivalRankingAggregateArgs> = {
+        [P in keyof T & keyof AggregateSurvivalRanking]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSurvivalRanking[P]>
+      : GetScalarType<T[P], AggregateSurvivalRanking[P]>
+  }
+
+
+
+
+  export type SurvivalRankingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SurvivalRankingWhereInput
+    orderBy?: SurvivalRankingOrderByWithAggregationInput | SurvivalRankingOrderByWithAggregationInput[]
+    by: SurvivalRankingScalarFieldEnum[] | SurvivalRankingScalarFieldEnum
+    having?: SurvivalRankingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SurvivalRankingCountAggregateInputType | true
+    _avg?: SurvivalRankingAvgAggregateInputType
+    _sum?: SurvivalRankingSumAggregateInputType
+    _min?: SurvivalRankingMinAggregateInputType
+    _max?: SurvivalRankingMaxAggregateInputType
+  }
+
+  export type SurvivalRankingGroupByOutputType = {
+    userId: string
+    username: string
+    bestDays: number
+    updatedAt: Date
+    _count: SurvivalRankingCountAggregateOutputType | null
+    _avg: SurvivalRankingAvgAggregateOutputType | null
+    _sum: SurvivalRankingSumAggregateOutputType | null
+    _min: SurvivalRankingMinAggregateOutputType | null
+    _max: SurvivalRankingMaxAggregateOutputType | null
+  }
+
+  type GetSurvivalRankingGroupByPayload<T extends SurvivalRankingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SurvivalRankingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SurvivalRankingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SurvivalRankingGroupByOutputType[P]>
+            : GetScalarType<T[P], SurvivalRankingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SurvivalRankingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    username?: boolean
+    bestDays?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["survivalRanking"]>
+
+
+
+  export type SurvivalRankingSelectScalar = {
+    userId?: boolean
+    username?: boolean
+    bestDays?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SurvivalRankingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userId" | "username" | "bestDays" | "updatedAt", ExtArgs["result"]["survivalRanking"]>
+
+  export type $SurvivalRankingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SurvivalRanking"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      userId: string
+      username: string
+      bestDays: number
+      updatedAt: Date
+    }, ExtArgs["result"]["survivalRanking"]>
+    composites: {}
+  }
+
+  type SurvivalRankingGetPayload<S extends boolean | null | undefined | SurvivalRankingDefaultArgs> = $Result.GetResult<Prisma.$SurvivalRankingPayload, S>
+
+  type SurvivalRankingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SurvivalRankingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SurvivalRankingCountAggregateInputType | true
+    }
+
+  export interface SurvivalRankingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SurvivalRanking'], meta: { name: 'SurvivalRanking' } }
+    /**
+     * Find zero or one SurvivalRanking that matches the filter.
+     * @param {SurvivalRankingFindUniqueArgs} args - Arguments to find a SurvivalRanking
+     * @example
+     * // Get one SurvivalRanking
+     * const survivalRanking = await prisma.survivalRanking.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SurvivalRankingFindUniqueArgs>(args: SelectSubset<T, SurvivalRankingFindUniqueArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SurvivalRanking that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SurvivalRankingFindUniqueOrThrowArgs} args - Arguments to find a SurvivalRanking
+     * @example
+     * // Get one SurvivalRanking
+     * const survivalRanking = await prisma.survivalRanking.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SurvivalRankingFindUniqueOrThrowArgs>(args: SelectSubset<T, SurvivalRankingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SurvivalRanking that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingFindFirstArgs} args - Arguments to find a SurvivalRanking
+     * @example
+     * // Get one SurvivalRanking
+     * const survivalRanking = await prisma.survivalRanking.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SurvivalRankingFindFirstArgs>(args?: SelectSubset<T, SurvivalRankingFindFirstArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SurvivalRanking that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingFindFirstOrThrowArgs} args - Arguments to find a SurvivalRanking
+     * @example
+     * // Get one SurvivalRanking
+     * const survivalRanking = await prisma.survivalRanking.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SurvivalRankingFindFirstOrThrowArgs>(args?: SelectSubset<T, SurvivalRankingFindFirstOrThrowArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SurvivalRankings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SurvivalRankings
+     * const survivalRankings = await prisma.survivalRanking.findMany()
+     * 
+     * // Get first 10 SurvivalRankings
+     * const survivalRankings = await prisma.survivalRanking.findMany({ take: 10 })
+     * 
+     * // Only select the `userId`
+     * const survivalRankingWithUserIdOnly = await prisma.survivalRanking.findMany({ select: { userId: true } })
+     * 
+     */
+    findMany<T extends SurvivalRankingFindManyArgs>(args?: SelectSubset<T, SurvivalRankingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SurvivalRanking.
+     * @param {SurvivalRankingCreateArgs} args - Arguments to create a SurvivalRanking.
+     * @example
+     * // Create one SurvivalRanking
+     * const SurvivalRanking = await prisma.survivalRanking.create({
+     *   data: {
+     *     // ... data to create a SurvivalRanking
+     *   }
+     * })
+     * 
+     */
+    create<T extends SurvivalRankingCreateArgs>(args: SelectSubset<T, SurvivalRankingCreateArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SurvivalRankings.
+     * @param {SurvivalRankingCreateManyArgs} args - Arguments to create many SurvivalRankings.
+     * @example
+     * // Create many SurvivalRankings
+     * const survivalRanking = await prisma.survivalRanking.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SurvivalRankingCreateManyArgs>(args?: SelectSubset<T, SurvivalRankingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a SurvivalRanking.
+     * @param {SurvivalRankingDeleteArgs} args - Arguments to delete one SurvivalRanking.
+     * @example
+     * // Delete one SurvivalRanking
+     * const SurvivalRanking = await prisma.survivalRanking.delete({
+     *   where: {
+     *     // ... filter to delete one SurvivalRanking
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SurvivalRankingDeleteArgs>(args: SelectSubset<T, SurvivalRankingDeleteArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SurvivalRanking.
+     * @param {SurvivalRankingUpdateArgs} args - Arguments to update one SurvivalRanking.
+     * @example
+     * // Update one SurvivalRanking
+     * const survivalRanking = await prisma.survivalRanking.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SurvivalRankingUpdateArgs>(args: SelectSubset<T, SurvivalRankingUpdateArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SurvivalRankings.
+     * @param {SurvivalRankingDeleteManyArgs} args - Arguments to filter SurvivalRankings to delete.
+     * @example
+     * // Delete a few SurvivalRankings
+     * const { count } = await prisma.survivalRanking.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SurvivalRankingDeleteManyArgs>(args?: SelectSubset<T, SurvivalRankingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SurvivalRankings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SurvivalRankings
+     * const survivalRanking = await prisma.survivalRanking.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SurvivalRankingUpdateManyArgs>(args: SelectSubset<T, SurvivalRankingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SurvivalRanking.
+     * @param {SurvivalRankingUpsertArgs} args - Arguments to update or create a SurvivalRanking.
+     * @example
+     * // Update or create a SurvivalRanking
+     * const survivalRanking = await prisma.survivalRanking.upsert({
+     *   create: {
+     *     // ... data to create a SurvivalRanking
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SurvivalRanking we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SurvivalRankingUpsertArgs>(args: SelectSubset<T, SurvivalRankingUpsertArgs<ExtArgs>>): Prisma__SurvivalRankingClient<$Result.GetResult<Prisma.$SurvivalRankingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SurvivalRankings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingCountArgs} args - Arguments to filter SurvivalRankings to count.
+     * @example
+     * // Count the number of SurvivalRankings
+     * const count = await prisma.survivalRanking.count({
+     *   where: {
+     *     // ... the filter for the SurvivalRankings we want to count
+     *   }
+     * })
+    **/
+    count<T extends SurvivalRankingCountArgs>(
+      args?: Subset<T, SurvivalRankingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SurvivalRankingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SurvivalRanking.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SurvivalRankingAggregateArgs>(args: Subset<T, SurvivalRankingAggregateArgs>): Prisma.PrismaPromise<GetSurvivalRankingAggregateType<T>>
+
+    /**
+     * Group by SurvivalRanking.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SurvivalRankingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SurvivalRankingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SurvivalRankingGroupByArgs['orderBy'] }
+        : { orderBy?: SurvivalRankingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SurvivalRankingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSurvivalRankingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SurvivalRanking model
+   */
+  readonly fields: SurvivalRankingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SurvivalRanking.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SurvivalRankingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SurvivalRanking model
+   */
+  interface SurvivalRankingFieldRefs {
+    readonly userId: FieldRef<"SurvivalRanking", 'String'>
+    readonly username: FieldRef<"SurvivalRanking", 'String'>
+    readonly bestDays: FieldRef<"SurvivalRanking", 'Int'>
+    readonly updatedAt: FieldRef<"SurvivalRanking", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SurvivalRanking findUnique
+   */
+  export type SurvivalRankingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * Filter, which SurvivalRanking to fetch.
+     */
+    where: SurvivalRankingWhereUniqueInput
+  }
+
+  /**
+   * SurvivalRanking findUniqueOrThrow
+   */
+  export type SurvivalRankingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * Filter, which SurvivalRanking to fetch.
+     */
+    where: SurvivalRankingWhereUniqueInput
+  }
+
+  /**
+   * SurvivalRanking findFirst
+   */
+  export type SurvivalRankingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * Filter, which SurvivalRanking to fetch.
+     */
+    where?: SurvivalRankingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SurvivalRankings to fetch.
+     */
+    orderBy?: SurvivalRankingOrderByWithRelationInput | SurvivalRankingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SurvivalRankings.
+     */
+    cursor?: SurvivalRankingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SurvivalRankings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SurvivalRankings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SurvivalRankings.
+     */
+    distinct?: SurvivalRankingScalarFieldEnum | SurvivalRankingScalarFieldEnum[]
+  }
+
+  /**
+   * SurvivalRanking findFirstOrThrow
+   */
+  export type SurvivalRankingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * Filter, which SurvivalRanking to fetch.
+     */
+    where?: SurvivalRankingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SurvivalRankings to fetch.
+     */
+    orderBy?: SurvivalRankingOrderByWithRelationInput | SurvivalRankingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SurvivalRankings.
+     */
+    cursor?: SurvivalRankingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SurvivalRankings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SurvivalRankings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SurvivalRankings.
+     */
+    distinct?: SurvivalRankingScalarFieldEnum | SurvivalRankingScalarFieldEnum[]
+  }
+
+  /**
+   * SurvivalRanking findMany
+   */
+  export type SurvivalRankingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * Filter, which SurvivalRankings to fetch.
+     */
+    where?: SurvivalRankingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SurvivalRankings to fetch.
+     */
+    orderBy?: SurvivalRankingOrderByWithRelationInput | SurvivalRankingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SurvivalRankings.
+     */
+    cursor?: SurvivalRankingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SurvivalRankings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SurvivalRankings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SurvivalRankings.
+     */
+    distinct?: SurvivalRankingScalarFieldEnum | SurvivalRankingScalarFieldEnum[]
+  }
+
+  /**
+   * SurvivalRanking create
+   */
+  export type SurvivalRankingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * The data needed to create a SurvivalRanking.
+     */
+    data: XOR<SurvivalRankingCreateInput, SurvivalRankingUncheckedCreateInput>
+  }
+
+  /**
+   * SurvivalRanking createMany
+   */
+  export type SurvivalRankingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SurvivalRankings.
+     */
+    data: SurvivalRankingCreateManyInput | SurvivalRankingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SurvivalRanking update
+   */
+  export type SurvivalRankingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * The data needed to update a SurvivalRanking.
+     */
+    data: XOR<SurvivalRankingUpdateInput, SurvivalRankingUncheckedUpdateInput>
+    /**
+     * Choose, which SurvivalRanking to update.
+     */
+    where: SurvivalRankingWhereUniqueInput
+  }
+
+  /**
+   * SurvivalRanking updateMany
+   */
+  export type SurvivalRankingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SurvivalRankings.
+     */
+    data: XOR<SurvivalRankingUpdateManyMutationInput, SurvivalRankingUncheckedUpdateManyInput>
+    /**
+     * Filter which SurvivalRankings to update
+     */
+    where?: SurvivalRankingWhereInput
+    /**
+     * Limit how many SurvivalRankings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SurvivalRanking upsert
+   */
+  export type SurvivalRankingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * The filter to search for the SurvivalRanking to update in case it exists.
+     */
+    where: SurvivalRankingWhereUniqueInput
+    /**
+     * In case the SurvivalRanking found by the `where` argument doesn't exist, create a new SurvivalRanking with this data.
+     */
+    create: XOR<SurvivalRankingCreateInput, SurvivalRankingUncheckedCreateInput>
+    /**
+     * In case the SurvivalRanking was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SurvivalRankingUpdateInput, SurvivalRankingUncheckedUpdateInput>
+  }
+
+  /**
+   * SurvivalRanking delete
+   */
+  export type SurvivalRankingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+    /**
+     * Filter which SurvivalRanking to delete.
+     */
+    where: SurvivalRankingWhereUniqueInput
+  }
+
+  /**
+   * SurvivalRanking deleteMany
+   */
+  export type SurvivalRankingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SurvivalRankings to delete
+     */
+    where?: SurvivalRankingWhereInput
+    /**
+     * Limit how many SurvivalRankings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SurvivalRanking without action
+   */
+  export type SurvivalRankingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SurvivalRanking
+     */
+    select?: SurvivalRankingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SurvivalRanking
+     */
+    omit?: SurvivalRankingOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -6188,18 +7181,18 @@ export namespace Prisma {
     inviteBlockEnabled: 'inviteBlockEnabled',
     spamReportChannelId: 'spamReportChannelId',
     inviteReportChannelId: 'inviteReportChannelId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    ignoredChannels: 'ignoredChannels',
+    ignoredRoles: 'ignoredRoles',
     spamIgnoredRoles: 'spamIgnoredRoles',
     spamIgnoredChannels: 'spamIgnoredChannels',
     inviteIgnoredRoles: 'inviteIgnoredRoles',
     inviteIgnoredChannels: 'inviteIgnoredChannels',
-    honeypotEnabled: 'honeypotEnabled',
     honeypotChannelId: 'honeypotChannelId',
-    honeypotReportId: 'honeypotReportId',
+    honeypotEnabled: 'honeypotEnabled',
     honeypotIgnoreRole: 'honeypotIgnoreRole',
-    ignoredRoles: 'ignoredRoles',
-    ignoredChannels: 'ignoredChannels',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    honeypotReportId: 'honeypotReportId'
   };
 
   export type ServerSettingScalarFieldEnum = (typeof ServerSettingScalarFieldEnum)[keyof typeof ServerSettingScalarFieldEnum]
@@ -6264,6 +7257,16 @@ export namespace Prisma {
   export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+  export const SurvivalRankingScalarFieldEnum: {
+    userId: 'userId',
+    username: 'username',
+    bestDays: 'bestDays',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SurvivalRankingScalarFieldEnum = (typeof SurvivalRankingScalarFieldEnum)[keyof typeof SurvivalRankingScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -6285,15 +7288,15 @@ export namespace Prisma {
     serverId: 'serverId',
     spamReportChannelId: 'spamReportChannelId',
     inviteReportChannelId: 'inviteReportChannelId',
+    ignoredChannels: 'ignoredChannels',
+    ignoredRoles: 'ignoredRoles',
     spamIgnoredRoles: 'spamIgnoredRoles',
     spamIgnoredChannels: 'spamIgnoredChannels',
     inviteIgnoredRoles: 'inviteIgnoredRoles',
     inviteIgnoredChannels: 'inviteIgnoredChannels',
     honeypotChannelId: 'honeypotChannelId',
-    honeypotReportId: 'honeypotReportId',
     honeypotIgnoreRole: 'honeypotIgnoreRole',
-    ignoredRoles: 'ignoredRoles',
-    ignoredChannels: 'ignoredChannels'
+    honeypotReportId: 'honeypotReportId'
   };
 
   export type ServerSettingOrderByRelevanceFieldEnum = (typeof ServerSettingOrderByRelevanceFieldEnum)[keyof typeof ServerSettingOrderByRelevanceFieldEnum]
@@ -6344,6 +7347,14 @@ export namespace Prisma {
   export type VerificationOrderByRelevanceFieldEnum = (typeof VerificationOrderByRelevanceFieldEnum)[keyof typeof VerificationOrderByRelevanceFieldEnum]
 
 
+  export const SurvivalRankingOrderByRelevanceFieldEnum: {
+    userId: 'userId',
+    username: 'username'
+  };
+
+  export type SurvivalRankingOrderByRelevanceFieldEnum = (typeof SurvivalRankingOrderByRelevanceFieldEnum)[keyof typeof SurvivalRankingOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references
    */
@@ -6375,6 +7386,13 @@ export namespace Prisma {
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
   /**
    * Deep Input Types
    */
@@ -6390,18 +7408,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolFilter<"ServerSetting"> | boolean
     spamReportChannelId?: StringNullableFilter<"ServerSetting"> | string | null
     inviteReportChannelId?: StringNullableFilter<"ServerSetting"> | string | null
-    spamIgnoredRoles?: StringFilter<"ServerSetting"> | string
-    spamIgnoredChannels?: StringFilter<"ServerSetting"> | string
-    inviteIgnoredRoles?: StringFilter<"ServerSetting"> | string
-    inviteIgnoredChannels?: StringFilter<"ServerSetting"> | string
-    honeypotEnabled?: BoolFilter<"ServerSetting"> | boolean
-    honeypotChannelId?: StringNullableFilter<"ServerSetting"> | string | null
-    honeypotReportId?: StringNullableFilter<"ServerSetting"> | string | null
-    honeypotIgnoreRole?: StringFilter<"ServerSetting"> | string
-    ignoredRoles?: StringFilter<"ServerSetting"> | string
-    ignoredChannels?: StringFilter<"ServerSetting"> | string
     createdAt?: DateTimeFilter<"ServerSetting"> | Date | string
     updatedAt?: DateTimeFilter<"ServerSetting"> | Date | string
+    ignoredChannels?: StringNullableFilter<"ServerSetting"> | string | null
+    ignoredRoles?: StringNullableFilter<"ServerSetting"> | string | null
+    spamIgnoredRoles?: StringNullableFilter<"ServerSetting"> | string | null
+    spamIgnoredChannels?: StringNullableFilter<"ServerSetting"> | string | null
+    inviteIgnoredRoles?: StringNullableFilter<"ServerSetting"> | string | null
+    inviteIgnoredChannels?: StringNullableFilter<"ServerSetting"> | string | null
+    honeypotChannelId?: StringNullableFilter<"ServerSetting"> | string | null
+    honeypotEnabled?: BoolFilter<"ServerSetting"> | boolean
+    honeypotIgnoreRole?: StringNullableFilter<"ServerSetting"> | string | null
+    honeypotReportId?: StringNullableFilter<"ServerSetting"> | string | null
   }
 
   export type ServerSettingOrderByWithRelationInput = {
@@ -6411,18 +7429,18 @@ export namespace Prisma {
     inviteBlockEnabled?: SortOrder
     spamReportChannelId?: SortOrderInput | SortOrder
     inviteReportChannelId?: SortOrderInput | SortOrder
-    spamIgnoredRoles?: SortOrder
-    spamIgnoredChannels?: SortOrder
-    inviteIgnoredRoles?: SortOrder
-    inviteIgnoredChannels?: SortOrder
-    honeypotEnabled?: SortOrder
-    honeypotChannelId?: SortOrderInput | SortOrder
-    honeypotReportId?: SortOrderInput | SortOrder
-    honeypotIgnoreRole?: SortOrder
-    ignoredRoles?: SortOrder
-    ignoredChannels?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    ignoredChannels?: SortOrderInput | SortOrder
+    ignoredRoles?: SortOrderInput | SortOrder
+    spamIgnoredRoles?: SortOrderInput | SortOrder
+    spamIgnoredChannels?: SortOrderInput | SortOrder
+    inviteIgnoredRoles?: SortOrderInput | SortOrder
+    inviteIgnoredChannels?: SortOrderInput | SortOrder
+    honeypotChannelId?: SortOrderInput | SortOrder
+    honeypotEnabled?: SortOrder
+    honeypotIgnoreRole?: SortOrderInput | SortOrder
+    honeypotReportId?: SortOrderInput | SortOrder
     _relevance?: ServerSettingOrderByRelevanceInput
   }
 
@@ -6436,18 +7454,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolFilter<"ServerSetting"> | boolean
     spamReportChannelId?: StringNullableFilter<"ServerSetting"> | string | null
     inviteReportChannelId?: StringNullableFilter<"ServerSetting"> | string | null
-    spamIgnoredRoles?: StringFilter<"ServerSetting"> | string
-    spamIgnoredChannels?: StringFilter<"ServerSetting"> | string
-    inviteIgnoredRoles?: StringFilter<"ServerSetting"> | string
-    inviteIgnoredChannels?: StringFilter<"ServerSetting"> | string
-    honeypotEnabled?: BoolFilter<"ServerSetting"> | boolean
-    honeypotChannelId?: StringNullableFilter<"ServerSetting"> | string | null
-    honeypotReportId?: StringNullableFilter<"ServerSetting"> | string | null
-    honeypotIgnoreRole?: StringFilter<"ServerSetting"> | string
-    ignoredRoles?: StringFilter<"ServerSetting"> | string
-    ignoredChannels?: StringFilter<"ServerSetting"> | string
     createdAt?: DateTimeFilter<"ServerSetting"> | Date | string
     updatedAt?: DateTimeFilter<"ServerSetting"> | Date | string
+    ignoredChannels?: StringNullableFilter<"ServerSetting"> | string | null
+    ignoredRoles?: StringNullableFilter<"ServerSetting"> | string | null
+    spamIgnoredRoles?: StringNullableFilter<"ServerSetting"> | string | null
+    spamIgnoredChannels?: StringNullableFilter<"ServerSetting"> | string | null
+    inviteIgnoredRoles?: StringNullableFilter<"ServerSetting"> | string | null
+    inviteIgnoredChannels?: StringNullableFilter<"ServerSetting"> | string | null
+    honeypotChannelId?: StringNullableFilter<"ServerSetting"> | string | null
+    honeypotEnabled?: BoolFilter<"ServerSetting"> | boolean
+    honeypotIgnoreRole?: StringNullableFilter<"ServerSetting"> | string | null
+    honeypotReportId?: StringNullableFilter<"ServerSetting"> | string | null
   }, "id" | "serverId">
 
   export type ServerSettingOrderByWithAggregationInput = {
@@ -6457,18 +7475,18 @@ export namespace Prisma {
     inviteBlockEnabled?: SortOrder
     spamReportChannelId?: SortOrderInput | SortOrder
     inviteReportChannelId?: SortOrderInput | SortOrder
-    spamIgnoredRoles?: SortOrder
-    spamIgnoredChannels?: SortOrder
-    inviteIgnoredRoles?: SortOrder
-    inviteIgnoredChannels?: SortOrder
-    honeypotEnabled?: SortOrder
-    honeypotChannelId?: SortOrderInput | SortOrder
-    honeypotReportId?: SortOrderInput | SortOrder
-    honeypotIgnoreRole?: SortOrder
-    ignoredRoles?: SortOrder
-    ignoredChannels?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    ignoredChannels?: SortOrderInput | SortOrder
+    ignoredRoles?: SortOrderInput | SortOrder
+    spamIgnoredRoles?: SortOrderInput | SortOrder
+    spamIgnoredChannels?: SortOrderInput | SortOrder
+    inviteIgnoredRoles?: SortOrderInput | SortOrder
+    inviteIgnoredChannels?: SortOrderInput | SortOrder
+    honeypotChannelId?: SortOrderInput | SortOrder
+    honeypotEnabled?: SortOrder
+    honeypotIgnoreRole?: SortOrderInput | SortOrder
+    honeypotReportId?: SortOrderInput | SortOrder
     _count?: ServerSettingCountOrderByAggregateInput
     _max?: ServerSettingMaxOrderByAggregateInput
     _min?: ServerSettingMinOrderByAggregateInput
@@ -6484,18 +7502,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolWithAggregatesFilter<"ServerSetting"> | boolean
     spamReportChannelId?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
     inviteReportChannelId?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
-    spamIgnoredRoles?: StringWithAggregatesFilter<"ServerSetting"> | string
-    spamIgnoredChannels?: StringWithAggregatesFilter<"ServerSetting"> | string
-    inviteIgnoredRoles?: StringWithAggregatesFilter<"ServerSetting"> | string
-    inviteIgnoredChannels?: StringWithAggregatesFilter<"ServerSetting"> | string
-    honeypotEnabled?: BoolWithAggregatesFilter<"ServerSetting"> | boolean
-    honeypotChannelId?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
-    honeypotReportId?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
-    honeypotIgnoreRole?: StringWithAggregatesFilter<"ServerSetting"> | string
-    ignoredRoles?: StringWithAggregatesFilter<"ServerSetting"> | string
-    ignoredChannels?: StringWithAggregatesFilter<"ServerSetting"> | string
     createdAt?: DateTimeWithAggregatesFilter<"ServerSetting"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ServerSetting"> | Date | string
+    ignoredChannels?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    ignoredRoles?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    spamIgnoredRoles?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    spamIgnoredChannels?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    inviteIgnoredRoles?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    inviteIgnoredChannels?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    honeypotChannelId?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    honeypotEnabled?: BoolWithAggregatesFilter<"ServerSetting"> | boolean
+    honeypotIgnoreRole?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
+    honeypotReportId?: StringNullableWithAggregatesFilter<"ServerSetting"> | string | null
   }
 
   export type AccountWhereInput = {
@@ -6797,6 +7815,56 @@ export namespace Prisma {
     updatedAt?: DateTimeNullableWithAggregatesFilter<"Verification"> | Date | string | null
   }
 
+  export type SurvivalRankingWhereInput = {
+    AND?: SurvivalRankingWhereInput | SurvivalRankingWhereInput[]
+    OR?: SurvivalRankingWhereInput[]
+    NOT?: SurvivalRankingWhereInput | SurvivalRankingWhereInput[]
+    userId?: StringFilter<"SurvivalRanking"> | string
+    username?: StringFilter<"SurvivalRanking"> | string
+    bestDays?: IntFilter<"SurvivalRanking"> | number
+    updatedAt?: DateTimeFilter<"SurvivalRanking"> | Date | string
+  }
+
+  export type SurvivalRankingOrderByWithRelationInput = {
+    userId?: SortOrder
+    username?: SortOrder
+    bestDays?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: SurvivalRankingOrderByRelevanceInput
+  }
+
+  export type SurvivalRankingWhereUniqueInput = Prisma.AtLeast<{
+    userId?: string
+    AND?: SurvivalRankingWhereInput | SurvivalRankingWhereInput[]
+    OR?: SurvivalRankingWhereInput[]
+    NOT?: SurvivalRankingWhereInput | SurvivalRankingWhereInput[]
+    username?: StringFilter<"SurvivalRanking"> | string
+    bestDays?: IntFilter<"SurvivalRanking"> | number
+    updatedAt?: DateTimeFilter<"SurvivalRanking"> | Date | string
+  }, "userId">
+
+  export type SurvivalRankingOrderByWithAggregationInput = {
+    userId?: SortOrder
+    username?: SortOrder
+    bestDays?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SurvivalRankingCountOrderByAggregateInput
+    _avg?: SurvivalRankingAvgOrderByAggregateInput
+    _max?: SurvivalRankingMaxOrderByAggregateInput
+    _min?: SurvivalRankingMinOrderByAggregateInput
+    _sum?: SurvivalRankingSumOrderByAggregateInput
+  }
+
+  export type SurvivalRankingScalarWhereWithAggregatesInput = {
+    AND?: SurvivalRankingScalarWhereWithAggregatesInput | SurvivalRankingScalarWhereWithAggregatesInput[]
+    OR?: SurvivalRankingScalarWhereWithAggregatesInput[]
+    NOT?: SurvivalRankingScalarWhereWithAggregatesInput | SurvivalRankingScalarWhereWithAggregatesInput[]
+    userId?: StringWithAggregatesFilter<"SurvivalRanking"> | string
+    username?: StringWithAggregatesFilter<"SurvivalRanking"> | string
+    bestDays?: IntWithAggregatesFilter<"SurvivalRanking"> | number
+    updatedAt?: DateTimeWithAggregatesFilter<"SurvivalRanking"> | Date | string
+  }
+
   export type ServerSettingCreateInput = {
     id?: string
     serverId: string
@@ -6804,18 +7872,18 @@ export namespace Prisma {
     inviteBlockEnabled?: boolean
     spamReportChannelId?: string | null
     inviteReportChannelId?: string | null
-    spamIgnoredRoles?: string
-    spamIgnoredChannels?: string
-    inviteIgnoredRoles?: string
-    inviteIgnoredChannels?: string
-    honeypotEnabled?: boolean
-    honeypotChannelId?: string | null
-    honeypotReportId?: string | null
-    honeypotIgnoreRole?: string
-    ignoredRoles?: string
-    ignoredChannels?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    ignoredChannels?: string | null
+    ignoredRoles?: string | null
+    spamIgnoredRoles?: string | null
+    spamIgnoredChannels?: string | null
+    inviteIgnoredRoles?: string | null
+    inviteIgnoredChannels?: string | null
+    honeypotChannelId?: string | null
+    honeypotEnabled?: boolean
+    honeypotIgnoreRole?: string | null
+    honeypotReportId?: string | null
   }
 
   export type ServerSettingUncheckedCreateInput = {
@@ -6825,18 +7893,18 @@ export namespace Prisma {
     inviteBlockEnabled?: boolean
     spamReportChannelId?: string | null
     inviteReportChannelId?: string | null
-    spamIgnoredRoles?: string
-    spamIgnoredChannels?: string
-    inviteIgnoredRoles?: string
-    inviteIgnoredChannels?: string
-    honeypotEnabled?: boolean
-    honeypotChannelId?: string | null
-    honeypotReportId?: string | null
-    honeypotIgnoreRole?: string
-    ignoredRoles?: string
-    ignoredChannels?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    ignoredChannels?: string | null
+    ignoredRoles?: string | null
+    spamIgnoredRoles?: string | null
+    spamIgnoredChannels?: string | null
+    inviteIgnoredRoles?: string | null
+    inviteIgnoredChannels?: string | null
+    honeypotChannelId?: string | null
+    honeypotEnabled?: boolean
+    honeypotIgnoreRole?: string | null
+    honeypotReportId?: string | null
   }
 
   export type ServerSettingUpdateInput = {
@@ -6846,18 +7914,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolFieldUpdateOperationsInput | boolean
     spamReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
     inviteReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    spamIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    spamIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
-    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotIgnoreRole?: StringFieldUpdateOperationsInput | string
-    ignoredRoles?: StringFieldUpdateOperationsInput | string
-    ignoredChannels?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ignoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    ignoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
+    honeypotIgnoreRole?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ServerSettingUncheckedUpdateInput = {
@@ -6867,18 +7935,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolFieldUpdateOperationsInput | boolean
     spamReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
     inviteReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    spamIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    spamIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
-    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotIgnoreRole?: StringFieldUpdateOperationsInput | string
-    ignoredRoles?: StringFieldUpdateOperationsInput | string
-    ignoredChannels?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ignoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    ignoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
+    honeypotIgnoreRole?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ServerSettingCreateManyInput = {
@@ -6888,18 +7956,18 @@ export namespace Prisma {
     inviteBlockEnabled?: boolean
     spamReportChannelId?: string | null
     inviteReportChannelId?: string | null
-    spamIgnoredRoles?: string
-    spamIgnoredChannels?: string
-    inviteIgnoredRoles?: string
-    inviteIgnoredChannels?: string
-    honeypotEnabled?: boolean
-    honeypotChannelId?: string | null
-    honeypotReportId?: string | null
-    honeypotIgnoreRole?: string
-    ignoredRoles?: string
-    ignoredChannels?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    ignoredChannels?: string | null
+    ignoredRoles?: string | null
+    spamIgnoredRoles?: string | null
+    spamIgnoredChannels?: string | null
+    inviteIgnoredRoles?: string | null
+    inviteIgnoredChannels?: string | null
+    honeypotChannelId?: string | null
+    honeypotEnabled?: boolean
+    honeypotIgnoreRole?: string | null
+    honeypotReportId?: string | null
   }
 
   export type ServerSettingUpdateManyMutationInput = {
@@ -6909,18 +7977,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolFieldUpdateOperationsInput | boolean
     spamReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
     inviteReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    spamIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    spamIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
-    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotIgnoreRole?: StringFieldUpdateOperationsInput | string
-    ignoredRoles?: StringFieldUpdateOperationsInput | string
-    ignoredChannels?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ignoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    ignoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
+    honeypotIgnoreRole?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ServerSettingUncheckedUpdateManyInput = {
@@ -6930,18 +7998,18 @@ export namespace Prisma {
     inviteBlockEnabled?: BoolFieldUpdateOperationsInput | boolean
     spamReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
     inviteReportChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    spamIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    spamIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredRoles?: StringFieldUpdateOperationsInput | string
-    inviteIgnoredChannels?: StringFieldUpdateOperationsInput | string
-    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
-    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
-    honeypotIgnoreRole?: StringFieldUpdateOperationsInput | string
-    ignoredRoles?: StringFieldUpdateOperationsInput | string
-    ignoredChannels?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ignoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    ignoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    spamIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredRoles?: NullableStringFieldUpdateOperationsInput | string | null
+    inviteIgnoredChannels?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotEnabled?: BoolFieldUpdateOperationsInput | boolean
+    honeypotIgnoreRole?: NullableStringFieldUpdateOperationsInput | string | null
+    honeypotReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AccountCreateInput = {
@@ -7279,6 +8347,55 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type SurvivalRankingCreateInput = {
+    userId: string
+    username: string
+    bestDays?: number
+    updatedAt: Date | string
+  }
+
+  export type SurvivalRankingUncheckedCreateInput = {
+    userId: string
+    username: string
+    bestDays?: number
+    updatedAt: Date | string
+  }
+
+  export type SurvivalRankingUpdateInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    bestDays?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SurvivalRankingUncheckedUpdateInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    bestDays?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SurvivalRankingCreateManyInput = {
+    userId: string
+    username: string
+    bestDays?: number
+    updatedAt: Date | string
+  }
+
+  export type SurvivalRankingUpdateManyMutationInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    bestDays?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SurvivalRankingUncheckedUpdateManyInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    bestDays?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -7343,18 +8460,18 @@ export namespace Prisma {
     inviteBlockEnabled?: SortOrder
     spamReportChannelId?: SortOrder
     inviteReportChannelId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ignoredChannels?: SortOrder
+    ignoredRoles?: SortOrder
     spamIgnoredRoles?: SortOrder
     spamIgnoredChannels?: SortOrder
     inviteIgnoredRoles?: SortOrder
     inviteIgnoredChannels?: SortOrder
-    honeypotEnabled?: SortOrder
     honeypotChannelId?: SortOrder
-    honeypotReportId?: SortOrder
+    honeypotEnabled?: SortOrder
     honeypotIgnoreRole?: SortOrder
-    ignoredRoles?: SortOrder
-    ignoredChannels?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
+    honeypotReportId?: SortOrder
   }
 
   export type ServerSettingMaxOrderByAggregateInput = {
@@ -7364,18 +8481,18 @@ export namespace Prisma {
     inviteBlockEnabled?: SortOrder
     spamReportChannelId?: SortOrder
     inviteReportChannelId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ignoredChannels?: SortOrder
+    ignoredRoles?: SortOrder
     spamIgnoredRoles?: SortOrder
     spamIgnoredChannels?: SortOrder
     inviteIgnoredRoles?: SortOrder
     inviteIgnoredChannels?: SortOrder
-    honeypotEnabled?: SortOrder
     honeypotChannelId?: SortOrder
-    honeypotReportId?: SortOrder
+    honeypotEnabled?: SortOrder
     honeypotIgnoreRole?: SortOrder
-    ignoredRoles?: SortOrder
-    ignoredChannels?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
+    honeypotReportId?: SortOrder
   }
 
   export type ServerSettingMinOrderByAggregateInput = {
@@ -7385,18 +8502,18 @@ export namespace Prisma {
     inviteBlockEnabled?: SortOrder
     spamReportChannelId?: SortOrder
     inviteReportChannelId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ignoredChannels?: SortOrder
+    ignoredRoles?: SortOrder
     spamIgnoredRoles?: SortOrder
     spamIgnoredChannels?: SortOrder
     inviteIgnoredRoles?: SortOrder
     inviteIgnoredChannels?: SortOrder
-    honeypotEnabled?: SortOrder
     honeypotChannelId?: SortOrder
-    honeypotReportId?: SortOrder
+    honeypotEnabled?: SortOrder
     honeypotIgnoreRole?: SortOrder
-    ignoredRoles?: SortOrder
-    ignoredChannels?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
+    honeypotReportId?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -7672,6 +8789,68 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type SurvivalRankingOrderByRelevanceInput = {
+    fields: SurvivalRankingOrderByRelevanceFieldEnum | SurvivalRankingOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SurvivalRankingCountOrderByAggregateInput = {
+    userId?: SortOrder
+    username?: SortOrder
+    bestDays?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SurvivalRankingAvgOrderByAggregateInput = {
+    bestDays?: SortOrder
+  }
+
+  export type SurvivalRankingMaxOrderByAggregateInput = {
+    userId?: SortOrder
+    username?: SortOrder
+    bestDays?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SurvivalRankingMinOrderByAggregateInput = {
+    userId?: SortOrder
+    username?: SortOrder
+    bestDays?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SurvivalRankingSumOrderByAggregateInput = {
+    bestDays?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -7802,6 +8981,14 @@ export namespace Prisma {
     update?: SessionUpdateWithWhereUniqueWithoutUserInput | SessionUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: SessionUpdateManyWithWhereWithoutUserInput | SessionUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: SessionScalarWhereInput | SessionScalarWhereInput[]
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -7953,6 +9140,33 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type UserCreateWithoutAccountsInput = {
