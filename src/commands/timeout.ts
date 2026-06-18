@@ -90,15 +90,17 @@ const command = {
 			if (replied) {
 				return replied;
 			}
+
 			const edited = await tryEdit();
 			if (edited) {
 				return edited;
 			}
+
 			await tryFollowUp();
 		};
 
-		const buildErrorEmbed = (content: string) =>
-			new EmbedBuilder()
+		const replyError = async (content: string) => {
+			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: "エラー",
 					iconURL: ERROR_ICON_URL,
@@ -106,9 +108,7 @@ const command = {
 				.setDescription(content)
 				.setColor(0xed4245)
 				.setTimestamp(new Date());
-
-		const replyError = async (content: string) => {
-			await sendEphemeral(buildErrorEmbed(content));
+			await sendEphemeral(embed);
 		};
 
 		if (!interaction.deferred && !interaction.replied) {

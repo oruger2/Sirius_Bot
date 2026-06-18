@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model ServerSetting {
+  id                    String   @id @default(cuid())
+  serverId              String   @unique
+  spamBlockEnabled      Boolean  @default(true)
+  inviteBlockEnabled    Boolean  @default(true)
+  spamReportChannelId   String?
+  inviteReportChannelId String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  ignoredChannels       String?  @db.Text
+  ignoredRoles          String?  @db.Text
+  spamIgnoredRoles      String?  @db.Text
+  spamIgnoredChannels   String?  @db.Text
+  inviteIgnoredRoles    String?  @db.Text
+  inviteIgnoredChannels String?  @db.Text
+  honeypotChannelId     String?
+  honeypotEnabled       Boolean  @default(false)
+  honeypotIgnoreRole    String?  @db.Text
+  honeypotReportId      String?
+}
+
+model Account {
+  id                    String    @id @default(cuid()) @db.VarChar(255)
+  userId                String    @db.VarChar(255)
+  providerId            String    @db.VarChar(255)
+  accountId             String    @db.VarChar(255)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  expiresAt             DateTime? @db.DateTime(0)
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Session {
+  id        String   @id @default(cuid()) @db.VarChar(255)
+  userId    String   @db.VarChar(255)
+  token     String   @unique @db.VarChar(255)
+  expiresAt DateTime
+  ipAddress String?  @db.VarChar(255)
+  userAgent String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model User {
+  id            String    @id @default(cuid()) @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  email         String    @unique @db.VarChar(255)
+  emailVerified Boolean
+  image         String?   @db.VarChar(255)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Verification {
+  id         String    @id @default(cuid()) @db.VarChar(255)
+  identifier String    @db.VarChar(255)
+  value      String    @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime? @updatedAt
+
+  @@map("verification")
+}
+
+model SurvivalRanking {
+  userId    String   @id
+  username  String
+  bestDays  Int      @default(0)
+  updatedAt DateTime
+}

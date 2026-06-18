@@ -10,6 +10,74 @@ const command = {
 		.setName("ping")
 		.setDescription("Botの応答速度を確認します"),
 	async execute(interaction: ChatInputCommandInteraction) {
+		const sendEphemeral = async (embed: EmbedBuilder) => {
+			const replyPayload = { embeds: [embed], flags: ["Ephemeral"] as const };
+			const editPayload = { embeds: [embed] };
+			const followUpPayload = {
+				embeds: [embed],
+				flags: ["Ephemeral"] as const,
+			};
+			const tryEdit = async () => {
+				try {
+					return await interaction.editReply(editPayload);
+				} catch (error) {
+					if (
+						error instanceof Error &&
+						error.name === "InteractionNotReplied"
+					) {
+						return null;
+					}
+					throw error;
+				}
+			};
+			const tryReply = async () => {
+				try {
+					return await interaction.reply(replyPayload);
+				} catch (error) {
+					if ((error as { code?: number }).code === 40060) {
+						return null;
+					}
+					throw error;
+				}
+			};
+			const tryFollowUp = async () => {
+				try {
+					return await interaction.followUp(followUpPayload);
+				} catch {
+					return null;
+				}
+			};
+			if (interaction.deferred || interaction.replied) {
+				const edited = await tryEdit();
+				if (edited) {
+					return edited;
+				}
+				const replied = await tryReply();
+				if (replied) {
+					return replied;
+				}
+				await tryFollowUp();
+				return;
+			}
+			const replied = await tryReply();
+			if (replied) {
+				return replied;
+			}
+			const edited = await tryEdit();
+			if (edited) {
+				return edited;
+			}
+			await tryFollowUp();
+		};
+
+		if (!interaction.deferred && !interaction.replied) {
+			try {
+				await interaction.deferReply({ flags: ["Ephemeral"] as const });
+			} catch {
+				// If defer fails, continue and attempt a normal reply in sendEphemeral.
+			}
+		}
+
 		const startedAt = Date.now();
 		const measuringEmbed = new EmbedBuilder()
 			.setAuthor({
@@ -20,11 +88,7 @@ const command = {
 			.setColor(0x57f287)
 			.setTimestamp(new Date());
 
-		if (interaction.deferred) {
-			await interaction.editReply({ embeds: [measuringEmbed] });
-		} else {
-			await interaction.reply({ embeds: [measuringEmbed] });
-		}
+		await sendEphemeral(measuringEmbed);
 
 		const repliedAt = Date.now();
 		const apiLatencyMs = repliedAt - startedAt;
@@ -46,7 +110,7 @@ const command = {
 			.setColor(0x57f287)
 			.setTimestamp(new Date());
 
-		await interaction.editReply({ embeds: [embed] });
+		await sendEphemeral(embed);
 	},
 };
 
