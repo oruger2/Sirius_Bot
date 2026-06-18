@@ -13,15 +13,15 @@ export default {
 		// サーバー外、またはBot自身のメッセージは無視
 		if (!message.guild || message.author.bot) return;
 
-		// 💡 一番最初に出力するログ
+		// 💡 1. メッセージ検知ログ
 		console.log(`[Honeypot Test] メッセージ検知! チャンネルID: ${message.channelId}, ユーザー: ${message.author.tag}`);
 
-		// サーバー設定の取得
+		// サーバー設定の取得（ここで1回だけ宣言）
 		const setting = await prisma.serverSetting.findUnique({
 			where: { serverId: message.guild.id },
 		});
 
-		// 💡 DBの取得結果をログに出す
+		// 💡 2. DBの取得結果ログ
 		console.log("[Honeypot Test] DBの設定値:", setting);
 
 		// 設定がない、またはハニーポットが無効な場合は何もしない
