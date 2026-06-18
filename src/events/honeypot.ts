@@ -12,6 +12,15 @@ export default {
 	async execute(message: Message): Promise<void> {
 		// サーバー外、またはBot自身のメッセージは無視
 		if (!message.guild || message.author.bot) return;
+　// 一番最初に出力するログ
+ console.log(`[Honeypot Test] メッセージ検知! チャンネルID: ${message.channelId}, ユーザー: ${message.author.tag}`);
+
+ const setting = await prisma.serverSetting.findUnique({
+     where: { serverId: message.guild.id },
+ });
+
+ console.log("[Honeypot Test] DBの設定値:", setting);
+
 
 		// サーバー設定の取得（型安全にするため as any を適切な型、またはそのまま推論させる）
 		const setting = await prisma.serverSetting.findUnique({
